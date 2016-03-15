@@ -49,6 +49,7 @@ var isCoreLevel = CC_EDITOR && Editor.isCoreLevel;
 if (!isCoreLevel) {
     // LOAD ORIGIN COCOS2D COMPILED BY CLOSURE
     require('./bin/modular-cocos2d');
+    require('./cocos3d');
 }
 else {
     // load modules for editor's core-level which included in modular-cocos2d.js
