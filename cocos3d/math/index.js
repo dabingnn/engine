@@ -1,8 +1,8 @@
 
-require('./math');
-require('./vec2');
-require('./vec3');
-require('./vec4');
-require('./mat3');
-require('./mat4');
-require('./quat');
+require('./CCMath');
+require('./CCVec2');
+require('./CCVec3');
+require('./CCVec4');
+require('./CCMat3');
+require('./CCMat4');
+require('./CCQuat');
