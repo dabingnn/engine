@@ -87,3 +87,5 @@ VertexBuffer.prototype = {
         return true;
     }
 };
+
+cc3d.graphics.VertexBuffer = VertexBuffer;

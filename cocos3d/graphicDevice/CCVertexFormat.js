@@ -55,3 +55,5 @@ var VertexFormat = function (description) {
         offset += element.size;
     }
 };
+
+cc3d.graphics.VertexFormat = VertexFormat;

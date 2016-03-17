@@ -10,6 +10,8 @@ var rotation = cc3d.math.Quat.IDENTITY.clone();
 var scale = cc3d.math.Vec3.ONE.clone();
 var position = new cc3d.math.Vec3(0,0,0);
 var texture = null;
+var VertexBuffer = cc3d.graphics.VertexBuffer;
+var cc3dEnums = cc3d.graphics.Enums;
 function initTexture() {
     texture = gl.createTexture();
     texture.image = new Image();
@@ -103,16 +105,18 @@ function initBuffer() {
         1.0, 1.0,
         0.0, 1.0,
     ];
+    var vertexFormat = new cc3d.graphics.VertexFormat(
+        [{semantic:cc3dEnums.SEMANTIC_POSITION,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
+    );
+    vertexBuffer = new VertexBuffer(vertexFormat,vertices.length/3);
+    vertexBuffer.setData(new Float32Array(vertices));
 
-    vertexBuffer = gl.createBuffer();
-    uvBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    vertexFormat = new cc3d.graphics.VertexFormat(
+        [{semantic:cc3dEnums.SEMANTIC_TEXCOORD0,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:2}]
+    );
+    uvBuffer = new VertexBuffer(vertexFormat,uv.length/2);
+    uvBuffer.setData(new Float32Array(uv));
 
-    gl.bindBuffer(gl.ARRAY_BUFFER,uvBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
-
-    //gl.bindBuffer(gl.ARRAY_BUFFER,0);
 
     indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -205,7 +209,7 @@ function drawScene() {
     mat_mv.mul2(mat_p, mat_mv);
 
     gl.useProgram(glProgram);
-
+    var attribs = {};
     // commit uniform
     var u_mat_p = gl.getUniformLocation(glProgram, 'worldViewProjection');
     gl.uniformMatrix4fv(u_mat_p, false, mat_mv.data);
@@ -213,15 +217,35 @@ function drawScene() {
     // commit vb & attr
     var attr_pos = gl.getAttribLocation(glProgram, 'a_position');
     var attr_tex_coord = gl.getAttribLocation(glProgram, 'a_texCoord0');
-    //var attrs = [attr_pos];
+    attribs[cc3dEnums.SEMANTIC_POSITION] = attr_pos;
+    attribs[cc3dEnums.SEMANTIC_TEXCOORD0] = attr_tex_coord;
+    var glType = [
+        gl.BYTE,
+        gl.UNSIGNED_BYTE,
+        gl.SHORT,
+        gl.UNSIGNED_SHORT,
+        gl.INT,
+        gl.UNSIGNED_INT,
+        gl.FLOAT
+    ];
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer.bufferId);
+    for(var index = 0; index < vertexBuffer.format.elements.length; ++index) {
+        var element = vertexBuffer.format.elements[index];
+        if(attribs[element.name] !== undefined) {
+            gl.enableVertexAttribArray(attribs[element.name]);
+            gl.vertexAttribPointer(attribs[element.name], element.numComponents, glType[element.dataType], element.normalize, element.stride, element.offset);
+        }
+    }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.enableVertexAttribArray(attr_pos);
-    gl.vertexAttribPointer(attr_pos, 3, gl.FLOAT, gl.False, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer.bufferId);
+    for(var index = 0; index < uvBuffer.format.elements.length; ++index) {
+        var element = uvBuffer.format.elements[index];
+        if(attribs[element.name] !== undefined) {
+            gl.enableVertexAttribArray(attribs[element.name]);
+            gl.vertexAttribPointer(attribs[element.name], element.numComponents, glType[element.dataType], element.normalize, element.stride, element.offset);
+        }
+    }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-    gl.enableVertexAttribArray(attr_tex_coord);
-    gl.vertexAttribPointer(attr_tex_coord, 2, gl.FLOAT, gl.False, 0, 0);
     // commit ib
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
