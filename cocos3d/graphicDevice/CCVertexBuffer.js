@@ -3,7 +3,7 @@ require('./CCGraphicEnums');
 
 'use strict';
 
-var VertexBuffer = function (format, numVertices, usage, initialData) {
+var VertexBuffer = function (device, format, numVertices, usage, initialData) {
     // Initialize optional parameters
     // By default, vertex buffers are static (better for performance since buffer data can be cached in VRAM)
     this.usage = usage || cc3d.graphics.Enums.BUFFER_STATIC;
@@ -19,9 +19,8 @@ var VertexBuffer = function (format, numVertices, usage, initialData) {
     //graphicsDevice._vram.vb += this.numBytes;
 
     // Create the WebGL vertex buffer object
-    //this.device = graphicsDevice;
-    this.device = {};
-    this.device.gl = cc._renderContext;
+    this.device = device;
+
     var gl = this.device.gl;
     this.bufferId = gl.createBuffer();
 

@@ -10,7 +10,9 @@ var rotation = cc3d.math.Quat.IDENTITY.clone();
 var scale = cc3d.math.Vec3.ONE.clone();
 var position = new cc3d.math.Vec3(0,0,0);
 var texture = null;
+var device = null;
 var VertexBuffer = cc3d.graphics.VertexBuffer;
+var IndexBuffer = cc3d.graphics.IndexBuffer;
 var cc3dEnums = cc3d.graphics.Enums;
 function initTexture() {
     texture = gl.createTexture();
@@ -108,18 +110,15 @@ function initBuffer() {
     var vertexFormat = new cc3d.graphics.VertexFormat(
         [{semantic:cc3dEnums.SEMANTIC_POSITION,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
     );
-    vertexBuffer = new VertexBuffer(vertexFormat,vertices.length/3);
+    vertexBuffer = new VertexBuffer(device, vertexFormat,vertices.length/3);
     vertexBuffer.setData(new Float32Array(vertices));
 
     vertexFormat = new cc3d.graphics.VertexFormat(
         [{semantic:cc3dEnums.SEMANTIC_TEXCOORD0,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:2}]
     );
-    uvBuffer = new VertexBuffer(vertexFormat,uv.length/2);
+    uvBuffer = new VertexBuffer(device, vertexFormat,uv.length/2);
     uvBuffer.setData(new Float32Array(uv));
 
-
-    indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     var indices = [
         0, 1, 2,      0, 2, 3,    // Front face
         4, 5, 6,      4, 6, 7,    // Back face
@@ -128,7 +127,14 @@ function initBuffer() {
         16, 17, 18,   16, 18, 19, // Right face
         20, 21, 22,   20, 22, 23  // Left face
     ];
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    indexBuffer = new IndexBuffer(cc3dEnums.INDEXFORMAT_UINT16,indices.length);
+
+    //indexBuffer = gl.createBuffer();
+    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    var indexArray = new Uint16Array(indexBuffer.lock());
+    indexArray.set(indices);
+    indexBuffer.unlock();
+    //gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 };
 
 function initGLProgram() {
@@ -247,7 +253,7 @@ function drawScene() {
     }
 
     // commit ib
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.bufferId);
 
     // commit texture
     var u_sampler = gl.getUniformLocation(glProgram, 'texture');
@@ -256,7 +262,7 @@ function drawScene() {
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     // draw
-    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, indexBuffer.numIndices, indexBuffer.glFormat, 0);
 
 };
 var lastTime = null;
@@ -275,7 +281,9 @@ function animate() {
 
 function run3d() {
     canvas = document.getElementById("gameCanvas");
-    gl = canvas.getContext('webgl');
+    device = new cc3d.graphics.GraphicsDevice(canvas);
+    gl = device.gl;
+
     initGLProgram();
     initBuffer();
     initTexture();

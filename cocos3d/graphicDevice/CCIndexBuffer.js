@@ -79,3 +79,5 @@ IndexBuffer.prototype = {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.storage, glUsage);
     }
 };
+
+cc3d.graphics.IndexBuffer = IndexBuffer;
