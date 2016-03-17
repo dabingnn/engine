@@ -127,7 +127,7 @@ function initBuffer() {
         16, 17, 18,   16, 18, 19, // Right face
         20, 21, 22,   20, 22, 23  // Left face
     ];
-    indexBuffer = new IndexBuffer(cc3dEnums.INDEXFORMAT_UINT16,indices.length);
+    indexBuffer = new IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
 
     //indexBuffer = gl.createBuffer();
     //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);

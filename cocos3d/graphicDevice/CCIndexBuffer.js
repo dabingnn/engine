@@ -2,7 +2,7 @@ require('./CCGraphicEnums');
 
 'use strict';
 
-var IndexBuffer = function (format, numIndices, usage) {
+var IndexBuffer = function (device, format, numIndices, usage) {
     // Initialize optional parameters
     // By default, index buffers are static (better for performance since buffer data can be cached in VRAM)
     this.usage = usage || cc3d.graphics.Enums.BUFFER_STATIC;
@@ -14,8 +14,8 @@ var IndexBuffer = function (format, numIndices, usage) {
     this.numIndices = numIndices;
 
     // Create the WebGL buffer
-    this.device = {};
-    this.device.gl = cc._renderContext;
+    this.device = device;
+
     var gl = this.device.gl;
     this.bufferId = gl.createBuffer();
 
