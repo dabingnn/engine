@@ -86,7 +86,7 @@ if(cc.sys){
         jsb.fileUtils.setSearchPaths(JSON.parse(scene3SearchPaths));
 }
 
-cc.game.run({
+var run2d = cc.game.run({
     "debugMode"     : 1,
     "showFPS"       : true,
     "frameRate"     : 60,
@@ -199,3 +199,9 @@ cc.game.run({
         }
     }, this);
 });
+
+if(cc3d) {
+    run3d();
+} else {
+    run2d();
+}

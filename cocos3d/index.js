@@ -28,3 +28,4 @@ cc3d = {
 };
 
 require('./math');
+require('./graphicDevice');
