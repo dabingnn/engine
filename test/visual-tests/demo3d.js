@@ -1,4 +1,4 @@
-var gl = null;
+
 var canvas = null;
 var glProgram = null;
 
@@ -15,6 +15,7 @@ var VertexBuffer = cc3d.graphics.VertexBuffer;
 var IndexBuffer = cc3d.graphics.IndexBuffer;
 var cc3dEnums = cc3d.graphics.Enums;
 function initTexture() {
+    var gl = device.gl;
     texture = gl.createTexture();
     texture.image = new Image();
     texture.image.onload = function () {
@@ -178,6 +179,7 @@ function tick() {
 }
 
 function drawScene() {
+    var gl = device.gl;
     gl.clearColor( 0.5, 0.5, 0.5, 1.0 );
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -205,26 +207,28 @@ function drawScene() {
     device.setShader(glProgram);
 
     // commit uniform
-    var u_mat_p = gl.getUniformLocation(glProgram.program, 'worldViewProjection');
-    gl.uniformMatrix4fv(u_mat_p, false, mat_mv.data);
-    // commit texture
-    var u_sampler = gl.getUniformLocation(glProgram.program, 'texture');
-    gl.uniform1i(u_sampler, 0);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    var scope = device.scope.resolve('worldViewProjection');
+    scope.setValue(mat_mv.data);
+
+    scope = device.scope.resolve('texture');
+    scope.setValue(texture);
 
     //set vertexBuffer and indexBuffer
     device.setVertexBuffer(vertexBuffer, 0);
     device.setVertexBuffer(uvBuffer,1);
     device.setIndexBuffer(indexBuffer);
     var primitive = {
-        type: gl.TRIANGLES,
-        indexed: true,
+        type: gl.TRIANGLE_FAN,
+        indexed: false,
         base: 0,
-        count: indexBuffer.numIndices
+        count: 4,
     };
     // draw
     device.draw(primitive);
+    while(primitive.base + primitive.count < uvBuffer.getNumVertices()) {
+        primitive.base +=4;
+        device.draw(primitive);
+    }
 
 };
 var lastTime = null;
@@ -244,7 +248,6 @@ function animate() {
 function run3d() {
     canvas = document.getElementById("gameCanvas");
     device = new cc3d.graphics.GraphicsDevice(canvas);
-    gl = device.gl;
 
     initGLProgram();
     initBuffer();
