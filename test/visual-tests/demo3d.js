@@ -168,29 +168,7 @@ function initGLProgram() {
     };
     glProgram = new cc3d.graphics.Shader(device,definition);
     glProgram.link();
-    //var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    //var pixelShader = gl.createShader(gl.FRAGMENT_SHADER);
-    //gl.shaderSource(vertexShader,vertSrc);
-    //gl.shaderSource(pixelShader,fragSrc);
-    //gl.compileShader(vertexShader);
-    //gl.compileShader(pixelShader);
-    //if ( !gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS) ) {
-    //    console.log("Error when compile shader: \n" + gl.getShaderInfoLog(vertexShader));
-    //}
-    //if ( !gl.getShaderParameter(pixelShader, gl.COMPILE_STATUS) ) {
-    //    console.log("Error when compile shader: \n" + gl.getShaderInfoLog(pixelShader));
-    //}
-    //
-    //glProgram = gl.createProgram();
-    //gl.attachShader(glProgram, vertexShader);
-    //gl.attachShader(glProgram, pixelShader);
-    //gl.linkProgram(glProgram);
-    //
-    //// If creating the shader program failed, alert
-    //
-    //if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
-    //    console.error('Failed to link shader program: \n' + gl.getProgramInfoLog(glProgram));
-    //}
+
 };
 
 function tick() {
@@ -224,55 +202,29 @@ function drawScene() {
     mat_mv.mul2(mat_v, mat_m);
     mat_mv.mul2(mat_p, mat_mv);
 
-    gl.useProgram(glProgram.program);
-    var attribs = {};
+    device.setShader(glProgram);
+
     // commit uniform
     var u_mat_p = gl.getUniformLocation(glProgram.program, 'worldViewProjection');
     gl.uniformMatrix4fv(u_mat_p, false, mat_mv.data);
-
-    // commit vb & attr
-    var attr_pos = gl.getAttribLocation(glProgram.program, 'a_position');
-    var attr_tex_coord = gl.getAttribLocation(glProgram.program, 'a_texCoord0');
-    attribs[cc3dEnums.SEMANTIC_POSITION] = attr_pos;
-    attribs[cc3dEnums.SEMANTIC_TEXCOORD0] = attr_tex_coord;
-    var glType = [
-        gl.BYTE,
-        gl.UNSIGNED_BYTE,
-        gl.SHORT,
-        gl.UNSIGNED_SHORT,
-        gl.INT,
-        gl.UNSIGNED_INT,
-        gl.FLOAT
-    ];
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer.bufferId);
-    for(var index = 0; index < vertexBuffer.format.elements.length; ++index) {
-        var element = vertexBuffer.format.elements[index];
-        if(attribs[element.name] !== undefined) {
-            gl.enableVertexAttribArray(attribs[element.name]);
-            gl.vertexAttribPointer(attribs[element.name], element.numComponents, glType[element.dataType], element.normalize, element.stride, element.offset);
-        }
-    }
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer.bufferId);
-    for(var index = 0; index < uvBuffer.format.elements.length; ++index) {
-        var element = uvBuffer.format.elements[index];
-        if(attribs[element.name] !== undefined) {
-            gl.enableVertexAttribArray(attribs[element.name]);
-            gl.vertexAttribPointer(attribs[element.name], element.numComponents, glType[element.dataType], element.normalize, element.stride, element.offset);
-        }
-    }
-
-    // commit ib
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.bufferId);
-
     // commit texture
     var u_sampler = gl.getUniformLocation(glProgram.program, 'texture');
     gl.uniform1i(u_sampler, 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
+    //set vertexBuffer and indexBuffer
+    device.setVertexBuffer(vertexBuffer, 0);
+    device.setVertexBuffer(uvBuffer,1);
+    device.setIndexBuffer(indexBuffer);
+    var primitive = {
+        type: gl.TRIANGLES,
+        indexed: true,
+        base: 0,
+        count: indexBuffer.numIndices
+    };
     // draw
-    gl.drawElements(gl.TRIANGLES, indexBuffer.numIndices, indexBuffer.glFormat, 0);
+    device.draw(primitive);
 
 };
 var lastTime = null;
