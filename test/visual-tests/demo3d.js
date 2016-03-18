@@ -4,6 +4,7 @@ var glProgram = null;
 
 var vertexBuffer = null;
 var uvBuffer = null;
+var normalBuffer = null;
 var indexBuffer = null;
 var rotX = 0, rotY = 0, rotZ = 0;
 var rotation = cc3d.math.Quat.IDENTITY.clone();
@@ -70,6 +71,44 @@ function initBuffer() {
         -1.0,  1.0, -1.0,
     ];
 
+    var normals = [
+        // Front face
+        0.0, 0.0,  1.0,
+        0.0, 0.0,  1.0,
+        0.0,  0.0,  1.0,
+        0.0,  0.0,  1.0,
+
+        // Back face
+        0.0, 0.0,  -1.0,
+        0.0, 0.0,  -1.0,
+        0.0,  0.0,  -1.0,
+        0.0,  0.0,  -1.0,
+
+        // Top face
+        0.0,  1.0, 0.0,
+        0.0,  1.0,  0.0,
+        0.0,  1.0,  0.0,
+        0.0,  1.0, 0.0,
+
+        // Bottom face
+        0.0,  -1.0, 0.0,
+        0.0,  -1.0,  0.0,
+        0.0,  -1.0,  0.0,
+        0.0,  -1.0, 0.0,
+
+        // Right face
+        1.0, 0.0, 0.0,
+        1.0,  0.0, 0.0,
+        1.0,  0.0,  0.0,
+        1.0, 0.0,  0.0,
+
+        // Left face
+        -1.0, 0.0, 0.0,
+        -1.0,  0.0, 0.0,
+        -1.0,  0.0,  0.0,
+        -1.0, 0.0,  0.0,
+    ];
+
     // uv
     var uv = [
         // Front face
@@ -120,6 +159,12 @@ function initBuffer() {
     uvBuffer = new VertexBuffer(device, vertexFormat,uv.length/2);
     uvBuffer.setData(new Float32Array(uv));
 
+    vertexFormat = new cc3d.graphics.VertexFormat(
+        [{semantic:cc3dEnums.SEMANTIC_NORMAL,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
+    );
+    normalBuffer = new VertexBuffer(device, vertexFormat,uv.length/2);
+    normalBuffer.setData(new Float32Array(normals));
+
     var indices = [
         0, 1, 2,      0, 2, 3,    // Front face
         4, 5, 6,      4, 6, 7,    // Back face
@@ -143,24 +188,39 @@ function initGLProgram() {
     vertSrc = '' +
         'attribute vec4 a_position;' +
         'attribute vec2 a_texCoord0;' +
-        //'uniform mat4 world;' +
-        //'uniform mat4 viewProjection;' +
+        'attribute vec3 a_normal;' +
+        'uniform mat4 world;' +
+        'uniform mat4 view;' +
+        'uniform mat4 projection;' +
         'uniform mat4 worldViewProjection;' +
         'varying vec2 v_texCoord0;' +
+        'varying vec3 v_normal;' +
         'void main() {' +
         'gl_Position = worldViewProjection * a_position;' +
+        'v_normal = (world * vec4(a_normal,0.0)).xyz;' +
         'v_texCoord0 = a_texCoord0;' +
         '}';
     fragSrc = 'precision mediump float;' +
         'varying vec2 v_texCoord0;' +
+        'varying vec3 v_normal;' +
         'uniform sampler2D texture;' +
+        'uniform vec3 lightDirInWorld;' +
+        'uniform vec3 lightColor;' +
+        'float computeLight(vec3 lightDir, vec3 normal) {' +
+        'float dotLight = dot(lightDir, normal);' +
+        'if(dotLight < 0.0) dotLight = 0.0;' +
+        'return dotLight;' +
+        '}' +
         'void main() {' +
-        'gl_FragColor = texture2D(texture, v_texCoord0);' +
-        //'gl_FragColor = vec4(1,0,0,1);' +
+        'float color = computeLight(-lightDirInWorld,v_normal);' +
+        'vec4 diffuseColor = texture2D(texture, v_texCoord0);' +
+        'gl_FragColor.xyz = color * diffuseColor.rgb * lightColor.rgb;' +
+        'gl_FragColor.a = diffuseColor.a;' +
         '}';
     var attribs = {
         a_position: cc3dEnums.SEMANTIC_POSITION,
-        a_texCoord0: cc3dEnums.SEMANTIC_TEXCOORD0
+        a_texCoord0: cc3dEnums.SEMANTIC_TEXCOORD0,
+        a_normal: cc3dEnums.SEMANTIC_NORMAL
     };
     var definition = {
         vshader: vertSrc,
@@ -209,16 +269,28 @@ function drawScene() {
     // commit uniform
     var scope = device.scope.resolve('worldViewProjection');
     scope.setValue(mat_mv.data);
+    scope = device.scope.resolve('world');
+    scope.setValue(mat_m.data);
+    scope = device.scope.resolve('view');
+    scope.setValue(mat_v.data);
 
+    var lightDir = new Float32Array([0,-1,0]);
+    var lightColor = new Float32Array([1,0,1]);
+    scope = device.scope.resolve('lightDirInWorld');
+    scope.setValue(lightDir);
+    scope = device.scope.resolve('lightColor');
+    scope.setValue(lightColor);
     scope = device.scope.resolve('texture');
     scope.setValue(texture);
 
     //set vertexBuffer and indexBuffer
     device.setVertexBuffer(vertexBuffer, 0);
     device.setVertexBuffer(uvBuffer,1);
+    device.setVertexBuffer(normalBuffer,2);
+
     device.setIndexBuffer(indexBuffer);
     var primitive = {
-        type: gl.TRIANGLE_FAN,
+        type: cc3dEnums.PRIMITIVE_TRIFAN,
         indexed: false,
         base: 0,
         count: 4,

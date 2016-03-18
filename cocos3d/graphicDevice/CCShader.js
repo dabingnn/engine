@@ -55,17 +55,17 @@ Shader.prototype = {
         var gl = this.device.gl;
 
         gl.linkProgram(this.program);
-
+        //var logERROR = ;
         // check for errors
         // vshader
         if (! gl.getShaderParameter(this.vshader, gl.COMPILE_STATUS))
-            logERROR("Failed to compile vertex shader:\n\n" + gl.getShaderInfoLog(this.vshader));
+            console.log("Failed to compile vertex shader:\n\n" + gl.getShaderInfoLog(this.vshader));
         // fshader
         if (! gl.getShaderParameter(this.fshader, gl.COMPILE_STATUS))
-            logERROR("Failed to compile fragment shader:\n\n" + gl.getShaderInfoLog(this.fshader));
+            console.log("Failed to compile fragment shader:\n\n" + gl.getShaderInfoLog(this.fshader));
         // program
         if (! gl.getProgramParameter(this.program, gl.LINK_STATUS))
-            logERROR("Failed to link shader program. Error: " + gl.getProgramInfoLog(this.program));
+            console.log("Failed to link shader program. Error: " + gl.getProgramInfoLog(this.program));
 
         gl.deleteShader(this.vshader);
         gl.deleteShader(this.fshader);

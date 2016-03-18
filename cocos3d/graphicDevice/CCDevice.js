@@ -22,6 +22,16 @@ var GraphicsDevice = function (canvas, options) {
         gl.FLOAT
     ];
 
+    this.glPrimitive = [
+        gl.POINTS,
+        gl.LINES,
+        gl.LINE_LOOP,
+        gl.LINE_STRIP,
+        gl.TRIANGLES,
+        gl.TRIANGLE_STRIP,
+        gl.TRIANGLE_FAN
+    ];
+
     this.scope = new cc3d.graphics.ScopeSpace('GraphicsDevice');
     //uniform commit function;
     this.commitFunction = {};
@@ -105,7 +115,8 @@ GraphicsDevice.prototype = {
         for(i = 0, len = uniforms.length; i< uniforms.length; ++i) {
             var uniform = uniforms[i];
             var scopeId = this.scope.resolve(uniform.name);
-            this.commitFunction[uniform.dataType](uniform.locationId,scopeId.value);
+            if(scopeId.value)
+                this.commitFunction[uniform.dataType](uniform.locationId,scopeId.value);
         }
 
         //apply textures
@@ -134,10 +145,10 @@ GraphicsDevice.prototype = {
         //};
 
         if(primitive.indexed) {
-            gl.drawElements(primitive.type, primitive.count,
+            gl.drawElements(this.glPrimitive[primitive.type], primitive.count,
                 this.indexBuffer.glFormat, primitive.base * this.indexBuffer.bytesPerIndex);
         } else {
-            gl.drawArrays(primitive.type,
+            gl.drawArrays(this.glPrimitive[primitive.type],
                 primitive.base,
                 primitive.count);
         }
