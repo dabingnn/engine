@@ -157,30 +157,40 @@ function initGLProgram() {
         'gl_FragColor = texture2D(texture, v_texCoord0);' +
         //'gl_FragColor = vec4(1,0,0,1);' +
         '}';
-
-    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    var pixelShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(vertexShader,vertSrc);
-    gl.shaderSource(pixelShader,fragSrc);
-    gl.compileShader(vertexShader);
-    gl.compileShader(pixelShader);
-    if ( !gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS) ) {
-        console.log("Error when compile shader: \n" + gl.getShaderInfoLog(vertexShader));
-    }
-    if ( !gl.getShaderParameter(pixelShader, gl.COMPILE_STATUS) ) {
-        console.log("Error when compile shader: \n" + gl.getShaderInfoLog(pixelShader));
-    }
-
-    glProgram = gl.createProgram();
-    gl.attachShader(glProgram, vertexShader);
-    gl.attachShader(glProgram, pixelShader);
-    gl.linkProgram(glProgram);
-
-    // If creating the shader program failed, alert
-
-    if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
-        console.error('Failed to link shader program: \n' + gl.getProgramInfoLog(glProgram));
-    }
+    var attribs = {
+        a_position: cc3dEnums.SEMANTIC_POSITION,
+        a_texCoord0: cc3dEnums.SEMANTIC_TEXCOORD0
+    };
+    var definition = {
+        vshader: vertSrc,
+        fshader: fragSrc,
+        attributes: attribs
+    };
+    glProgram = new cc3d.graphics.Shader(device,definition);
+    glProgram.link();
+    //var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    //var pixelShader = gl.createShader(gl.FRAGMENT_SHADER);
+    //gl.shaderSource(vertexShader,vertSrc);
+    //gl.shaderSource(pixelShader,fragSrc);
+    //gl.compileShader(vertexShader);
+    //gl.compileShader(pixelShader);
+    //if ( !gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS) ) {
+    //    console.log("Error when compile shader: \n" + gl.getShaderInfoLog(vertexShader));
+    //}
+    //if ( !gl.getShaderParameter(pixelShader, gl.COMPILE_STATUS) ) {
+    //    console.log("Error when compile shader: \n" + gl.getShaderInfoLog(pixelShader));
+    //}
+    //
+    //glProgram = gl.createProgram();
+    //gl.attachShader(glProgram, vertexShader);
+    //gl.attachShader(glProgram, pixelShader);
+    //gl.linkProgram(glProgram);
+    //
+    //// If creating the shader program failed, alert
+    //
+    //if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+    //    console.error('Failed to link shader program: \n' + gl.getProgramInfoLog(glProgram));
+    //}
 };
 
 function tick() {
@@ -193,7 +203,7 @@ function drawScene() {
     gl.clearColor( 0.5, 0.5, 0.5, 1.0 );
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.viewport( 0, 0, canvas.width, canvas.height );
+    device.setViewport( 0, 0, canvas.width, canvas.height );
     gl.enable(gl.DEPTH_TEST);
     // setup mvp
     var mat_p = new cc3d.math.Mat4().setPerspective(
@@ -214,15 +224,15 @@ function drawScene() {
     mat_mv.mul2(mat_v, mat_m);
     mat_mv.mul2(mat_p, mat_mv);
 
-    gl.useProgram(glProgram);
+    gl.useProgram(glProgram.program);
     var attribs = {};
     // commit uniform
-    var u_mat_p = gl.getUniformLocation(glProgram, 'worldViewProjection');
+    var u_mat_p = gl.getUniformLocation(glProgram.program, 'worldViewProjection');
     gl.uniformMatrix4fv(u_mat_p, false, mat_mv.data);
 
     // commit vb & attr
-    var attr_pos = gl.getAttribLocation(glProgram, 'a_position');
-    var attr_tex_coord = gl.getAttribLocation(glProgram, 'a_texCoord0');
+    var attr_pos = gl.getAttribLocation(glProgram.program, 'a_position');
+    var attr_tex_coord = gl.getAttribLocation(glProgram.program, 'a_texCoord0');
     attribs[cc3dEnums.SEMANTIC_POSITION] = attr_pos;
     attribs[cc3dEnums.SEMANTIC_TEXCOORD0] = attr_tex_coord;
     var glType = [
@@ -256,7 +266,7 @@ function drawScene() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.bufferId);
 
     // commit texture
-    var u_sampler = gl.getUniformLocation(glProgram, 'texture');
+    var u_sampler = gl.getUniformLocation(glProgram.program, 'texture');
     gl.uniform1i(u_sampler, 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
