@@ -29,11 +29,10 @@
  *     cc.spriteFrameAnimationCache is a singleton object that manages the Animations.<br/>
  *     It saves in a cache the animations. You should use this class if you want to save your animations in a cache.<br/>
  * <br/>
- * example<br/>
- * cc.spriteFrameAnimationCache.addAnimation(animation,"animation1");<br/>
- * </p>
  * @class
  * @name cc.spriteFrameAnimationCache
+ * @example
+ * cc.spriteFrameAnimationCache.addAnimation(animation,"animation1");
  */
 cc.spriteFrameAnimationCache = {
 	_animations: {},
@@ -172,7 +171,7 @@ cc.spriteFrameAnimationCache = {
 
             var isLoop = animationDict["loop"];
             var loopsTemp = parseInt(animationDict["loops"]);
-            var loops = isLoop ? cc.REPEAT_FOREVER : ((isNaN(loopsTemp)) ? 1 : loopsTemp);
+            var loops = isLoop ? cc.macro.REPEAT_FOREVER : ((isNaN(loopsTemp)) ? 1 : loopsTemp);
             var restoreOriginalFrame = (animationDict["restoreOriginalFrame"] && animationDict["restoreOriginalFrame"] == true) ? true : false;
             var frameArray = animationDict["frames"];
 

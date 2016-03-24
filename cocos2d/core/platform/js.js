@@ -166,7 +166,7 @@ var js = {
     /**
      * Derive the class from the supplied base class.
      * Both classes are just native javascript constructors, not created by cc.Class, so
-     * usually you will want to inherit using {% crosslink cc.Class cc.Class %} instead.
+     * usually you will want to inherit using {{#crossLink "cc/Class:method"}}cc.Class {{/crossLink}} instead.
      *
      * @method extend
      * @param {Function} cls
@@ -527,6 +527,50 @@ js.obsoletes = function (obj, objName, props, writable) {
         var newName = props[obsoleted];
         js.obsolete(obj, objName + '.' + obsoleted, newName, writable);
     }
+};
+
+/**
+ * A string tool to construct a string with format string.
+ * for example:
+ *      cc.js.formatStr("a: %d, b: %b", a, b);
+ *      cc.js.formatStr(a, b, c);
+ * @method formatStr
+ * @returns {String}
+ */
+js.formatStr = function formatStr() {
+    var args = arguments;
+    var l = args.length;
+    if(l < 1)
+        return '';
+
+    var str = args[0];
+    var needToFormat = true;
+    if(typeof str === 'object'){
+        needToFormat = false;
+    }
+    for(var i = 1; i < l; ++i){
+        var arg = args[i];
+        if(needToFormat){
+            while(true){
+                var result = null;
+                if(typeof arg === 'number'){
+                    result = str.match(/(%d)|(%s)/);
+                    if(result){
+                        str = str.replace(/(%d)|(%s)/, arg);
+                        break;
+                    }
+                }
+                result = str.match(/%s/);
+                if(result)
+                    str = str.replace(/%s/, arg);
+                else
+                    str += '    ' + arg;
+                break;
+            }
+        }else
+            str += '    ' + arg;
+    }
+    return str;
 };
 
 /**

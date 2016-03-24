@@ -95,18 +95,17 @@ cc.js.mixin(cc.director, {
      * @param {Function} [onLaunched] - The function invoked at the scene after launch.
      */
     runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
-        // detach persist nodes
-        var i, node, game = cc.game;
+        var id, node, game = cc.game;
         var persistNodes = game._persistRootNodes;
 
-        // Run an Entity Scene
         if (scene instanceof cc.Scene) {
             // ensure scene initialized
             scene._load();
         }
 
-        for (i = persistNodes.length - 1; i >= 0; --i) {
-            node = persistNodes[i];
+        // detach persist nodes
+        for (id in persistNodes) {
+            node = persistNodes[id];
             game._ignoreRemovePersistNode = node;
             node.parent = null;
             game._ignoreRemovePersistNode = null;
@@ -117,6 +116,7 @@ cc.js.mixin(cc.director, {
         if (cc.isValid(oldScene)) {
             oldScene.destroy();
         }
+
         this._scene = null;
 
         // purge destroyed nodes belongs to old scene
@@ -127,16 +127,25 @@ cc.js.mixin(cc.director, {
         }
         this.emit(cc.Director.EVENT_BEFORE_SCENE_LAUNCH, scene);
 
-        // Run an Entity Scene
         var sgScene = scene;
+
+        // Run an Entity Scene
         if (scene instanceof cc.Scene) {
             this._scene = scene;
             sgScene = scene._sgNode;
             
             // Re-attach persist nodes
-            for (i = 0; i < persistNodes.length; ++i) {
-                node = persistNodes[i];
-                node.parent = scene;
+            for (id in persistNodes) {
+                node = persistNodes[id];
+                var existNode = scene.getChildByUuid(id);
+                // Scene contains the persist node, should not reattach, should update the persist node
+                if (existNode) {
+                    persistNodes[id] = existNode;
+                    existNode._persistNode = true;
+                }
+                else {
+                    node.parent = scene;
+                }
             }
             scene._activate();
         }
@@ -165,14 +174,12 @@ cc.js.mixin(cc.director, {
      */
     runScene: function (scene, onBeforeLoadScene, onLaunched) {
         cc.assert(scene, cc._LogInfos.Director.pushScene);
-
-        // Run an Entity Scene
         if (scene instanceof cc.Scene) {
             // ensure scene initialized
             scene._load();
         }
 
-        // Delay to avoid issues like transition in event callback
+        // Delay run / replace scene to the end of the frame
         this.once(cc.Director.EVENT_AFTER_DRAW, function () {
             this.runSceneImmediate(scene, onBeforeLoadScene, onLaunched);
         });
@@ -233,43 +240,6 @@ cc.js.mixin(cc.director, {
         }
     },
 
-    // load raw assets
-    _loadRawAssets: function (assetObjects, done) {
-        var urls = assetObjects.map(function (asset) {
-            return asset.url;
-        });
-
-        //var info = 'preload ' + urls;
-        //console.time(info);
-
-        // currently cocos jsb 3.3 not support preload too much assets
-        // so we divide assets to 30 a group
-        var index = 0;
-        var count = 30;
-        var total = urls.length;
-
-        function preload () {
-            if (index + count > total) {
-                // the last time
-                count = total - index;
-            }
-
-            var assets = urls.slice(index, count);
-
-            index += count;
-
-            if (index < total) {
-                cc.loader.load(assets, preload);
-            }
-            else {
-                //console.timeEnd(info);
-                done();
-            }
-        }
-
-        preload();
-    },
-
     /**
      * Loads the scene by its uuid.
      * @method _loadSceneByUuid
@@ -291,10 +261,9 @@ cc.js.mixin(cc.director, {
                 }
             }
             else {
-                var uuid = sceneAsset._uuid;
                 scene = sceneAsset.scene;
                 if (scene instanceof cc.Scene) {
-                    scene._id = uuid;
+                    scene._id = sceneAsset._uuid;
                     self.runScene(scene, onUnloaded, onLaunched);
                 }
                 else {
@@ -307,7 +276,7 @@ cc.js.mixin(cc.director, {
             if (error && onLaunched) {
                 onLaunched(error);
             }
-        }, { recordAssets: true });
+        });
     }
 });
 
@@ -327,11 +296,11 @@ cc.Director.EVENT_COMPONENT_UPDATE = 'director_component_update';
 cc.Director.EVENT_COMPONENT_LATE_UPDATE = 'director_component_late_update';
 
 cc.eventManager.addCustomListener(cc.Director.EVENT_BEFORE_UPDATE, function () {
-   var dt = 1 / 60;
-   // Call start for new added components
-   cc.director.emit(cc.Director.EVENT_BEFORE_UPDATE);
-   // Update for components
-   cc.director.emit(cc.Director.EVENT_COMPONENT_UPDATE, dt);
+    var dt = 1 / 60;
+    // Call start for new added components
+    cc.director.emit(cc.Director.EVENT_BEFORE_UPDATE);
+    // Update for components
+    cc.director.emit(cc.Director.EVENT_COMPONENT_UPDATE, dt);
 });
 cc.eventManager.addCustomListener(cc.Director.EVENT_AFTER_UPDATE, function () {
     var dt = 1 / 60;
@@ -339,6 +308,8 @@ cc.eventManager.addCustomListener(cc.Director.EVENT_AFTER_UPDATE, function () {
     cc.director.emit(cc.Director.EVENT_COMPONENT_LATE_UPDATE, dt);
     // User can use this event to do things after update
     cc.director.emit(cc.Director.EVENT_AFTER_UPDATE);
+    // Destroy entities that have been removed recently
+    cc.Object._deferredDestroy();
     
     cc.director.emit(cc.Director.EVENT_BEFORE_VISIT, this);
 });

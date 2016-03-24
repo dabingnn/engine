@@ -29,7 +29,8 @@
  */
 
 /**
- * Base class for Easing actions
+ * !#en Base class for Easing actions.
+ * !#zh 所有缓动动作基类，用于修饰 ActionInterval。
  * @class ActionEase
  * @extends ActionInterval
  * @param {ActionInterval} action
@@ -97,11 +98,9 @@ cc.actionEase = function (action) {
     return new cc.ActionEase(action);
 };
 
-cc.ActionEase.create = cc.actionEase;
-
 /**
- * Base class for Easing actions with rate parameters
- *
+ * !#en Base class for Easing actions with rate parameters
+ * !#zh 拥有速率属性的缓动动作基类。
  * @class EaseRateAction
  * @extends ActionEase
  * @param {ActionInterval} action
@@ -160,8 +159,6 @@ cc.easeRateAction = function (action, rate) {
     return new cc.EaseRateAction(action, rate);
 };
 
-cc.EaseRateAction.create = cc.easeRateAction;
-
 /**
  * @module cc
  */
@@ -175,9 +172,6 @@ cc.EaseRateAction.create = cc.easeRateAction;
  * @deprecated since v3.0 please use action.easing(cc.easeIn(3));
  *
  * @example
- * //The old usage
- * cc.EaseIn.create(action, 3);
- * //The new usage
  * action.easing(cc.easeIn(3.0));
  */
 cc.EaseIn = cc.EaseRateAction.extend({
@@ -197,14 +191,11 @@ cc.EaseIn = cc.EaseRateAction.extend({
     }
 });
 
-cc.EaseIn.create = function (action, rate) {
-    return new cc.EaseIn(action, rate);
-};
-
 /**
+ * !#en
  * Creates the action easing object with the rate parameter. <br />
  * From slow to fast.
- *
+ * !#zh 创建 easeIn 缓动对象，由慢到快。
  * @method easeIn
  * @param {Number} rate
  * @return {Object}
@@ -233,9 +224,6 @@ cc.easeIn = function (rate) {
  * @deprecated since v3.0 please use action.easing(cc.easeOut(3))
  *
  * @example
- * //The old usage
- * cc.EaseOut.create(action, 3);
- * //The new usage
  * action.easing(cc.easeOut(3.0));
  */
 cc.EaseOut = cc.EaseRateAction.extend({
@@ -254,14 +242,11 @@ cc.EaseOut = cc.EaseRateAction.extend({
     }
 });
 
-cc.EaseOut.create = function (action, rate) {
-    return new cc.EaseOut(action, rate);
-};
-
 /**
+ * !#en
  * Creates the action easing object with the rate parameter. <br />
  * From fast to slow.
- *
+ * !#zh 创建 easeOut 缓动对象，由快到慢。
  * @method easeOut
  * @param {Number} rate
  * @return {Object}
@@ -290,9 +275,6 @@ cc.easeOut = function (rate) {
  * @deprecated since v3.0 please use action.easing(cc.easeInOut(3.0))
  *
  * @example
- * //The old usage
- * cc.EaseInOut.create(action, 3);
- * //The new usage
  * action.easing(cc.easeInOut(3.0));
  */
 cc.EaseInOut = cc.EaseRateAction.extend({
@@ -315,13 +297,11 @@ cc.EaseInOut = cc.EaseRateAction.extend({
     }
 });
 
-cc.EaseInOut.create = function (action, rate) {
-    return new cc.EaseInOut(action, rate);
-};
-
 /**
+ * !#en
  * Creates the action easing object with the rate parameter. <br />
  * Slow to fast then to slow.
+ * !#zh 创建 easeInOut 缓动对象，慢到快，然后慢。
  * @method easeInOut
  * @param {Number} rate
  * @return {Object}
@@ -356,9 +336,6 @@ cc.easeInOut = function (rate) {
  * @deprecated since v3.0 please action.easing(cc.easeExponentialIn())
  *
  * @example
- * //The old usage
- * cc.EaseExponentialIn.create(action);
- * //The new usage
  * action.easing(cc.easeExponentialIn());
  */
 cc.EaseExponentialIn = cc.ActionEase.extend({
@@ -377,10 +354,6 @@ cc.EaseExponentialIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseExponentialIn.create = function (action) {
-    return new cc.EaseExponentialIn(action);
-};
-
 cc._easeExponentialInObj = {
     easing: function(dt){
         return dt === 0 ? 0 : Math.pow(2, 10 * (dt - 1));
@@ -391,9 +364,14 @@ cc._easeExponentialInObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object with the rate parameter. <br />
  * Reference easeInExpo: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeExponentialIn 缓动对象。<br />
+ * EaseExponentialIn 是按指数函数缓动进入的动作。<br />
+ * 参考 easeInExpo：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeExponentialIn
  * @return {Object}
  * @example
@@ -414,9 +392,6 @@ cc.easeExponentialIn = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeExponentialOut())
  *
  * @example
- * //The old usage
- * cc.EaseExponentialOut.create(action);
- * //The new usage
  * action.easing(cc.easeExponentialOut());
  */
 cc.EaseExponentialOut = cc.ActionEase.extend({
@@ -435,10 +410,6 @@ cc.EaseExponentialOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseExponentialOut.create = function (action) {
-    return new cc.EaseExponentialOut(action);
-};
-
 cc._easeExponentialOutObj = {
     easing: function(dt){
         return dt === 1 ? 1 : (-(Math.pow(2, -10 * dt)) + 1);
@@ -449,9 +420,14 @@ cc._easeExponentialOutObj = {
 };
 
 /**
- * creates the action easing object. <br />
+ * !#en
+ * Creates the action easing object. <br />
  * Reference easeOutExpo: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeExponentialOut 缓动对象。<br />
+ * EaseExponentialOut 是按指数函数缓动退出的动作。<br />
+ * 参考 easeOutExpo：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeExponentialOut
  * @return {Object}
  * @example
@@ -473,9 +449,6 @@ cc.easeExponentialOut = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeExponentialInOut)
  *
  * @example
- * //The old usage
- * cc.EaseExponentialInOut.create(action);
- * //The new usage
  * action.easing(cc.easeExponentialInOut());
  */
 cc.EaseExponentialInOut = cc.ActionEase.extend({
@@ -501,10 +474,6 @@ cc.EaseExponentialInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseExponentialInOut.create = function (action) {
-    return new cc.EaseExponentialInOut(action);
-};
-
 cc._easeExponentialInOutObj = {
     easing: function(dt){
         if( dt !== 1 && dt !== 0) {
@@ -522,9 +491,14 @@ cc._easeExponentialInOutObj = {
 };
 
 /**
- * creates an EaseExponentialInOut action easing object. <br />
+ * !#en
+ * Creates an EaseExponentialInOut action easing object. <br />
  * Reference easeInOutExpo: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeExponentialInOut 缓动对象。<br />
+ * EaseExponentialInOut 是按指数函数缓动进入并退出的动作。<br />
+ * 参考 easeInOutExpo：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeExponentialInOut
  * @return {Object}
  * @example
@@ -545,9 +519,6 @@ cc.easeExponentialInOut = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeSineIn())
  *
  * @example
- * //The old usage
- * cc.EaseSineIn.create(action);
- * //The new usage
  * action.easing(cc.easeSineIn());
  */
 cc.EaseSineIn = cc.ActionEase.extend({
@@ -567,10 +538,6 @@ cc.EaseSineIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseSineIn.create = function (action) {
-    return new cc.EaseSineIn(action);
-};
-
 cc._easeSineInObj = {
     easing: function(dt){
         return (dt===0 || dt===1) ? dt : -1 * Math.cos(dt * Math.PI / 2) + 1;
@@ -580,9 +547,14 @@ cc._easeSineInObj = {
     }
 };
 /**
- * creates an EaseSineIn action. <br />
+ * !#en
+ * Creates an EaseSineIn action. <br />
  * Reference easeInSine: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 EaseSineIn 缓动对象。<br />
+ * EaseSineIn 是按正弦函数缓动进入的动作。<br />
+ * 参考 easeInSine：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeSineIn
  * @return {Object}
  * @example
@@ -603,9 +575,6 @@ cc.easeSineIn = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeSineOut())
  *
  * @example
- * //The old usage
- * cc.EaseSineOut.create(action);
- * //The new usage
  * action.easing(cc.easeSineOut());
  */
 cc.EaseSineOut = cc.ActionEase.extend({
@@ -625,10 +594,6 @@ cc.EaseSineOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseSineOut.create = function (action) {
-    return new cc.EaseSineOut(action);
-};
-
 cc._easeSineOutObj = {
     easing: function(dt){
         return (dt===0 || dt===1) ? dt : Math.sin(dt * Math.PI / 2);
@@ -639,9 +604,14 @@ cc._easeSineOutObj = {
 };
 
 /**
+ * !#en
  * Creates an EaseSineOut action easing object. <br />
  * Reference easeOutSine: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 EaseSineOut 缓动对象。<br />
+ * EaseSineIn 是按正弦函数缓动退出的动作。<br />
+ * 参考 easeOutSine：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeSineOut
  * @return {Object}
  * @example
@@ -662,9 +632,6 @@ cc.easeSineOut = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeSineInOut())
  *
  * @example
- * //The old usage
- * cc.EaseSineInOut.create(action);
- * //The new usage
  * action.easing(cc.easeSineInOut());
  */
 cc.EaseSineInOut = cc.ActionEase.extend({
@@ -684,10 +651,6 @@ cc.EaseSineInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseSineInOut.create = function (action) {
-    return new cc.EaseSineInOut(action);
-};
-
 cc._easeSineInOutObj = {
     easing: function(dt){
         return (dt === 0 || dt === 1) ? dt : -0.5 * (Math.cos(Math.PI * dt) - 1);
@@ -698,9 +661,14 @@ cc._easeSineInOutObj = {
 };
 
 /**
- * creates the action easing object. <br />
+ * !#en
+ * Creates the action easing object. <br />
  * Reference easeInOutSine: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeSineInOut 缓动对象。<br />
+ * EaseSineIn 是按正弦函数缓动进入并退出的动作。<br />
+ * 参考 easeInOutSine：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeSineInOut
  * @return {Object}
  * @example
@@ -712,11 +680,12 @@ cc.easeSineInOut = function(){
 };
 
 /**
- * Ease Elastic abstract class.
+ * !#en Ease Elastic abstract class.
+ * !#zh 弹性缓动动作基类。
  * @class EaseElastic
  * @extends ActionEase
  * @param {ActionInterval} action
- * @param {Number} [period=0.3]
+ * @param {Number} period
  */
 cc.EaseElastic = cc.ActionEase.extend({
     _period: 0.3,
@@ -767,10 +736,6 @@ cc.EaseElastic = cc.ActionEase.extend({
     }
 });
 
-cc.EaseElastic.create = function (action, period) {
-    return new cc.EaseElastic(action, period);
-};
-
 /**
  * @module cc
  */
@@ -786,9 +751,6 @@ cc.EaseElastic.create = function (action, period) {
  * @deprecated since v3.0 please use action.easing(cc.easeElasticIn())
  *
  * @example
- * //The old usage
- * cc.EaseElasticIn.create(action, period);
- * //The new usage
  * action.easing(cc.easeElasticIn(period));
  */
 cc.EaseElasticIn = cc.EaseElastic.extend({
@@ -815,10 +777,6 @@ cc.EaseElasticIn = cc.EaseElastic.extend({
     }
 });
 
-cc.EaseElasticIn.create = function (action, period) {
-    return new cc.EaseElasticIn(action, period);
-};
-
 //default ease elastic in object (period = 0.3)
 cc._easeElasticInObj = {
    easing:function(dt){
@@ -833,11 +791,16 @@ cc._easeElasticInObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing obejct with the period in radians (default is 0.3). <br />
  * Reference easeInElastic: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeElasticIn 缓动对象。<br />
+ * EaseElasticIn 是按弹性曲线缓动进入的动作。<br />
+ * 参数 easeInElastic：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeElasticIn
- * @param {Number} [period=0.3]
+ * @param {Number} period
  * @return {Object}
  * @example
  * // example
@@ -872,9 +835,6 @@ cc.easeElasticIn = function (period) {
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeElasticOut(period))
  *
  * @example
- * //The old usage
- * cc.EaseElasticOut.create(action, period);
- * //The new usage
  * action.easing(cc.easeElasticOut(period));
  */
 cc.EaseElasticOut = cc.EaseElastic.extend({
@@ -901,10 +861,6 @@ cc.EaseElasticOut = cc.EaseElastic.extend({
     }
 });
 
-cc.EaseElasticOut.create = function (action, period) {
-    return new cc.EaseElasticOut(action, period);
-};
-
 //default ease elastic out object (period = 0.3)
 cc._easeElasticOutObj = {
     easing: function (dt) {
@@ -915,11 +871,16 @@ cc._easeElasticOutObj = {
     }
 };
 /**
+ * !#en
  * Creates the action easing object with the period in radians (default is 0.3). <br />
  * Reference easeOutElastic: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeElasticOut 缓动对象。<br />
+ * EaseElasticOut 是按弹性曲线缓动退出的动作。<br />
+ * 参考 easeOutElastic：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeElasticOut
- * @param {Number} [period=0.3]
+ * @param {Number} period
  * @return {Object}
  * @example
  * // example
@@ -951,9 +912,6 @@ cc.easeElasticOut = function (period) {
  * @deprecated since v3.0 please use action.easing(cc.easeElasticInOut())
  *
  * @example
- * //The old usage
- * cc.EaseElasticInOut.create(action, period);
- * //The new usage
  * action.easing(cc.easeElasticInOut(period));
  */
 cc.EaseElasticInOut = cc.EaseElastic.extend({
@@ -988,16 +946,17 @@ cc.EaseElasticInOut = cc.EaseElastic.extend({
     }
 });
 
-cc.EaseElasticInOut.create = function (action, period) {
-    return new cc.EaseElasticInOut(action, period);
-};
-
 /**
+ * !#en
  * Creates the action easing object with the period in radians (default is 0.3). <br />
  * Reference easeInOutElastic: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeElasticInOut 缓动对象。<br />
+ * EaseElasticInOut 是按弹性曲线缓动进入并退出的动作。<br />
+ * 参考 easeInOutElastic：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeElasticInOut
- * @param {Number} [period=0.3]
+ * @param {Number} period
  * @return {Object}
  * @example
  * // example
@@ -1032,8 +991,8 @@ cc.easeElasticInOut = function (period) {
 };
 
 /**
- * cc.EaseBounce abstract class.
- *
+ * !#en cc.EaseBounce abstract class.
+ * !#zh 反弹缓动动作基类。
  * @class EaseBounce
  * @extends ActionEase
  */
@@ -1068,10 +1027,6 @@ cc.EaseBounce = cc.ActionEase.extend({
     }
 });
 
-cc.EaseBounce.create = function (action) {
-    return new cc.EaseBounce(action);
-};
-
 /**
  * @module cc
  */
@@ -1086,9 +1041,6 @@ cc.EaseBounce.create = function (action) {
  * @deprecated since v3.0 please use action.easing(cc.easeBounceIn())
  *
  * @example
- * //The old usage
- * cc.EaseBounceIn.create(action);
- * //The new usage
  * action.easing(cc.easeBounceIn());
  */
 cc.EaseBounceIn = cc.EaseBounce.extend({
@@ -1107,10 +1059,6 @@ cc.EaseBounceIn = cc.EaseBounce.extend({
         return action;
     }
 });
-
-cc.EaseBounceIn.create = function (action) {
-    return new cc.EaseBounceIn(action);
-};
 
 cc._bounceTime = function (time1) {
     if (time1 < 1 / 2.75) {
@@ -1137,8 +1085,12 @@ cc._easeBounceInObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Eased bounce effect at the beginning.
+ * !#zh
+ * 创建 easeBounceIn 缓动对象。<br />
+ * EaseBounceIn 是按弹跳动作缓动进入的动作。
  * @method easeBounceIn
  * @return {Object}
  * @example
@@ -1159,9 +1111,6 @@ cc.easeBounceIn = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeBounceOut())
  *
  * @example
- * //The old usage
- * cc.EaseBounceOut.create(action);
- * //The new usage
  * action.easing(cc.easeBounceOut());
  */
 cc.EaseBounceOut = cc.EaseBounce.extend({
@@ -1181,10 +1130,6 @@ cc.EaseBounceOut = cc.EaseBounce.extend({
     }
 });
 
-cc.EaseBounceOut.create = function (action) {
-    return new cc.EaseBounceOut(action);
-};
-
 cc._easeBounceOutObj = {
     easing: function(dt){
         return cc._bounceTime(dt);
@@ -1195,8 +1140,12 @@ cc._easeBounceOutObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Eased bounce effect at the ending.
+ * !#zh
+ * 创建 easeBounceOut 缓动对象。<br />
+ * EaseBounceOut 是按弹跳动作缓动退出的动作。
  * @method easeBounceOut
  * @return {Object}
  * @example
@@ -1217,9 +1166,6 @@ cc.easeBounceOut = function(){
  * @deprecated since v3.0 <br /> Please use acton.easing(cc.easeBounceInOut())
  *
  * @example
- * //The old usage
- * cc.EaseBounceInOut.create(action);
- * //The new usage
  * action.easing(cc.easeBounceInOut());
  */
 cc.EaseBounceInOut = cc.EaseBounce.extend({
@@ -1245,10 +1191,6 @@ cc.EaseBounceInOut = cc.EaseBounce.extend({
     }
 });
 
-cc.EaseBounceInOut.create = function (action) {
-    return new cc.EaseBounceInOut(action);
-};
-
 cc._easeBounceInOutObj = {
     easing: function (time1) {
         var newT;
@@ -1266,8 +1208,12 @@ cc._easeBounceInOutObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Eased bounce effect at the begining and ending.
+ * !#zh
+ * 创建 easeBounceInOut 缓动对象。<br />
+ * EaseBounceInOut 是按弹跳动作缓动进入并退出的动作。
  * @method easeBounceInOut
  * @return {Object}
  * @example
@@ -1288,9 +1234,6 @@ cc.easeBounceInOut = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeBackIn())
  *
  * @example
- * //The old usage
- * cc.EaseBackIn.create(action);
- * //The new usage
  * action.easing(cc.easeBackIn());
  */
 cc.EaseBackIn = cc.ActionEase.extend({
@@ -1311,10 +1254,6 @@ cc.EaseBackIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseBackIn.create = function (action) {
-    return new cc.EaseBackIn(action);
-};
-
 cc._easeBackInObj = {
     easing: function (time1) {
         var overshoot = 1.70158;
@@ -1326,8 +1265,12 @@ cc._easeBackInObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * In the opposite direction to move slowly, and then accelerated to the right direction.
+ * !#zh
+ * 创建 easeBackIn 缓动对象。<br />
+ * easeBackIn 是在相反的方向缓慢移动，然后加速到正确的方向。<br />
  * @method easeBackIn
  * @return {Object}
  * @example
@@ -1348,9 +1291,6 @@ cc.easeBackIn = function(){
  * @deprecated since v3.0 please use action.easing(cc.easeBackOut());
  *
  * @example
- * //The old usage
- * cc.EaseBackOut.create(action);
- * //The new usage
  * action.easing(cc.easeBackOut());
  */
 cc.EaseBackOut = cc.ActionEase.extend({
@@ -1371,10 +1311,6 @@ cc.EaseBackOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseBackOut.create = function (action) {
-    return new cc.EaseBackOut(action);
-};
-
 cc._easeBackOutObj = {
     easing: function (time1) {
         var overshoot = 1.70158;
@@ -1387,8 +1323,12 @@ cc._easeBackOutObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Fast moving more than the finish, and then slowly back to the finish.
+ * !#zh
+ * 创建 easeBackOut 缓动对象。<br />
+ * easeBackOut 快速移动超出目标，然后慢慢回到目标点。
  * @method easeBackOut
  * @return {Object}
  * @example
@@ -1409,9 +1349,6 @@ cc.easeBackOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeBackInOut())
  *
  * @example
- * //The old usage
- * cc.EaseBackInOut.create(action);
- * //The new usage
  * action.easing(cc.easeBackInOut());
  */
 cc.EaseBackInOut = cc.ActionEase.extend({
@@ -1437,10 +1374,6 @@ cc.EaseBackInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseBackInOut.create = function (action) {
-    return new cc.EaseBackInOut(action);
-};
-
 cc._easeBackInOutObj = {
     easing: function (time1) {
         var overshoot = 1.70158 * 1.525;
@@ -1458,8 +1391,11 @@ cc._easeBackInOutObj = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Begining of cc.EaseBackIn. Ending of cc.EaseBackOut.
+ * !#zh
+ * 创建 easeBackInOut 缓动对象。<br />
  * @method easeBackInOut
  * @return {Object}
  * @example
@@ -1481,10 +1417,6 @@ cc.easeBackInOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeBezierAction())
  *
  * @example
- * //The old usage
- * var action = cc.EaseBezierAction.create(action);
- * action.setBezierParamer(0.5, 0.5, 1.0, 1.0);
- * //The new usage
  * action.easing(cc.easeBezierAction(0.5, 0.5, 1.0, 1.0));
  */
 cc.EaseBezierAction = cc.ActionEase.extend({
@@ -1540,14 +1472,14 @@ cc.EaseBezierAction = cc.ActionEase.extend({
     }
 });
 
-cc.EaseBezierAction.create = function(action){
-    return new cc.EaseBezierAction(action);
-};
-
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Into the 4 reference point. <br />
  * To calculate the motion curve.
+ * !#zh
+ * 创建 easeBezierAction 缓动对象。<br />
+ * EaseBezierAction 是按贝塞尔曲线缓动的动作。
  * @method easeBezierAction
  * @param {Number} p0 The first bezier parameter
  * @param {Number} p1 The second bezier parameter
@@ -1579,9 +1511,6 @@ cc.easeBezierAction = function(p0, p1, p2, p3){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuadraticAction())
  *
  * @example
- * //The old usage
- * cc.EaseQuadraticActionIn.create(action);
- * //The new usage
  * action.easing(cc.easeQuadraticActionIn());
  */
 cc.EaseQuadraticActionIn = cc.ActionEase.extend({
@@ -1606,10 +1535,6 @@ cc.EaseQuadraticActionIn = cc.ActionEase.extend({
 
 });
 
-cc.EaseQuadraticActionIn.create = function(action){
-    return new cc.EaseQuadraticActionIn(action);
-};
-
 cc._easeQuadraticActionIn = {
     easing: cc.EaseQuadraticActionIn.prototype._updateTime,
     reverse: function(){
@@ -1618,9 +1543,14 @@ cc._easeQuadraticActionIn = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInQuad: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuadraticActionIn 缓动对象。<br />
+ * EaseQuadraticIn是按二次函数缓动进入的动作。<br />
+ * 参考 easeInQuad：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuadraticActionIn
  * @returns {Object}
  * @example
@@ -1641,9 +1571,6 @@ cc.easeQuadraticActionIn = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuadraticActionOut())
  *
  * @example
- * //The old usage
- * cc.EaseQuadraticActionOut.create(action);
- * //The new usage
  * action.easing(cc.easeQuadraticActionOut());
  */
 cc.EaseQuadraticActionOut = cc.ActionEase.extend({
@@ -1667,10 +1594,6 @@ cc.EaseQuadraticActionOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuadraticActionOut.create = function(action){
-    return new cc.EaseQuadraticActionOut(action);
-};
-
 cc._easeQuadraticActionOut = {
     easing: cc.EaseQuadraticActionOut.prototype._updateTime,
     reverse: function(){
@@ -1678,9 +1601,14 @@ cc._easeQuadraticActionOut = {
     }
 };
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeOutQuad: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuadraticActionOut 缓动对象。<br />
+ * EaseQuadraticOut 是按二次函数缓动退出的动作。<br />
+ * 参考 easeOutQuad：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuadraticActionOut
  * @returns {Object}
  * @example
@@ -1701,9 +1629,6 @@ cc.easeQuadraticActionOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuadraticActionInOut())
  *
  * @example
- * //The old usage
- * cc.EaseQuadraticActionInOut.create(action);
- * //The new usage
  * action.easing(cc.easeQuadraticActionInOut());
  */
 cc.EaseQuadraticActionInOut = cc.ActionEase.extend({
@@ -1734,10 +1659,6 @@ cc.EaseQuadraticActionInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuadraticActionInOut.create = function(action){
-    return new cc.EaseQuadraticActionInOut(action);
-};
-
 cc._easeQuadraticActionInOut = {
     easing: cc.EaseQuadraticActionInOut.prototype._updateTime,
     reverse: function(){
@@ -1746,9 +1667,14 @@ cc._easeQuadraticActionInOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInOutQuad: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuadraticActionInOut 缓动对象。<br />
+ * EaseQuadraticInOut 是按二次函数缓动进入并退出的动作。<br />
+ * 参考 easeInOutQuad：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuadraticActionInOut
  * @returns {Object}
  * @example
@@ -1769,9 +1695,6 @@ cc.easeQuadraticActionInOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuarticActionIn());
  *
  * @example
- * //The old usage
- * cc.EaseQuarticActionIn.create(action);
- * //The new usage
  * action.easing(cc.easeQuarticActionIn());
  */
 cc.EaseQuarticActionIn = cc.ActionEase.extend({
@@ -1794,10 +1717,6 @@ cc.EaseQuarticActionIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuarticActionIn.create = function(action){
-    return new cc.EaseQuarticActionIn(action);
-};
-
 cc._easeQuarticActionIn = {
     easing: cc.EaseQuarticActionIn.prototype._updateTime,
     reverse: function(){
@@ -1805,9 +1724,14 @@ cc._easeQuarticActionIn = {
     }
 };
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeIntQuart: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuarticActionIn 缓动对象。<br />
+ * EaseQuarticIn 是按四次函数缓动进入的动作。<br />
+ * 参考 easeIntQuart：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuarticActionIn
  * @returns {Object}
  * @example
@@ -1828,9 +1752,6 @@ cc.easeQuarticActionIn = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.QuarticActionOut());
  *
  * @example
- * //The old usage
- * cc.EaseQuarticActionOut.create(action);
- * //The new usage
  * action.easing(cc.EaseQuarticActionOut());
  */
 cc.EaseQuarticActionOut = cc.ActionEase.extend({
@@ -1854,10 +1775,6 @@ cc.EaseQuarticActionOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuarticActionOut.create = function(action){
-    return new cc.EaseQuarticActionOut(action);
-};
-
 cc._easeQuarticActionOut = {
     easing: cc.EaseQuarticActionOut.prototype._updateTime,
     reverse: function(){
@@ -1866,9 +1783,14 @@ cc._easeQuarticActionOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeOutQuart: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuarticActionOut 缓动对象。<br />
+ * EaseQuarticOut 是按四次函数缓动退出的动作。<br />
+ * 参考 easeOutQuart：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuarticActionOut
  * @returns {Object}
  * @example
@@ -1889,9 +1811,6 @@ cc.easeQuarticActionOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuarticActionInOut());
  *
  * @example
- * //The old usage
- * cc.EaseQuarticActionInOut.create(action);
- * //The new usage
  * action.easing(cc.easeQuarticActionInOut());
  */
 cc.EaseQuarticActionInOut = cc.ActionEase.extend({
@@ -1918,10 +1837,6 @@ cc.EaseQuarticActionInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuarticActionInOut.create = function(action){
-    return new cc.EaseQuarticActionInOut(action);
-};
-
 cc._easeQuarticActionInOut = {
     easing: cc.EaseQuarticActionInOut.prototype._updateTime,
     reverse: function(){
@@ -1929,9 +1844,14 @@ cc._easeQuarticActionInOut = {
     }
 };
 /**
+ * !#en
  * Creates the action easing object.  <br />
  * Reference easeInOutQuart: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuarticActionInOut 缓动对象。<br />
+ * EaseQuarticInOut 是按四次函数缓动进入并退出的动作。<br />
+ * 参考 easeInOutQuart：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuarticActionInOut
  * @returns {Object}
  */
@@ -1949,9 +1869,6 @@ cc.easeQuarticActionInOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuinticActionIn());
  *
  * @example
- * //The old usage
- * cc.EaseQuinticActionIn.create(action);
- * //The new usage
  * action.easing(cc.easeQuinticActionIn());
  */
 cc.EaseQuinticActionIn = cc.ActionEase.extend({
@@ -1974,10 +1891,6 @@ cc.EaseQuinticActionIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuinticActionIn.create = function(action){
-    return new cc.EaseQuinticActionIn(action);
-};
-
 cc._easeQuinticActionIn = {
     easing: cc.EaseQuinticActionIn.prototype._updateTime,
     reverse: function(){
@@ -1986,9 +1899,14 @@ cc._easeQuinticActionIn = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInQuint: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuinticActionIn 缓动对象。<br />
+ * EaseQuinticIn 是按五次函数缓动进的动作。<br />
+ * 参考 easeInQuint：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuinticActionIn
  * @returns {Object}
  * @example
@@ -2009,9 +1927,6 @@ cc.easeQuinticActionIn = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuadraticActionOut());
  *
  * @example
- * //The old usage
- * cc.EaseQuinticActionOut.create(action);
- * //The new usage
  * action.easing(cc.easeQuadraticActionOut());
  */
 cc.EaseQuinticActionOut = cc.ActionEase.extend({
@@ -2035,10 +1950,6 @@ cc.EaseQuinticActionOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuinticActionOut.create = function(action){
-    return new cc.EaseQuinticActionOut(action);
-};
-
 cc._easeQuinticActionOut = {
     easing: cc.EaseQuinticActionOut.prototype._updateTime,
     reverse: function(){
@@ -2047,9 +1958,14 @@ cc._easeQuinticActionOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeOutQuint: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuinticActionOut 缓动对象。<br />
+ * EaseQuinticOut 是按五次函数缓动退出的动作
+ * 参考 easeOutQuint：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuinticActionOut
  * @returns {Object}
  * @example
@@ -2070,9 +1986,6 @@ cc.easeQuinticActionOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeQuinticActionInOut());
  *
  * @example
- * //The old usage
- * cc.EaseQuinticActionInOut.create(action);
- * //The new usage
  * action.easing(cc.easeQuinticActionInOut());
  */
 cc.EaseQuinticActionInOut = cc.ActionEase.extend({
@@ -2099,10 +2012,6 @@ cc.EaseQuinticActionInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseQuinticActionInOut.create = function(action){
-    return new cc.EaseQuinticActionInOut(action);
-};
-
 cc._easeQuinticActionInOut = {
     easing: cc.EaseQuinticActionInOut.prototype._updateTime,
     reverse: function(){
@@ -2111,9 +2020,14 @@ cc._easeQuinticActionInOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInOutQuint: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeQuinticActionInOut 缓动对象。<br />
+ * EaseQuinticInOut是按五次函数缓动进入并退出的动作。<br />
+ * 参考 easeInOutQuint：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeQuinticActionInOut
  * @returns {Object}
  * @example
@@ -2134,9 +2048,6 @@ cc.easeQuinticActionInOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeCircleActionIn());
  *
  * @example
- * //The old usage
- * cc.EaseCircleActionIn.create(action);
- * //The new usage
  * action.easing(cc.easeCircleActionIn());
  */
 cc.EaseCircleActionIn = cc.ActionEase.extend({
@@ -2159,10 +2070,6 @@ cc.EaseCircleActionIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseCircleActionIn.create = function(action){
-    return new cc.EaseCircleActionIn(action);
-};
-
 cc._easeCircleActionIn = {
     easing: cc.EaseCircleActionIn.prototype._updateTime,
     reverse: function(){
@@ -2171,9 +2078,14 @@ cc._easeCircleActionIn = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInCirc: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeCircleActionIn 缓动对象。<br />
+ * EaseCircleIn是按圆形曲线缓动进入的动作。<br />
+ * 参考 easeInCirc：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeCircleActionIn
  * @returns {Object}
  * @example
@@ -2194,9 +2106,6 @@ cc.easeCircleActionIn = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeCircleActionOut());
  *
  * @example
- * //The old usage
- * cc.EaseCircleActionOut.create(action);
- * //The new usage
  * action.easing(cc.easeCircleActionOut());
  */
 cc.EaseCircleActionOut = cc.ActionEase.extend({
@@ -2220,10 +2129,6 @@ cc.EaseCircleActionOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseCircleActionOut.create = function(action){
-    return new cc.EaseCircleActionOut(action);
-};
-
 cc._easeCircleActionOut = {
     easing: cc.EaseCircleActionOut.prototype._updateTime,
     reverse: function(){
@@ -2232,9 +2137,14 @@ cc._easeCircleActionOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeOutCirc: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeCircleActionOut 缓动对象。<br />
+ * EaseCircleOut是按圆形曲线缓动退出的动作。<br />
+ * 参考 easeOutCirc：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeCircleActionOut
  * @returns {Object}
  * @exampple
@@ -2255,9 +2165,6 @@ cc.easeCircleActionOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeCircleActionInOut());
  *
  * @example
- * //The old usage
- * cc.EaseCircleActionInOut.create(action);
- * //The new usage
  * action.easing(cc.easeCircleActionInOut());
  */
 cc.EaseCircleActionInOut = cc.ActionEase.extend({
@@ -2284,10 +2191,6 @@ cc.EaseCircleActionInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseCircleActionInOut.create = function(action){
-    return new cc.EaseCircleActionInOut(action);
-};
-
 cc._easeCircleActionInOut = {
     easing: cc.EaseCircleActionInOut.prototype._updateTime,
     reverse: function(){
@@ -2296,9 +2199,14 @@ cc._easeCircleActionInOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInOutCirc: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeCircleActionInOut 缓动对象。<br />
+ * EaseCircleInOut 是按圆形曲线缓动进入并退出的动作。<br />
+ * 参考 easeInOutCirc：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeCircleActionInOut
  * @returns {Object}
  * @example
@@ -2319,9 +2227,6 @@ cc.easeCircleActionInOut = function(){
  * @deprecated since v3.0 <br /> action.easing(cc.easeCubicActionIn());
  *
  * @example
- * //The old usage
- * cc.EaseCubicActionIn.create(action);
- * //The new usage
  * action.easing(cc.easeCubicActionIn());
  */
 cc.EaseCubicActionIn = cc.ActionEase.extend({
@@ -2344,10 +2249,6 @@ cc.EaseCubicActionIn = cc.ActionEase.extend({
     }
 });
 
-cc.EaseCubicActionIn.create = function(action){
-    return new cc.EaseCubicActionIn(action);
-};
-
 cc._easeCubicActionIn = {
     easing: cc.EaseCubicActionIn.prototype._updateTime,
     reverse: function(){
@@ -2356,9 +2257,14 @@ cc._easeCubicActionIn = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInCubic: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeCubicActionIn 缓动对象。<br />
+ * EaseCubicIn 是按三次函数缓动进入的动作。<br />
+ * 参考 easeInCubic：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeCubicActionIn
  * @returns {Object}
  * @example
@@ -2379,9 +2285,6 @@ cc.easeCubicActionIn = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeCubicActionOut());
  *
  * @example
- * //The old usage
- * cc.EaseCubicActionOut.create(action);
- * //The new usage
  * action.easing(cc.easeCubicActionOut());
  */
 cc.EaseCubicActionOut = cc.ActionEase.extend({
@@ -2405,10 +2308,6 @@ cc.EaseCubicActionOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseCubicActionOut.create = function(action){
-    return new cc.EaseCubicActionOut(action);
-};
-
 cc._easeCubicActionOut = {
     easing: cc.EaseCubicActionOut.prototype._updateTime,
     reverse: function(){
@@ -2417,9 +2316,14 @@ cc._easeCubicActionOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeOutCubic: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeCubicActionOut 缓动对象。<br />
+ * EaseCubicOut 是按三次函数缓动退出的动作。<br />
+ * 参考 easeOutCubic：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeCubicActionOut
  * @returns {Object}
  * @example
@@ -2440,9 +2344,6 @@ cc.easeCubicActionOut = function(){
  * @deprecated since v3.0 <br /> Please use action.easing(cc.easeCubicActionInOut());
  *
  * @example
- * //The old usage
- * cc.EaseCubicActionInOut.create(action);
- * //The new usage
  * action.easing(cc.easeCubicActionInOut());
  */
 cc.EaseCubicActionInOut = cc.ActionEase.extend({
@@ -2469,10 +2370,6 @@ cc.EaseCubicActionInOut = cc.ActionEase.extend({
     }
 });
 
-cc.EaseCubicActionInOut.create = function(action){
-    return new cc.EaseCubicActionInOut(action);
-};
-
 cc._easeCubicActionInOut = {
     easing: cc.EaseCubicActionInOut.prototype._updateTime,
     reverse: function(){
@@ -2481,9 +2378,14 @@ cc._easeCubicActionInOut = {
 };
 
 /**
+ * !#en
  * Creates the action easing object. <br />
  * Reference easeInOutCubic: <br />
  * http://www.zhihu.com/question/21981571/answer/19925418
+ * !#zh
+ * 创建 easeCubicActionInOut 缓动对象。<br />
+ * EaseCubicInOut是按三次函数缓动进入并退出的动作。<br />
+ * 参考 easeInOutCubic：http://www.zhihu.com/question/21981571/answer/19925418
  * @method easeCubicActionInOut
  * @returns {Object}
  */

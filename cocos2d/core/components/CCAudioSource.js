@@ -36,7 +36,8 @@ var AudioSource = cc.Class({
     extends: require('./CCComponent'),
 
     editor: CC_EDITOR && {
-        menu: 'i18n:MAIN_MENU.component.others/AudioSource'
+        menu: 'i18n:MAIN_MENU.component.others/AudioSource',
+        help: 'app://docs/html/components/audiosource.html',
     },
 
     ctor: function () {
@@ -80,7 +81,7 @@ var AudioSource = cc.Class({
                 this._clip = value;
             },
             url: cc.AudioClip,
-            tooltip: 'i18n.COMPONENT.audio.clip',
+            tooltip: 'i18n:COMPONENT.audio.clip',
             animatable: false
         },
 
@@ -105,7 +106,7 @@ var AudioSource = cc.Class({
                     }
                 }
             },
-            tooltip: 'i18n.COMPONENT.audio.volume'
+            tooltip: 'i18n:COMPONENT.audio.volume'
         },
 
         /**
@@ -140,7 +141,7 @@ var AudioSource = cc.Class({
                 }
             },
             animatable: false,
-            tooltip: 'i18n.COMPONENT.audio.mute',
+            tooltip: 'i18n:COMPONENT.audio.mute',
         },
 
         /**
@@ -158,7 +159,7 @@ var AudioSource = cc.Class({
                 if (this.audio) this.audio.loop = this._loop;
             },
             animatable: false,
-            tooltip: 'i18n.COMPONENT.audio.loop'
+            tooltip: 'i18n:COMPONENT.audio.loop'
         },
 
         /**
@@ -169,7 +170,7 @@ var AudioSource = cc.Class({
          */
         playOnLoad: {
             default: false,
-            tooltip: 'i18n.COMPONENT.audio.play_on_load',
+            tooltip: 'i18n:COMPONENT.audio.play_on_load',
             animatable: false
         }
     },

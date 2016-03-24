@@ -29,7 +29,8 @@
  */
 
 /**
- * Instant actions are immediate actions. They don't have a duration like the ActionInterval actions.
+ * !#en Instant actions are immediate actions. They don't have a duration like the ActionInterval actions.
+ * !#zh 即时动作，这种动作立即就会执行，继承自 FiniteTimeAction。
  * @class ActionInstant
  * @extends FiniteTimeAction
  */
@@ -87,7 +88,8 @@ cc.Show = cc.ActionInstant.extend({
 });
 
 /**
- * Show the Node.
+ * !#en Show the Node.
+ * !#zh 立即显示。
  * @method show
  * @return {ActionInstant}
  * @example
@@ -97,8 +99,6 @@ cc.Show = cc.ActionInstant.extend({
 cc.show = function () {
     return new cc.Show();
 };
-
-cc.Show.create = cc.show;
 
 /*
  * Hide the node.
@@ -121,7 +121,8 @@ cc.Hide = cc.ActionInstant.extend({
 });
 
 /**
- * Hide the node.
+ * !#en Hide the node.
+ * !#zh 立即隐藏。
  * @method hide
  * @return {ActionInstant}
  * @example
@@ -131,8 +132,6 @@ cc.Hide = cc.ActionInstant.extend({
 cc.hide = function () {
     return new cc.Hide();
 };
-
-cc.Hide.create = cc.hide;
 
 /*
  * Toggles the visibility of a node.
@@ -155,7 +154,8 @@ cc.ToggleVisibility = cc.ActionInstant.extend({
 });
 
 /**
- * Toggles the visibility of a node.
+ * !#en Toggles the visibility of a node.
+ * !#zh 显隐状态切换。
  * @method toggleVisibility
  * @return {ActionInstant}
  * @example
@@ -166,13 +166,11 @@ cc.toggleVisibility = function () {
     return new cc.ToggleVisibility();
 };
 
-cc.ToggleVisibility.create = cc.toggleVisibility;
-
 /*
  * Delete self in the next frame.
  * @class RemoveSelf
  * @extends ActionInstant
- * @param {Boolean} [isNeedCleanUp=true]
+ * @param {Boolean} isNeedCleanUp
  *
  * @example
  * // example
@@ -206,10 +204,10 @@ cc.RemoveSelf = cc.ActionInstant.extend({
 });
 
 /**
- * Create a RemoveSelf object with a flag indicate whether the target should be cleaned up while removing.
- *
+ * !#en Create a RemoveSelf object with a flag indicate whether the target should be cleaned up while removing.
+ * !#zh 从父节点移除自身。
  * @method removeSelf
- * @param {Boolean} [isNeedCleanUp=true]
+ * @param {Boolean} isNeedCleanUp
  * @return {ActionInstant}
  *
  * @example
@@ -219,8 +217,6 @@ cc.RemoveSelf = cc.ActionInstant.extend({
 cc.removeSelf = function(isNeedCleanUp){
     return new cc.RemoveSelf(isNeedCleanUp);
 };
-
-cc.RemoveSelf.create = cc.removeSelf;
 
 /*
  * Flips the sprite horizontally.
@@ -266,8 +262,8 @@ cc.FlipX = cc.ActionInstant.extend({
 });
 
 /**
- * Create a FlipX action to flip or unflip the target.
- *
+ * !#en Create a FlipX action to flip or unflip the target.
+ * !#zh X轴翻转。
  * @method flipX
  * @param {Boolean} flip Indicate whether the target should be flipped or not
  * @return {ActionInstant}
@@ -277,8 +273,6 @@ cc.FlipX = cc.ActionInstant.extend({
 cc.flipX = function (flip) {
     return new cc.FlipX(flip);
 };
-
-cc.FlipX.create = cc.flipX;
 
 /*
  * Flips the sprite vertically
@@ -324,8 +318,8 @@ cc.FlipY = cc.ActionInstant.extend({
 });
 
 /**
- * Create a FlipY action to flip or unflip the target.
- *
+ * !#en Create a FlipY action to flip or unflip the target.
+ * !#zh Y轴翻转。
  * @method flipY
  * @param {Boolean} flip
  * @return {ActionInstant}
@@ -335,8 +329,6 @@ cc.FlipY = cc.ActionInstant.extend({
 cc.flipY = function (flip) {
     return new cc.FlipY(flip);
 };
-
-cc.FlipY.create = cc.flipY;
 
 /*
  * Places the node in a certain position
@@ -390,7 +382,8 @@ cc.Place = cc.ActionInstant.extend({
 });
 
 /**
- * Creates a Place action with a position.
+ * !#en Creates a Place action with a position.
+ * !#zh 放置在目标位置。
  * @method place
  * @param {Vec2|Number} pos
  * @param {Number} [y]
@@ -403,8 +396,6 @@ cc.Place = cc.ActionInstant.extend({
 cc.place = function (pos, y) {
     return new cc.Place(pos, y);
 };
-
-cc.Place.create = cc.place;
 
 
 /*
@@ -454,7 +445,7 @@ cc.CallFunc = cc.ActionInstant.extend({
         if (selectorTarget) {
             this._selectorTarget = selectorTarget;
         }
-        if (data) {
+        if (data !== undefined) {
             this._data = data;
         }
         return true;
@@ -501,7 +492,8 @@ cc.CallFunc = cc.ActionInstant.extend({
 });
 
 /**
- * Creates the action with the callback
+ * !#en Creates the action with the callback.
+ * !#zh 执行回调函数。
  * @method callFunc
  * @param {function} selector
  * @param {object|null} [selectorTarget]
@@ -518,5 +510,3 @@ cc.CallFunc = cc.ActionInstant.extend({
 cc.callFunc = function (selector, selectorTarget, data) {
     return new cc.CallFunc(selector, selectorTarget, data);
 };
-
-cc.CallFunc.create = cc.callFunc;
