@@ -24,8 +24,25 @@
  ****************************************************************************/
 
 cc3d = {
+    extend : function(target, ex) {
+        var prop,
+            copy;
 
+        for(prop in ex) {
+            copy = ex[prop];
+            if(typeof(copy) == "object") {
+                target[prop] = extend({}, copy);
+            } else if(typeof(copy) == "array") {
+                target[prop] = extend([], copy);
+            } else {
+                target[prop] = copy;
+            }
+        }
+
+        return target;
+    }
 };
 
 require('./math');
 require('./graphicDevice');
+require('./scene');

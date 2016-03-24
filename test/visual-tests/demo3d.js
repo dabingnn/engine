@@ -1,20 +1,18 @@
 
 var canvas = null;
-var glProgram = null;
 
-var vertexBuffer = null;
-var uvBuffer = null;
-var normalBuffer = null;
-var indexBuffer = null;
 var rotX = 0, rotY = 0, rotZ = 0;
-var rotation = cc3d.math.Quat.IDENTITY.clone();
 var scale = cc3d.math.Vec3.ONE.clone();
 var position = new cc3d.math.Vec3(0,0,0);
+
 var texture = null;
 var device = null;
-var VertexBuffer = cc3d.graphics.VertexBuffer;
-var IndexBuffer = cc3d.graphics.IndexBuffer;
 var cc3dEnums = cc3d.graphics.Enums;
+var objectNodes = [];
+var scene = null;
+var renderer = null;
+var camera = null;
+
 function initTexture() {
     //var gl = device.gl;
     texture = new cc3d.graphics.Texture(device);
@@ -34,7 +32,9 @@ function initTexture() {
     image.src = './crate.gif';
 };
 
-function initBuffer() {
+function initMesh() {
+    var mesh = new cc3d.Mesh();
+
     var vertices = [
         // Front face
         -1.0, -1.0,  1.0,
@@ -152,20 +152,24 @@ function initBuffer() {
     var vertexFormat = new cc3d.graphics.VertexFormat(
         [{semantic:cc3dEnums.SEMANTIC_POSITION,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
     );
-    vertexBuffer = new VertexBuffer(device, vertexFormat,vertices.length/3);
+    var vertexBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,vertices.length/3);
     vertexBuffer.setData(new Float32Array(vertices));
 
     vertexFormat = new cc3d.graphics.VertexFormat(
         [{semantic:cc3dEnums.SEMANTIC_TEXCOORD0,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:2}]
     );
-    uvBuffer = new VertexBuffer(device, vertexFormat,uv.length/2);
+    var uvBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,uv.length/2);
     uvBuffer.setData(new Float32Array(uv));
 
     vertexFormat = new cc3d.graphics.VertexFormat(
         [{semantic:cc3dEnums.SEMANTIC_NORMAL,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
     );
-    normalBuffer = new VertexBuffer(device, vertexFormat,uv.length/2);
+    var normalBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,uv.length/2);
     normalBuffer.setData(new Float32Array(normals));
+
+    mesh.vertexBuffer.push(vertexBuffer);
+    mesh.vertexBuffer.push(uvBuffer);
+    mesh.vertexBuffer.push(normalBuffer);
 
     var indices = [
         0, 1, 2,      0, 2, 3,    // Front face
@@ -175,14 +179,21 @@ function initBuffer() {
         16, 17, 18,   16, 18, 19, // Right face
         20, 21, 22,   20, 22, 23  // Left face
     ];
-    indexBuffer = new IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
+    var indexBuffer = new cc3d.graphics.IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
 
-    //indexBuffer = gl.createBuffer();
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
     var indexArray = new Uint16Array(indexBuffer.lock());
     indexArray.set(indices);
     indexBuffer.unlock();
-    //gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+    mesh.indexBuffer = indexBuffer;
+    mesh.primitive = {
+        type: cc3dEnums.PRIMITIVE_TRIANGLES,
+        indexed: true,
+        base: 0,
+        count: indexBuffer.getNumIndices(),
+    };
+    return mesh;
 };
 
 function initGLProgram() {
@@ -247,87 +258,93 @@ function drawScene() {
 
     device.setViewport( 0, 0, canvas.width, canvas.height );
     gl.enable(gl.DEPTH_TEST);
-    // setup mvp
-    var mat_p = new cc3d.math.Mat4().setPerspective(
-        45, canvas.width/canvas.height, 0.1, 1000.0
-    );
-    var mat_v = new cc3d.math.Mat4().setLookAt(
-        new cc3d.math.Vec3(10,10,10),
-        cc3d.math.Vec3.ZERO,
-        cc3d.math.Vec3.UP
-    );
-    mat_v.invert();
 
-    var mat_m = new cc3d.math.Mat4().setTRS(
-        position, rotation.setFromEulerAngles(rotX,rotY,rotZ), scale
-    );
-
-    var mat_mv = new cc3d.math.Mat4();
-    mat_mv.mul2(mat_v, mat_m);
-    mat_mv.mul2(mat_p, mat_mv);
-
-    device.setShader(glProgram);
-
-    // commit uniform
-    var scope = device.scope.resolve('worldViewProjection');
-    scope.setValue(mat_mv.data);
-    scope = device.scope.resolve('world');
-    scope.setValue(mat_m.data);
-    scope = device.scope.resolve('view');
-    scope.setValue(mat_v.data);
-
-    var lightDir = new Float32Array([0,-1,0]);
-    var lightColor = new Float32Array([1,0,1]);
-    scope = device.scope.resolve('lightDirInWorld');
-    scope.setValue(lightDir);
-    scope = device.scope.resolve('lightColor');
-    scope.setValue(lightColor);
-    scope = device.scope.resolve('texture');
-    scope.setValue(texture);
-
-    //set vertexBuffer and indexBuffer
-    device.setVertexBuffer(vertexBuffer, 0);
-    device.setVertexBuffer(uvBuffer,1);
-    device.setVertexBuffer(normalBuffer,2);
-
-    device.setIndexBuffer(indexBuffer);
-    var primitive = {
-        type: cc3dEnums.PRIMITIVE_TRIFAN,
-        indexed: false,
-        base: 0,
-        count: 4,
-    };
-    // draw
-    device.draw(primitive);
-    while(primitive.base + primitive.count < uvBuffer.getNumVertices()) {
-        primitive.base +=4;
-        device.draw(primitive);
-    }
-
+    renderer.render(scene,camera);
 };
 var lastTime = null;
+var animateAcc = 0;
+var animateIndex = 0;
+var animateInterval = 2000;
 function animate() {
     var timeNow = new Date().getTime();
     if (lastTime) {
         var dt = timeNow - lastTime;
 
-        rotX += (10 * dt) / 1000.0;
-        rotY += (10 * dt) / 1000.0;
+        rotX = (10 * dt) / 500.0;
+        rotY = (10 * dt) / 500.0;
         // rotZ += (90 * dt) / 1000.0;
         //y += dt / 1000.0;
+        animateAcc += dt;
     }
     lastTime = timeNow;
+    if(animateAcc > animateInterval) {
+        animateAcc = 0;
+        animateInterval = Math.random() * 2000 + 1000;
+        animateIndex++;
+        if(animateIndex >= objectNodes.length) {
+            animateIndex -= objectNodes.length;
+        }
+    }
+    if(objectNodes.length > 0) {
+        objectNodes[animateIndex].rotateLocal(rotX,rotY * Math.pow(-1,animateIndex),rotZ);
+    }
+};
+
+function initCamera() {
+    camera = new cc3d.Camera();
+    camera.setProjection(cc3d.SceneEnums.PROJECTION_PERSPECTIVE);
+    camera.setFov(45);
+    camera.setFarClip(1000);
+    camera.setNearClip(0.1);
+    camera.setAspectRatio(canvas.width/canvas.height);
+    var node = camera._node = new cc3d.GraphNode();
+    node.setPosition(new cc3d.math.Vec3(10,10,10));
+    node.lookAt(cc3d.math.Vec3.ZERO,cc3d.math.Vec3.UP);
+
+};
+
+function initObjectNode() {
+    var node = new cc3d.GraphNode();
+    node.setLocalPosition(position);
+    node.setEulerAngles(rotX,rotY,rotZ);
+    node.setLocalScale(scale);
+    return node;
+};
+
+function initMaterial() {
+    var material = new cc3d.BasicMaterial();
+    material.texture = texture;
+    return material;
+}
+function initMeshInstance() {
+    var meshInstance = new cc3d.MeshInstance(objectNode,initMesh(),initMaterial());
+    return meshInstance;
+};
+
+function initScene() {
+    initCamera();
+    initObjectNode();
+    scene = new cc3d.Scene();
+
+    var mesh = initMesh();
+    var node = initObjectNode();
+    node.translate(-1.5, 0, 0);
+    objectNodes.push(node);
+    scene.addMeshInstance(new cc3d.MeshInstance(node, mesh, initMaterial()));
+    node = initObjectNode();
+    node.translate(3.5, 0, 0);
+    objectNodes.push(node);
+    scene.addMeshInstance(new cc3d.MeshInstance(node, mesh, initMaterial()));
+    renderer = new cc3d.ForwardRenderer(device);
 };
 
 function run3d() {
     canvas = document.getElementById("gameCanvas");
     device = new cc3d.graphics.GraphicsDevice(canvas);
-
-    initGLProgram();
-    initBuffer();
     initTexture();
+    initScene();
     setTimeout(function() {
-        tick()
+        tick();
     },1000);
     //tick();
 };
