@@ -191,5 +191,6 @@ require('./CCCamera');
 require('./CCGraphNode');
 require('./CCMesh');
 require('./CCScene');
+require('./CCMaterial');
 require('./CCBasicMaterial');
 require('./CCForwardRenderer');

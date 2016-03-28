@@ -21,7 +21,9 @@ ForwardRenderer.prototype = {
 
             this.worldViewProjectionID.setValue(wvp_mat.data);
             meshInstance.material.updateShader(device, scene);
-            meshInstance.material.applyShaderandUniforms(device, scene);
+            meshInstance.material.update();
+            device.setShader(meshInstance.material.getShader());
+            meshInstance.material.setParameters(device);
             //apply vertexBuffer
             for(var vertNumber = meshInstance.mesh.vertexBuffer.length, vertIndex = vertNumber-1; vertIndex >= 0;--vertIndex ) {
                 device.setVertexBuffer(meshInstance.mesh.vertexBuffer[vertIndex],vertIndex);

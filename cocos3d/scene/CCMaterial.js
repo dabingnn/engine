@@ -3,7 +3,7 @@
 var materialID = 0;
 var Material = function () {
     this.name = "Untitled";
-    this.id = id++;
+    this.id = materialID++;
     this.shader = null;
     //this.variants = {};
 
@@ -27,7 +27,6 @@ var Material = function () {
     this.blueWrite = true;
     this.alphaWrite = true;
 
-    this.device = null;
     //this.meshInstances = []; // The mesh instances referencing this material
 };
 
@@ -68,6 +67,10 @@ Material.prototype = {
     },
 
     updateShader: function (device, scene, objDefs) {
+        //interface functions
+    },
+
+    update: function() {
         //interface functions
     },
 
@@ -116,11 +119,7 @@ Material.prototype = {
         }
     },
 
-    setDevice: function(device) {
-        this.device = device;
-    },
-
-    setParameters: function () {
+    setParameters: function (device) {
         // Push each shader parameter into scope
         for (var paramName in this.parameters) {
             var parameter = this.parameters[paramName];
