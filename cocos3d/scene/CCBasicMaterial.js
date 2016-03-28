@@ -35,6 +35,8 @@ var BasicMaterial = function() {
     this.shader.link();
 };
 
+BasicMaterial = cc3d.inherits(BasicMaterial, cc3d.Material);
+
 BasicMaterial.prototype = {
     updateShader: function(device, scene) {
     },

@@ -40,6 +40,20 @@ cc3d = {
         }
 
         return target;
+    },
+
+    inherits: function (Self, Super) {
+        var Temp = function () {};
+        var Func = function () {
+            Super.apply(this, arguments);
+            Self.apply(this, arguments);
+            // this.constructor = Self;
+        };
+        Func._super = Super.prototype;
+        Temp.prototype = Super.prototype;
+        Func.prototype = new Temp();
+
+        return Func;
     }
 };
 
