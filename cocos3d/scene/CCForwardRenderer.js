@@ -3,23 +3,41 @@
 var ForwardRenderer = function (graphicDevice) {
     this.device = graphicDevice;
     var scope = this.device.scope;
+    //'uniform mat4 world;' +
+    //'uniform mat4 view;' +
+    //'uniform mat4 projection;' +
+    //'uniform mat4 worldViewProjection;' +
+    //'uniform vec3 lightDirInWorld;' +
+    //'uniform vec3 lightColor;' +
+    this.worldID = scope.resolve('world');
+    this.viewID = scope.resolve('view');
+    this.projectionID = scope.resolve('projection');
+    this.lightDirID = scope.resolve('lightDirInWorld');
+    this.lightColorID = scope.resolve('lightColor');
     this.worldViewProjectionID = scope.resolve('worldViewProjection');
 };
 
 ForwardRenderer.prototype = {
     render: function(scene, camera) {
         var device = this.device;
-        var scope = this.device.scope;
         var meshes = scene.getMeshInstance();
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
-            var wvp_mat = meshInstance.node.getWorldTransform().clone();
+            var world_matrix = meshInstance.node.getWorldTransform().clone();
             var view_matrix = camera._node.getWorldTransform().clone().invert();
             var projection_matrix = camera.getProjectionMatrix();
-            wvp_mat.mul2(view_matrix,wvp_mat);
-            wvp_mat.mul2(projection_matrix,wvp_mat);
+            var wvp_matrix = world_matrix.clone();
+            wvp_matrix.mul2(view_matrix,wvp_matrix);
+            wvp_matrix.mul2(projection_matrix,wvp_matrix);
 
-            this.worldViewProjectionID.setValue(wvp_mat.data);
+            this.worldID.setValue(world_matrix.data);
+            this.viewID.setValue(view_matrix.data);
+            this.projectionID.setValue(projection_matrix.data);
+            this.worldViewProjectionID.setValue(wvp_matrix.data);
+            this.lightColorID.setValue(scene._light._color.data);
+            var lightDir = scene._light._direction.clone();
+            lightDir = scene._light._node.getWorldTransform().transformVector(lightDir);
+            this.lightDirID.setValue(lightDir.data);
             meshInstance.material.updateShader(device, scene);
             meshInstance.material.update();
             device.setShader(meshInstance.material.getShader());

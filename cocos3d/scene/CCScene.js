@@ -2,6 +2,8 @@
 
 var Scene = function () {
     this._meshInstances = [];
+    //only support one light now
+    this._light = null;
 };
 Scene.prototype = {
     getMeshInstance: function() {
@@ -22,7 +24,17 @@ Scene.prototype = {
         }
     },
 
+    //hack codes
+    addLight: function(light) {
+       this._light = light;
+    },
+
+    getLight: function() {
+      return this._light;
+    },
+
     update: function() {
+        this._light._node.syncHierarchy();
         for (var i = 0, len = this._models.length; i < len; i++) {
             this._meshInstances[i]._node.syncHierarchy();
         }

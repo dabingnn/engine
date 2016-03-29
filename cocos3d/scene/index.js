@@ -193,4 +193,5 @@ require('./CCMesh');
 require('./CCScene');
 require('./CCMaterial');
 require('./CCBasicMaterial');
+require('./CCLight');
 require('./CCForwardRenderer');

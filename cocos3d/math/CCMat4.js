@@ -353,7 +353,7 @@ Mat4.prototype = {
             m = this.data,
             v = vec.data;
 
-        res = (res === undefined) ? new pc.Vec3() : res;
+        res = (res === undefined) ? new cc3d.math.Vec3() : res;
 
         x =
             v[0] * m[0] +

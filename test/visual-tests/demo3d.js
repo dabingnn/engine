@@ -279,7 +279,7 @@ function animate() {
     lastTime = timeNow;
     if(animateAcc > animateInterval) {
         animateAcc = 0;
-        animateInterval = Math.random() * 2000 + 1000;
+        animateInterval = Math.random() * 5000 + 5000;
         animateIndex++;
         if(animateIndex >= objectNodes.length) {
             animateIndex -= objectNodes.length;
@@ -288,6 +288,7 @@ function animate() {
     if(objectNodes.length > 0) {
         objectNodes[animateIndex].rotateLocal(rotX,rotY * Math.pow(-1,animateIndex),rotZ);
     }
+
 };
 
 function initCamera() {
@@ -316,14 +317,9 @@ function initMaterial() {
     material.texture = texture;
     return material;
 }
-function initMeshInstance() {
-    var meshInstance = new cc3d.MeshInstance(objectNode,initMesh(),initMaterial());
-    return meshInstance;
-};
 
 function initScene() {
     initCamera();
-    initObjectNode();
     scene = new cc3d.Scene();
 
     var mesh = initMesh();
@@ -334,8 +330,18 @@ function initScene() {
     node = initObjectNode();
     node.translate(3.5, 0, 0);
     objectNodes.push(node);
-    scene.addMeshInstance(new cc3d.MeshInstance(node, mesh, initMaterial()));
+    var material = new cc3d.BasicLambertMaterial();
+    material.texture = texture;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, mesh, material));
     renderer = new cc3d.ForwardRenderer(device);
+
+    //init light
+    var light = new cc3d.Light();
+    node = initObjectNode();
+    objectNodes.push(node);
+    light._node = node;
+    light._direction = new cc3d.math.Vec3(0, -1, 0);
+    scene.addLight(light);
 };
 
 function run3d() {
