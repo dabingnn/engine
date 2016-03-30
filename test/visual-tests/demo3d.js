@@ -342,6 +342,7 @@ function initScene() {
     light._node = node;
     light._direction = new cc3d.math.Vec3(0, -1, 0);
     scene.addLight(light);
+    scene._sceneAmbient = new cc3d.math.Vec3(0.6,0.6,0.6);
 };
 
 function run3d() {

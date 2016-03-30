@@ -80,16 +80,18 @@ cc3d.extend( BasicLambertMaterial.prototype, {
             'uniform sampler2D texture;' +
             'uniform vec3 lightDirInWorld;' +
             'uniform vec3 lightColor;' +
+            'uniform vec3 sceneAmbient;' +
             'float computeLight(vec3 lightDir, vec3 normal) {' +
             'float dotLight = dot(lightDir, normal);' +
             'if(dotLight < 0.0) dotLight = 0.0;' +
             'return dotLight;' +
             '}' +
             'void main() {' +
-            'float color = computeLight(-lightDirInWorld,v_normal);' +
-            'vec4 diffuseColor = texture2D(texture, v_texCoord0);' +
-            'gl_FragColor.xyz = color * diffuseColor.rgb * lightColor.rgb;' +
-            'gl_FragColor.a = diffuseColor.a;' +
+            'float diffuseFactor = computeLight(-lightDirInWorld,v_normal);' +
+            'vec3 lighting = lightColor.rgb * diffuseFactor + sceneAmbient;' +
+            'vec4 diffuse = texture2D(texture, v_texCoord0);' +
+            'gl_FragColor.xyz = diffuse.rgb * lighting.rgb;' +
+            'gl_FragColor.a = diffuse.a;' +
             '}';
         var attribs = {
             a_position: cc3dEnums.SEMANTIC_POSITION,

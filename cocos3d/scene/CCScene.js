@@ -4,6 +4,7 @@ var Scene = function () {
     this._meshInstances = [];
     //only support one light now
     this._light = null;
+    this._sceneAmbient = new cc3d.math.Vec3(0,0,0);
 };
 Scene.prototype = {
     getMeshInstance: function() {

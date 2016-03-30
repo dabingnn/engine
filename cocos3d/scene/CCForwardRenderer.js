@@ -16,6 +16,7 @@ var ForwardRenderer = function (graphicDevice) {
     this.lightColorID = scope.resolve('lightColor');
     this.worldViewProjectionID = scope.resolve('worldViewProjection');
     this.normalMatrixID = scope.resolve('matrix_normal');
+    this.sceneAmbientID = scope.resolve('sceneAmbient');
 };
 
 ForwardRenderer.prototype = {
@@ -40,6 +41,7 @@ ForwardRenderer.prototype = {
             this.projectionID.setValue(projection_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
             this.lightColorID.setValue(scene._light._color.data);
+            this.sceneAmbientID.setValue(scene._sceneAmbient.data);
             var lightDir = scene._light._direction.clone();
             lightDir = scene._light._node.getWorldTransform().transformVector(lightDir);
             this.lightDirID.setValue(lightDir.data);
