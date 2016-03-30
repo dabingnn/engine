@@ -66,11 +66,12 @@ cc3d.extend( BasicLambertMaterial.prototype, {
             'uniform mat4 view;' +
             'uniform mat4 projection;' +
             'uniform mat4 worldViewProjection;' +
+            'uniform mat4 matrix_normal;' +
             'varying vec2 v_texCoord0;' +
             'varying vec3 v_normal;' +
             'void main() {' +
             'gl_Position = worldViewProjection * a_position;' +
-            'v_normal = (world * vec4(a_normal,0.0)).xyz;' +
+            'v_normal = (matrix_normal * vec4(a_normal,0.0)).xyz;' +
             'v_texCoord0 = a_texCoord0;' +
             '}';
         pixelSrc = 'precision mediump float;' +

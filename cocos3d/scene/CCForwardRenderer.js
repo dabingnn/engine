@@ -15,6 +15,7 @@ var ForwardRenderer = function (graphicDevice) {
     this.lightDirID = scope.resolve('lightDirInWorld');
     this.lightColorID = scope.resolve('lightColor');
     this.worldViewProjectionID = scope.resolve('worldViewProjection');
+    this.normalMatrixID = scope.resolve('matrix_normal');
 };
 
 ForwardRenderer.prototype = {
@@ -24,6 +25,9 @@ ForwardRenderer.prototype = {
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
             var world_matrix = meshInstance.node.getWorldTransform().clone();
+            var normal_matrix = world_matrix.clone();
+            normal_matrix.invert();
+            normal_matrix.transpose();
             var view_matrix = camera._node.getWorldTransform().clone().invert();
             var projection_matrix = camera.getProjectionMatrix();
             var wvp_matrix = world_matrix.clone();
@@ -31,6 +35,7 @@ ForwardRenderer.prototype = {
             wvp_matrix.mul2(projection_matrix,wvp_matrix);
 
             this.worldID.setValue(world_matrix.data);
+            this.normalMatrixID.setValue(normal_matrix.data);
             this.viewID.setValue(view_matrix.data);
             this.projectionID.setValue(projection_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
