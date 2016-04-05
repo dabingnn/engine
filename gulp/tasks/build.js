@@ -226,8 +226,12 @@ gulp.task('build-jsb-extends-dev', function () {
     return jsbPolyfill;
 });
 
+gulp.task('build-shaders', function () {
+    var jsbPolyfill = rebundle_jsb(createBundler(paths.JSBEntries), false, '_polyfill.dev');
+    return jsbPolyfill;
+});
 
-gulp.task('build', ['build-html5', 'build-jsb-extends-min', 'build-jsb-extends-dev']);
+gulp.task('build', ['build-html5', 'build-shaders', 'build-jsb-extends-min', 'build-jsb-extends-dev']);
 
 gulp.task('fast-build', ['build-test', 'build-jsb-extends-min', 'build-jsb-extends-dev'], function (done) {
     Del(['./bin/cocos2d-js.js', './bin/cocos2d-js-min.js',], done);

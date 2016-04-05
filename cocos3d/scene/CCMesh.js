@@ -11,7 +11,7 @@ var Mesh = function() {
 };
 
 var MeshInstance = function MeshInstance(node, mesh, material) {
-    this.node = node;
+    this._node = node;
     this.mesh = mesh;
     this.material = material;
 };

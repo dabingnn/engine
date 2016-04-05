@@ -22,7 +22,6 @@ var ShaderInput = function (graphicsDevice, name, type, locationId) {
 
 function createShader(gl, type, src) {
     var shader = gl.createShader(type);
-
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
 

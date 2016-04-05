@@ -5,6 +5,7 @@ var Material = function () {
     this.name = "Untitled";
     this.id = materialID++;
     this.shader = null;
+    this.shaderKey = undefined;
     //this.variants = {};
 
     this.parameters = {};

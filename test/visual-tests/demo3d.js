@@ -288,7 +288,7 @@ function animate() {
     if(objectNodes.length > 0) {
         objectNodes[animateIndex].rotateLocal(rotX,rotY * Math.pow(-1,animateIndex),rotZ);
     }
-
+    scene.update();
 };
 
 function initCamera() {
