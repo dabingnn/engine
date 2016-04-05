@@ -16,6 +16,7 @@ var ForwardRenderer = function (graphicDevice) {
     this.lightColorID = scope.resolve('lightColor');
     this.worldViewProjectionID = scope.resolve('matrix_worldviewprojection');
     this.normalMatrixID = scope.resolve('matrix_normal');
+    this.worldViewID = scope.resolve('matrix_worldview');
     this.sceneAmbientID = scope.resolve('sceneAmbient');
 };
 
@@ -50,12 +51,12 @@ ForwardRenderer.prototype = {
             lightColor[3* index + 1] = light._color.y;
             lightColor[3* index + 2] = light._color.z;
 
-            var lightPos = light._position.clone();
-            lightPos = light._node.getWorldTransform().transformPoint(lightPos);
+            var lightPosition = light._position.clone();
+            lightPosition = light._node.getWorldTransform().transformPoint(lightPosition);
 
-            lightPos[3* index + 0] = lightPos.x;
-            lightPos[3* index + 1] = lightPos.y;
-            lightPos[3* index + 2] = lightPos.z;
+            lightPos[3* index + 0] = lightPosition.x;
+            lightPos[3* index + 1] = lightPosition.y;
+            lightPos[3* index + 2] = lightPosition.z;
             lightRange[index] = light._attenuationEnd;
         }
 
@@ -80,13 +81,17 @@ ForwardRenderer.prototype = {
             var view_matrix = camera._node.getWorldTransform().clone().invert();
             var projection_matrix = camera.getProjectionMatrix();
             var wvp_matrix = world_matrix.clone();
+            var wv_matrix = world_matrix.clone();
+            wv_matrix.mul2(view_matrix,wv_matrix);
             wvp_matrix.mul2(view_matrix,wvp_matrix);
             wvp_matrix.mul2(projection_matrix,wvp_matrix);
 
-            this.normalMatrixID.setValue(normal_matrix.data);
+            this.worldID.setValue(world_matrix.data);
             this.viewID.setValue(view_matrix.data);
             this.projectionID.setValue(projection_matrix.data);
+            this.worldViewID.setValue(wv_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
+            this.normalMatrixID.setValue(normal_matrix.data);
             this.sceneAmbientID.setValue(scene._sceneAmbient.data);
             this.dispatchLights(scene);
             meshInstance.material.updateShader(device, scene);

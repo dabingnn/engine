@@ -89,7 +89,7 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         vertSrc += 'void main() {\n' +
             'vec4 tranformedPos = vec4(a_position, 1.0);\n' +
             'gl_Position = matrix_worldviewprojection * tranformedPos;\n' +
-            'v_position = (matrix_worldview * tranformedPos).xyz;\n' +
+            'v_position = (matrix_world * tranformedPos).xyz;\n' +
             'vec4 normal = matrix_normal * vec4(a_normal,0.0);\n' +
             'v_normal = normalize(normal.xyz);\n' +
             'v_uv = a_uv;\n' +
@@ -142,5 +142,54 @@ cc3d.extend( BasicLambertMaterial.prototype, {
 
 });
 
+var ColorMaterial = function() {
+    this.color = new cc3d.math.Vec3(1,1,1);
+};
+
+ColorMaterial = cc3d.inherits(ColorMaterial, cc3d.Material);
+
+cc3d.extend( ColorMaterial.prototype, {
+    _generateShaderKey: function (device, scene) {
+        return 'ColorMaterialShader';
+    },
+
+    updateShader: function (device, scene, objDefs) {
+        var key = this._generateShaderKey(device, scene);
+        if(key === this.shaderKey) return;
+        this.shaderKey = key;
+        var vertSrc,pixelSrc;
+        vertSrc = '' +
+            'attribute vec4 a_position;' +
+            'uniform mat4 matrix_worldviewprojection;' +
+            'void main() {' +
+            'gl_Position = matrix_worldviewprojection * a_position;' +
+            '}';
+        pixelSrc = 'precision mediump float;' +
+            'uniform vec3 color;' +
+            'void main() {' +
+            'gl_FragColor.rgb = color;' +
+            'gl_FragColor.a = 1.0;' +
+            '}';
+        var attribs = {
+            a_position: cc3dEnums.SEMANTIC_POSITION,
+            //a_normal: cc3dEnums.SEMANTIC_NORMAL
+        };
+        var definition = {
+            vshader: vertSrc,
+            fshader: pixelSrc,
+            attributes: attribs
+        };
+        this.shader = new cc3d.graphics.Shader(device,definition);
+        //link it
+        this.shader.link();
+    },
+
+    update: function() {
+        this.setParameter('color',this.color.data);
+    },
+
+});
+
 cc3d.BasicMaterial = BasicMaterial;
 cc3d.BasicLambertMaterial = BasicLambertMaterial;
+cc3d.ColorMaterial = ColorMaterial;

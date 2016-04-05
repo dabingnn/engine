@@ -12,7 +12,7 @@ var objectNodes = [];
 var scene = null;
 var renderer = null;
 var camera = null;
-
+var boxMesh = null;
 function initTexture() {
     //var gl = device.gl;
     texture = new cc3d.graphics.Texture(device);
@@ -262,9 +262,6 @@ function drawScene() {
     renderer.render(scene,camera);
 };
 var lastTime = null;
-var animateAcc = 0;
-var animateIndex = 0;
-var animateInterval = 2000;
 function animate() {
     var timeNow = new Date().getTime();
     if (lastTime) {
@@ -274,20 +271,22 @@ function animate() {
         rotY = (10 * dt) / 500.0;
         // rotZ += (90 * dt) / 1000.0;
         //y += dt / 1000.0;
-        animateAcc += dt;
+
+        //move the second one
+        var pos = objectNodes[1].getLocalPosition().clone();
+        pos.x += 1.0 * dt/1000;
+        if(pos.x > 12) pos.x = -12;
+        objectNodes[1].setLocalPosition(pos);
+
     }
     lastTime = timeNow;
-    if(animateAcc > animateInterval) {
-        animateAcc = 0;
-        animateInterval = Math.random() * 5000 + 5000;
-        animateIndex++;
-        if(animateIndex >= objectNodes.length) {
-            animateIndex -= objectNodes.length;
-        }
+
+    for(var rotIndex = 0; rotIndex < objectNodes.length; ++rotIndex)
+    {
+        objectNodes[rotIndex].rotateLocal(rotX,rotY * Math.pow(-1,rotIndex),rotZ);
     }
-    if(objectNodes.length > 0) {
-        objectNodes[animateIndex].rotateLocal(rotX,rotY * Math.pow(-1,animateIndex),rotZ);
-    }
+
+
     scene.update();
 };
 
@@ -299,7 +298,7 @@ function initCamera() {
     camera.setNearClip(0.1);
     camera.setAspectRatio(canvas.width/canvas.height);
     var node = camera._node = new cc3d.GraphNode();
-    node.setPosition(new cc3d.math.Vec3(10,10,10));
+    node.setPosition(new cc3d.math.Vec3(0,12,12));
     node.lookAt(cc3d.math.Vec3.ZERO,cc3d.math.Vec3.UP);
 
 };
@@ -318,37 +317,73 @@ function initMaterial() {
     return material;
 }
 
+function initPointLight(scene, pos, color, range) {
+    var light = new cc3d.Light();
+    var node = initObjectNode();
+    node.setPosition(cc3d.math.Vec3.ZERO);
+    light._node = node;
+    light.setColor(color);
+    light.setType(cc3d.SceneEnums.LIGHTTYPE_POINT);
+    light._attenuationEnd = range;
+    light._position = pos.clone();
+    scene.addLight(light);
+
+
+    var node2 = initObjectNode();
+    node2.setLocalPosition(pos);
+    node2.setLocalScale(new cc3d.math.Vec3(0.1,0.1,0.1));
+    var material = new cc3d.ColorMaterial();
+    material.color = color.clone();
+    scene.addMeshInstance(new cc3d.MeshInstance(node2, boxMesh, material));
+    node.addChild(node2);
+    //objectNodes.push(node);
+}
+
 function initScene() {
     initCamera();
     scene = new cc3d.Scene();
 
-    var mesh = initMesh();
     var node = initObjectNode();
     node.translate(-1.5, 0, 0);
     objectNodes.push(node);
-    scene.addMeshInstance(new cc3d.MeshInstance(node, mesh, initMaterial()));
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, initMaterial()));
     node = initObjectNode();
-    node.translate(3.5, 0, 0);
+    node.translate(3.5, 2, 0);
+    //node.setLocalScale(3,3,3);
     objectNodes.push(node);
     var material = new cc3d.BasicLambertMaterial();
     material.texture = texture;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, mesh, material));
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
     renderer = new cc3d.ForwardRenderer(device);
 
     //init light
     var light = new cc3d.Light();
     node = initObjectNode();
-    objectNodes.push(node);
+    //objectNodes.push(node);
     light._node = node;
     light._direction = new cc3d.math.Vec3(0, -1, 0);
+    light.setColor(new cc3d.math.Vec3(0.6,0.6,0.6));
     scene.addLight(light);
+    var generalRange = 10;
+    initPointLight(scene, new cc3d.math.Vec3(-10,4,0), new cc3d.math.Vec3(1.0,0.0,0.0), generalRange);
+
+    initPointLight(scene, new cc3d.math.Vec3(-5,4,0), new cc3d.math.Vec3(0.0,1.0,0.0), generalRange);
+
+    initPointLight(scene, new cc3d.math.Vec3(0,4,0), new cc3d.math.Vec3(0.0,0.0,1.0), generalRange);
+
+    initPointLight(scene, new cc3d.math.Vec3(5,4,0), new cc3d.math.Vec3(0,0.5,0.5), generalRange);
+
+    initPointLight(scene, new cc3d.math.Vec3(10,4,0), new cc3d.math.Vec3(0.5,0.5,0), generalRange);
+
     scene._sceneAmbient = new cc3d.math.Vec3(0.6,0.6,0.6);
+
 };
 
 function run3d() {
     canvas = document.getElementById("gameCanvas");
     device = new cc3d.graphics.GraphicsDevice(canvas);
     initTexture();
+    boxMesh = initMesh();
     initScene();
     setTimeout(function() {
         tick();
