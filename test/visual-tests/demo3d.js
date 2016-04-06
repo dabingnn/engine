@@ -13,6 +13,7 @@ var scene = null;
 var renderer = null;
 var camera = null;
 var boxMesh = null;
+var sphereMesh = null;
 function initTexture() {
     //var gl = device.gl;
     texture = new cc3d.graphics.Texture(device);
@@ -30,6 +31,127 @@ function initTexture() {
         //gl.bindTexture(gl.TEXTURE_2D, null);
     };
     image.src = './crate.gif';
+};
+
+function initSphereMesh( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {
+
+
+    radius = radius || 1;
+
+    widthSegments = Math.max( 3, Math.floor( widthSegments ) || 8 );
+    heightSegments = Math.max( 2, Math.floor( heightSegments ) || 6 );
+
+    phiStart = phiStart !== undefined ? phiStart : 0;
+    phiLength = phiLength !== undefined ? phiLength : Math.PI * 2;
+
+    thetaStart = thetaStart !== undefined ? thetaStart : 0;
+    thetaLength = thetaLength !== undefined ? thetaLength : Math.PI;
+
+    var thetaEnd = thetaStart + thetaLength;
+
+    var vertexCount = ( ( widthSegments + 1 ) * ( heightSegments + 1 ) );
+
+    var positions = new Float32Array(vertexCount * 3);
+    var normals = new Float32Array(vertexCount * 3);
+    var uvs = new Float32Array(vertexCount * 2);
+
+    var index = 0, vertices = [], normal = new cc3d.math.Vec3();
+
+    for ( var y = 0; y <= heightSegments; y ++ ) {
+
+        var verticesRow = [];
+
+        var v = y / heightSegments;
+
+        for ( var x = 0; x <= widthSegments; x ++ ) {
+
+            var u = x / widthSegments;
+
+            var px = - radius * Math.cos( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
+            var py = radius * Math.cos( thetaStart + v * thetaLength );
+            var pz = radius * Math.sin( phiStart + u * phiLength ) * Math.sin( thetaStart + v * thetaLength );
+
+            normal.set( px, py, pz ).normalize();
+
+            positions[3 * index] = px;
+            positions[3 * index + 1] = py;
+            positions[3 * index + 2] = pz;
+
+            normals[3 * index] = normal.x;
+            normals[3 * index + 1] = normal.y;
+            normals[3 * index + 2] = normal.z;
+
+            uvs[2 * index] = u;
+            uvs[2 * index + 1] = 1-v;
+
+            verticesRow.push( index );
+
+            index ++;
+
+        }
+
+        vertices.push( verticesRow );
+
+    }
+
+    var indices = [];
+
+    for ( var y = 0; y < heightSegments; y ++ ) {
+
+        for ( var x = 0; x < widthSegments; x ++ ) {
+
+            var v1 = vertices[ y ][ x + 1 ];
+            var v2 = vertices[ y ][ x ];
+            var v3 = vertices[ y + 1 ][ x ];
+            var v4 = vertices[ y + 1 ][ x + 1 ];
+
+            if ( y !== 0 || thetaStart > 0 ) indices.push( v1, v2, v4 );
+            if ( y !== heightSegments - 1 || thetaEnd < Math.PI ) indices.push( v2, v3, v4 );
+
+        }
+
+    }
+
+    var mesh = new cc3d.Mesh();
+
+    var vertexFormat = new cc3d.graphics.VertexFormat(
+        [{semantic:cc3dEnums.SEMANTIC_POSITION,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
+    );
+    var vertexBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,positions.length/3);
+    vertexBuffer.setData(positions);
+
+    vertexFormat = new cc3d.graphics.VertexFormat(
+        [{semantic:cc3dEnums.SEMANTIC_TEXCOORD0,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:2}]
+    );
+    var uvBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,uvs.length/2);
+    uvBuffer.setData(uvs);
+
+    vertexFormat = new cc3d.graphics.VertexFormat(
+        [{semantic:cc3dEnums.SEMANTIC_NORMAL,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
+    );
+    var normalBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,normals.length/3);
+    normalBuffer.setData(normals);
+
+    mesh.vertexBuffer.push(vertexBuffer);
+    mesh.vertexBuffer.push(uvBuffer);
+    mesh.vertexBuffer.push(normalBuffer);
+
+    var indexBuffer = new cc3d.graphics.IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
+
+
+    var indexArray = new Uint16Array(indexBuffer.lock());
+    indexArray.set(indices);
+    indexBuffer.unlock();
+
+    mesh.indexBuffer = indexBuffer;
+    mesh.primitive = {
+        type: cc3dEnums.PRIMITIVE_TRIANGLES,
+        indexed: true,
+        base: 0,
+        count: indexBuffer.getNumIndices(),
+    };
+    return mesh;
+
 };
 
 function initMesh() {
@@ -164,7 +286,7 @@ function initMesh() {
     vertexFormat = new cc3d.graphics.VertexFormat(
         [{semantic:cc3dEnums.SEMANTIC_NORMAL,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
     );
-    var normalBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,uv.length/2);
+    var normalBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,normals.length/3);
     normalBuffer.setData(new Float32Array(normals));
 
     mesh.vertexBuffer.push(vertexBuffer);
@@ -334,7 +456,7 @@ function initPointLight(scene, pos, color, range) {
     node2.setLocalScale(new cc3d.math.Vec3(0.1,0.1,0.1));
     var material = new cc3d.ColorMaterial();
     material.color = color.clone();
-    scene.addMeshInstance(new cc3d.MeshInstance(node2, boxMesh, material));
+    scene.addMeshInstance(new cc3d.MeshInstance(node2, sphereMesh, material));
     node.addChild(node2);
     //objectNodes.push(node);
 }
@@ -353,7 +475,7 @@ function initScene() {
     objectNodes.push(node);
     var material = new cc3d.BasicLambertMaterial();
     material.texture = texture;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+    scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
     renderer = new cc3d.ForwardRenderer(device);
 
     //init light
@@ -384,6 +506,7 @@ function run3d() {
     device = new cc3d.graphics.GraphicsDevice(canvas);
     initTexture();
     boxMesh = initMesh();
+    sphereMesh = initSphereMesh(1.5, 20, 10);
     initScene();
     setTimeout(function() {
         tick();
