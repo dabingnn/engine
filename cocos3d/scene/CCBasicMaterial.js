@@ -109,7 +109,7 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         pixelSrc += cc3d.ShaderChunks.lighting;
         pixelSrc += 'uniform sampler2D texture;\n';
         pixelSrc += 'void main () {\n' +
-            'vec4 texture_diffuse = texture2D(texture, v_uv);\n' +
+            'vec4 texture_diffuse =' + (this.texture !== null ?  'texture2D(texture, v_uv);\n' : 'vec4(1.0);') +
             'vec3 diffuseLighting = getDiffuseLighting(v_normal,v_position);\n' +
             'gl_FragColor.rgb = texture_diffuse.rgb * diffuseLighting;\n' +
             'gl_FragColor.a = texture_diffuse.a;\n' +

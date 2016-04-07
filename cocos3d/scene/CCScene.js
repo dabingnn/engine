@@ -35,7 +35,12 @@ Scene.prototype = {
             this._lights.push(light);
         }
     },
-
+    removeLight: function(light) {
+        var index = this._lights.indexOf(light);
+        if(index !== -1) {
+            this._lights.splice(index,1);
+        }
+    },
     getLights: function() {
       return this._lights;
     },

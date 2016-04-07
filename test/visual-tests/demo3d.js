@@ -14,6 +14,7 @@ var renderer = null;
 var camera = null;
 var boxMesh = null;
 var sphereMesh = null;
+var lights = [];
 function initTexture() {
     //var gl = device.gl;
     texture = new cc3d.graphics.Texture(device);
@@ -383,7 +384,29 @@ function drawScene() {
 
     renderer.render(scene,camera);
 };
+function update_addLights() {
+    var largeRange = 15;
+    initPointLight(scene, new cc3d.math.Vec3(10,-2,0), new cc3d.math.Vec3(1.0,0.0,0.0), largeRange);
+
+    initPointLight(scene, new cc3d.math.Vec3(0,-2,0), new cc3d.math.Vec3(0.0,1.0,0.0), largeRange);
+
+    initPointLight(scene, new cc3d.math.Vec3(-10,-2,0), new cc3d.math.Vec3(0.0,0.0,1.0), largeRange);
+
+    //initPointLight(scene, new cc3d.math.Vec3(-5,-2,0), new cc3d.math.Vec3(0,0.8,0.8), largeRange);
+
+    //initPointLight(scene, new cc3d.math.Vec3(-10,-2,0), new cc3d.math.Vec3(0.8,0.8,0), largeRange);
+};
+function  update_removeLights() {
+    for(var index = lights.length -1; index >= 5; --index) {
+        scene.removeLight(lights[index].light);
+        scene.removeMeshInstance(lights[index].mesh);
+    }
+
+    lights.splice(5,lights.length - 5);
+
+}
 var lastTime = null;
+var animationInterval = 0;
 function animate() {
     var timeNow = new Date().getTime();
     if (lastTime) {
@@ -394,13 +417,25 @@ function animate() {
         // rotZ += (90 * dt) / 1000.0;
         //y += dt / 1000.0;
 
-        //move the second one
-        var pos = objectNodes[1].getLocalPosition().clone();
-        pos.x += 1.0 * dt/1000;
-        if(pos.x > 12) pos.x = -12;
-        objectNodes[1].setLocalPosition(pos);
+        for(var index = 0; index < objectNodes.length; ++index) {
+            var pos = objectNodes[index].getLocalPosition().clone();
+            pos.x += 1.0 * dt/1000* (pos.y > 0 ?1.5 : 1);
+            if(pos.x > 12) pos.x = -12;
+            objectNodes[index].setLocalPosition(pos);
+        }
 
+        animationInterval += dt;
     }
+
+    if(animationInterval >4000) {
+        if(lights.length === 8) {
+            update_removeLights();
+        } else {
+            update_addLights();
+        }
+        animationInterval = 0;
+    }
+
     lastTime = timeNow;
 
     for(var rotIndex = 0; rotIndex < objectNodes.length; ++rotIndex)
@@ -420,7 +455,7 @@ function initCamera() {
     camera.setNearClip(0.1);
     camera.setAspectRatio(canvas.width/canvas.height);
     var node = camera._node = new cc3d.GraphNode();
-    node.setPosition(new cc3d.math.Vec3(0,12,12));
+    node.setPosition(new cc3d.math.Vec3(0,0,20));
     node.lookAt(cc3d.math.Vec3.ZERO,cc3d.math.Vec3.UP);
 
 };
@@ -450,14 +485,16 @@ function initPointLight(scene, pos, color, range) {
     light._position = pos.clone();
     scene.addLight(light);
 
-
     var node2 = initObjectNode();
     node2.setLocalPosition(pos);
     node2.setLocalScale(new cc3d.math.Vec3(0.1,0.1,0.1));
     var material = new cc3d.ColorMaterial();
     material.color = color.clone();
-    scene.addMeshInstance(new cc3d.MeshInstance(node2, sphereMesh, material));
+    var meshInstance = new cc3d.MeshInstance(node2, sphereMesh, material);
+    scene.addMeshInstance(meshInstance);
     node.addChild(node2);
+
+    lights.push({light:light, mesh: meshInstance});
     //objectNodes.push(node);
 }
 
@@ -466,16 +503,27 @@ function initScene() {
     scene = new cc3d.Scene();
 
     var node = initObjectNode();
-    node.translate(-1.5, 0, 0);
+    node.translate(0, -6.5, -3);
     objectNodes.push(node);
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, initMaterial()));
     node = initObjectNode();
-    node.translate(3.5, 2, 0);
+    node.translate(3.5, 2, -3);
     //node.setLocalScale(3,3,3);
     objectNodes.push(node);
     var material = new cc3d.BasicLambertMaterial();
     material.texture = texture;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+
+
+    node = initObjectNode();
+    node.translate(-3.5, 2, -3);
+    //node.setLocalScale(3,3,3);
+    objectNodes.push(node);
+    material = new cc3d.BasicLambertMaterial();
+    //material.texture = texture;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+
+
     renderer = new cc3d.ForwardRenderer(device);
 
     //init light
