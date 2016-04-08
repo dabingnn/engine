@@ -320,42 +320,36 @@ function initMesh() {
 };
 
 function initGLProgram() {
-    var vertSrc,pixelSrc;
-    vertSrc = '' +
-        'attribute vec4 a_position;' +
-        'attribute vec2 a_texCoord0;' +
-        'attribute vec3 a_normal;' +
-        'uniform mat4 world;' +
-        'uniform mat4 view;' +
-        'uniform mat4 projection;' +
-        'uniform mat4 worldViewProjection;' +
-        'varying vec2 v_texCoord0;' +
-        'varying vec3 v_normal;' +
-        'void main() {' +
-        'gl_Position = worldViewProjection * a_position;' +
-        'v_normal = (world * vec4(a_normal,0.0)).xyz;' +
-        'v_texCoord0 = a_texCoord0;' +
+    var shaderDefinition = {};
+    var vertSrc = '';
+    vertSrc += '#define USE_UV\n';
+    vertSrc += '#define VARYING_UV\n';
+    vertSrc += '#define USE_NORMAL\n';
+    vertSrc += '#define VARYING_NORMAL\n';
+    vertSrc += cc3d.ShaderChunks.commonAttributes;
+    vertSrc += cc3d.ShaderChunks.commonUniforms;
+    vertSrc += cc3d.ShaderChunks.commonVaryings;
+    vertSrc += 'void main() {' +
+        'gl_Position = matrix_worldviewprojection * vec4(a_position,1.0);' +
+        'v_uv = a_uv;' +
+        'v_normal = (matrix_normal * vec4(a_normal,0.0)).xyz;' +
+        'v_normal = normalize(v_normal);' +
         '}';
-    fragSrc = 'precision mediump float;' +
-        'varying vec2 v_texCoord0;' +
-        'varying vec3 v_normal;' +
-        'uniform sampler2D texture;' +
-        'uniform vec3 lightDirInWorld;' +
-        'uniform vec3 lightColor;' +
-        'float computeLight(vec3 lightDir, vec3 normal) {' +
-        'float dotLight = dot(lightDir, normal);' +
-        'if(dotLight < 0.0) dotLight = 0.0;' +
-        'return dotLight;' +
-        '}' +
+
+    var fragSrc = 'precision mediump float;\n' +
+        '#define VARYING_UV\n' +
+        '#define VARYING_NORMAL\n' +
+        'uniform sampler2D texture;\n' +
+        cc3d.ShaderChunks.commonVaryings +
         'void main() {' +
-        'float color = computeLight(-lightDirInWorld,v_normal);' +
-        'vec4 diffuseColor = texture2D(texture, v_texCoord0);' +
-        'gl_FragColor.xyz = color * diffuseColor.rgb * lightColor.rgb;' +
-        'gl_FragColor.a = diffuseColor.a;' +
+        'vec4 albedo = texture2D(texture,v_uv);' +
+        'gl_FragColor.xyz = v_normal;' +
+        'gl_FragColor.w = albedo.w;' +
         '}';
+
     var attribs = {
         a_position: cc3dEnums.SEMANTIC_POSITION,
-        a_texCoord0: cc3dEnums.SEMANTIC_TEXCOORD0,
+        a_uv: cc3dEnums.SEMANTIC_TEXCOORD0,
         a_normal: cc3dEnums.SEMANTIC_NORMAL
     };
     var definition = {
@@ -363,8 +357,10 @@ function initGLProgram() {
         fshader: fragSrc,
         attributes: attribs
     };
-    glProgram = new cc3d.graphics.Shader(device,definition);
+    var glProgram = new cc3d.graphics.Shader(device,definition);
     glProgram.link();
+
+    return glProgram;
 
 };
 
@@ -468,12 +464,6 @@ function initObjectNode() {
     return node;
 };
 
-function initMaterial() {
-    var material = new cc3d.BasicMaterial();
-    material.texture = texture;
-    return material;
-}
-
 function initPointLight(scene, pos, color, range) {
     var light = new cc3d.Light();
     var node = initObjectNode();
@@ -503,9 +493,13 @@ function initScene() {
     scene = new cc3d.Scene();
 
     var node = initObjectNode();
-    node.translate(0, -6.5, -3);
+    node.translate(-3, -6.5, -3);
     objectNodes.push(node);
-    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, initMaterial()));
+
+    var material = new cc3d.BasicMaterial();
+    material.texture = texture;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+
     node = initObjectNode();
     node.translate(3.5, 2, -3);
     //node.setLocalScale(3,3,3);
@@ -513,6 +507,18 @@ function initScene() {
     var material = new cc3d.BasicLambertMaterial();
     material.texture = texture;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+
+    {
+        node = initObjectNode();
+        node.translate(3, -6.5, -3);
+        objectNodes.push(node);
+
+        material = new cc3d.Material();
+        material.setShader(initGLProgram());
+        //material
+        //material.texture = texture;
+        scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+    }
 
 
     node = initObjectNode();

@@ -132,7 +132,6 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         var key = this._generateShaderKey(device, scene);
         if(key === this.shaderKey) return;
         this.shaderKey = key;
-
         this._generateShader(device,scene);
     },
 
@@ -189,6 +188,8 @@ cc3d.extend( ColorMaterial.prototype, {
     },
 
 });
+
+
 
 cc3d.BasicMaterial = BasicMaterial;
 cc3d.BasicLambertMaterial = BasicLambertMaterial;
