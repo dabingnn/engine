@@ -196,3 +196,4 @@ require('./CCBasicMaterial');
 require('./CCLight');
 require('./CCForwardRenderer');
 require('./ShaderLib/CCShaderChunk');
+require('./ShaderLib/CCShaderLibs');

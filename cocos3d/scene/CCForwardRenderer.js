@@ -20,6 +20,10 @@ var ForwardRenderer = function (graphicDevice) {
     this.sceneAmbientID = scope.resolve('sceneAmbient');
 };
 
+function sortDrawCalls(drawCallA, drawCallB) {
+    return drawCallB.material.renderID - drawCallA.material.renderID;
+}
+
 ForwardRenderer.prototype = {
     dispatchLights: function(scene) {
         var scope = this.device.scope;
@@ -72,6 +76,7 @@ ForwardRenderer.prototype = {
     render: function(scene, camera) {
         var device = this.device;
         var meshes = scene.getMeshInstance();
+        //meshes.sort(sortDrawCalls);
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
             var world_matrix = meshInstance._node.getWorldTransform().clone();

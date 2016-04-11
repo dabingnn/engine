@@ -37,7 +37,13 @@ function createProgram(gl, vertexShader, fragmentShader) {
     return program;
 }
 
+var shaderID = 0;
 var Shader = function (graphicsDevice, definition) {
+    this.shaderID = shaderID;
+    shaderID++;
+    if(shaderID >= 65536) {
+        console.log("error, shaderID exceeds max allowed size.");
+    }
     this.device = graphicsDevice;
     this.definition = definition;
     this.ready = false;

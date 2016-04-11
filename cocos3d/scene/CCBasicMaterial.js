@@ -15,36 +15,44 @@ cc3d.extend( BasicMaterial.prototype, {
         var key = this._generateShaderKey(device, scene);
         if(key === this.shaderKey) return;
         this.shaderKey = key;
-        var vertSrc,pixelSrc;
-        vertSrc = '' +
-            'attribute vec4 a_position;' +
-            'attribute vec2 a_uv;' +
-            'uniform mat4 matrix_worldviewprojection;' +
-            'varying vec2 v_uv;' +
-            'void main() {' +
-            'gl_Position = matrix_worldviewprojection * a_position;' +
-            'v_uv = a_uv;' +
-            '}';
-        pixelSrc = 'precision mediump float;' +
-            'varying vec2 v_uv;' +
-            'uniform sampler2D texture;' +
-            'void main() {' +
-            'vec4 diffuseColor = texture2D(texture, v_uv);' +
-            'gl_FragColor = diffuseColor;' +
-            '}';
-        var attribs = {
-            a_position: cc3dEnums.SEMANTIC_POSITION,
-            a_uv: cc3dEnums.SEMANTIC_TEXCOORD0
-            //a_normal: cc3dEnums.SEMANTIC_NORMAL
-        };
-        var definition = {
-            vshader: vertSrc,
-            fshader: pixelSrc,
-            attributes: attribs
-        };
-        this.shader = new cc3d.graphics.Shader(device,definition);
-        //link it
-        this.shader.link();
+        var shader = cc3d.ShaderLibs.getShaderByKey(key);
+        if(shader) {
+            this.shader = shader;
+        } else {
+
+            var vertSrc, pixelSrc;
+            vertSrc = '' +
+                'attribute vec4 a_position;' +
+                'attribute vec2 a_uv;' +
+                'uniform mat4 matrix_worldviewprojection;' +
+                'varying vec2 v_uv;' +
+                'void main() {' +
+                'gl_Position = matrix_worldviewprojection * a_position;' +
+                'v_uv = a_uv;' +
+                '}';
+            pixelSrc = 'precision mediump float;' +
+                'varying vec2 v_uv;' +
+                'uniform sampler2D texture;' +
+                'void main() {' +
+                'vec4 diffuseColor = texture2D(texture, v_uv);' +
+                'gl_FragColor = diffuseColor;' +
+                '}';
+            var attribs = {
+                a_position: cc3dEnums.SEMANTIC_POSITION,
+                a_uv: cc3dEnums.SEMANTIC_TEXCOORD0
+                //a_normal: cc3dEnums.SEMANTIC_NORMAL
+            };
+            var definition = {
+                vshader: vertSrc,
+                fshader: pixelSrc,
+                attributes: attribs
+            };
+            this.shader = new cc3d.graphics.Shader(device, definition);
+            //link it
+            this.shader.link();
+            cc3d.ShaderLibs.addShader(this.shaderKey, this.shader);
+        }
+        this._generateRenderKey();
     },
 
     update: function() {
@@ -67,6 +75,9 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         key += '_directionalLight_' + scene._directionalLights.length;
         key += '_pointLight_' + scene._pointLights.length;
         key += '_spotLight_' + scene._spotLights.length;
+        if(this.texture) {
+            key += 'texture';
+        }
 
         return key;
     },
@@ -127,12 +138,19 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         };
         this.shader = new cc3d.graphics.Shader(device,definition);
         this.shader.link();
+        cc3d.ShaderLibs.addShader(this.shaderKey, this.shader);
     },
     updateShader: function (device, scene, objDefs) {
         var key = this._generateShaderKey(device, scene);
         if(key === this.shaderKey) return;
         this.shaderKey = key;
-        this._generateShader(device,scene);
+        var shader = cc3d.ShaderLibs.getShaderByKey(key);
+        if(shader) {
+            this.shader = shader;
+        } else {
+            this._generateShader(device,scene);
+        }
+        this._generateRenderKey();
     },
 
     update: function() {
@@ -156,31 +174,39 @@ cc3d.extend( ColorMaterial.prototype, {
         var key = this._generateShaderKey(device, scene);
         if(key === this.shaderKey) return;
         this.shaderKey = key;
-        var vertSrc,pixelSrc;
-        vertSrc = '' +
-            'attribute vec4 a_position;' +
-            'uniform mat4 matrix_worldviewprojection;' +
-            'void main() {' +
-            'gl_Position = matrix_worldviewprojection * a_position;' +
-            '}';
-        pixelSrc = 'precision mediump float;' +
-            'uniform vec3 color;' +
-            'void main() {' +
-            'gl_FragColor.rgb = color;' +
-            'gl_FragColor.a = 1.0;' +
-            '}';
-        var attribs = {
-            a_position: cc3dEnums.SEMANTIC_POSITION,
-            //a_normal: cc3dEnums.SEMANTIC_NORMAL
-        };
-        var definition = {
-            vshader: vertSrc,
-            fshader: pixelSrc,
-            attributes: attribs
-        };
-        this.shader = new cc3d.graphics.Shader(device,definition);
-        //link it
-        this.shader.link();
+        var shader = cc3d.ShaderLibs.getShaderByKey(key);
+        if(shader) {
+            this.shader = shader;
+        } else {
+
+            var vertSrc, pixelSrc;
+            vertSrc = '' +
+                'attribute vec4 a_position;' +
+                'uniform mat4 matrix_worldviewprojection;' +
+                'void main() {' +
+                'gl_Position = matrix_worldviewprojection * a_position;' +
+                '}';
+            pixelSrc = 'precision mediump float;' +
+                'uniform vec3 color;' +
+                'void main() {' +
+                'gl_FragColor.rgb = color;' +
+                'gl_FragColor.a = 1.0;' +
+                '}';
+            var attribs = {
+                a_position: cc3dEnums.SEMANTIC_POSITION,
+                //a_normal: cc3dEnums.SEMANTIC_NORMAL
+            };
+            var definition = {
+                vshader: vertSrc,
+                fshader: pixelSrc,
+                attributes: attribs
+            };
+            this.shader = new cc3d.graphics.Shader(device, definition);
+            //link it
+            this.shader.link();
+            cc3d.ShaderLibs.addShader(this.shaderKey, this.shader);
+        }
+        this._generateRenderKey();
     },
 
     update: function() {

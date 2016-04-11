@@ -1,12 +1,16 @@
 'use strict';
 
 var materialID = 0;
+//generate a sortable key for rendering
+
 var Material = function () {
     this.name = "Untitled";
-    this.id = materialID++;
+    this.materialID = materialID++;
     this.shader = null;
     this.shaderKey = undefined;
     //this.variants = {};
+
+    this.renderID = NaN;
 
     this.parameters = {};
 
@@ -145,6 +149,10 @@ Material.prototype = {
 
     setShader: function (shader) {
         this.shader = shader;
+    },
+
+    _generateRenderKey: function() {
+        this.renderID =  ((this.shader ? this.shader.shaderID : NaN) << 16) + this.materialID;
     }
 };
 

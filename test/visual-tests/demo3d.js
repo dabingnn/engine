@@ -515,6 +515,7 @@ function initScene() {
 
         material = new cc3d.Material();
         material.setShader(initGLProgram());
+        material._generateRenderKey();
         //material
         //material.texture = texture;
         scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
@@ -528,6 +529,14 @@ function initScene() {
     material = new cc3d.BasicLambertMaterial();
     //material.texture = texture;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+
+
+    node = initObjectNode();
+    node.translate(-9.5, 2, -3);
+    objectNodes.push(node);
+    material = new cc3d.BasicLambertMaterial();
+    material.texture = texture;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
 
     renderer = new cc3d.ForwardRenderer(device);
