@@ -117,13 +117,15 @@ cc3d.extend( BasicLambertMaterial.prototype, {
 
         pixelSrc += cc3d.ShaderChunks.commonVaryings;
         pixelSrc += cc3d.ShaderChunks.lighting;
+        pixelSrc += cc3d.ShaderChunks.gamma;
         pixelSrc += 'uniform sampler2D texture;\n';
         pixelSrc += 'uniform vec3 color;\n';
         pixelSrc += 'void main () {\n' +
-            'vec4 texture_diffuse =' + (this.texture !== null ?  'texture2D(texture, v_uv);\n' : 'vec4(1.0);') +
+            'vec4 texture_diffuse =' + (this.texture !== null ?  'toLinear(texture2D(texture, v_uv));\n' : 'vec4(1.0);') +
             'lighting(v_normal,v_position);\n' +
             'gl_FragColor.rgb = texture_diffuse.rgb * color * totalDiffuseLight;\n' +
             'gl_FragColor.a = texture_diffuse.a;\n' +
+            'gl_FragColor = toGamma(gl_FragColor);\n' +
             '}';
 
         var attribs = {
