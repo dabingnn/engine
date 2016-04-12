@@ -508,6 +508,15 @@ function initScene() {
     material.texture = texture;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
+    node = initObjectNode();
+    node.translate(6.5, 2, -3);
+    //node.setLocalScale(3,3,3);
+    objectNodes.push(node);
+    var material = new cc3d.BasicPhongMaterial();
+    material.texture = texture;
+    material.color = new cc3d.math.Vec3(1,0,0);
+    scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+
     {
         node = initObjectNode();
         node.translate(3, -6.5, -3);
