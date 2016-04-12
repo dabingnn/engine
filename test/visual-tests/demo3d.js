@@ -514,7 +514,9 @@ function initScene() {
     objectNodes.push(node);
     var material = new cc3d.BasicPhongMaterial();
     material.texture = texture;
-    material.color = new cc3d.math.Vec3(1,0,0);
+    material.color = new cc3d.math.Vec3(1,1,1);
+    material.shininess = 50;
+    material.specularColor = new cc3d.math.Vec3(1,0,1);
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
     {
@@ -578,7 +580,7 @@ function run3d() {
     device = new cc3d.graphics.GraphicsDevice(canvas);
     initTexture();
     boxMesh = initMesh();
-    sphereMesh = initSphereMesh(1.5, 20, 10);
+    sphereMesh = initSphereMesh(1.5, 32, 32);
     initScene();
     setTimeout(function() {
         tick();

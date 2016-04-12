@@ -7,6 +7,11 @@ module.exports = '' +
     'u_directional_light_direction[DIRECTIONAL_LIGHT_COUNT]\n' +
     'u_directional_light_color[DIRECTIONAL_LIGHT_COUNT]\n' +
     '*/\n' +
+    '/**\n' +
+    'defines: \n' +
+    'LIGHTING_PHONG\n' +
+    'calculate specular lighting and diffuse light as phong models.\n' +
+    '*/\n' +
     '\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
     'uniform vec3 u_directional_light_direction[DIRECTIONAL_LIGHT_COUNT];\n' +
@@ -20,6 +25,10 @@ module.exports = '' +
     '#endif\n' +
     'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
     'vec3 totalSpecularLight = vec3( 0.0 );\n' +
+    '//uniforms for specular lighting\n' +
+    'uniform vec3 u_camera_position;\n' +
+    'uniform vec3 u_material_specular;\n' +
+    'uniform float u_material_shininess;\n' +
     '\n' +
     'float getFalloffLinear(float dist, float lightRange)\n' +
     '{\n' +
@@ -28,12 +37,21 @@ module.exports = '' +
     '\n' +
     'void lighting(vec3 normal, vec3 position)\n' +
     '{\n' +
+    'float shininess = u_material_shininess;\n' +
+    'vec3 specular = u_material_specular;\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
     'for(int lightIndex = 0; lightIndex < DIRECTIONAL_LIGHT_COUNT; ++lightIndex)\n' +
     '	{\n' +
-    'float ldotN = dot(normal, -u_directional_light_direction[lightIndex]);\n' +
+    'vec3 lightDir = normalize(-u_directional_light_direction[lightIndex]);\n' +
+    'vec3 lightColor = u_directional_light_color[lightIndex];\n' +
+    'vec3 viewDir = normalize(u_camera_position - position);\n' +
+    'float ldotN = dot(normal, lightDir);\n' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
-    '		totalDiffuseLight += ldotN * u_directional_light_color[lightIndex];\n' +
+    '		totalDiffuseLight += ldotN * lightColor;\n' +
+    '#ifdef LIGHTING_PHONG\n' +
+    'vec3 brdf = BRDF_BlinnPhong( specular, shininess, normal, lightDir, viewDir );\n' +
+    'totalSpecularLight += brdf * /*specularStrength **/ lightColor * ldotN;\n' +
+    '#endif\n' +
     '}\n' +
     '#endif\n' +
     '\n' +
@@ -45,6 +63,10 @@ module.exports = '' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
     '		float falloff = getFalloffLinear(length(lightV), u_point_light_range[lightIndex]);\n' +
     '		totalDiffuseLight += ldotN * falloff *u_point_light_color[lightIndex];\n' +
+    '#ifdef LIGHTING_PHONG\n' +
+    '//vec3 brdf = BRDF_BlinnPhong( specular, shininess, normal, lightDir, viewDir );\n' +
+    '//totalSpecularLight += brdf * specularStrength * lightColor * attenuation * cosineTerm;\n' +
+    '#endif\n' +
     '	}\n' +
     '#endif\n' +
     '}';

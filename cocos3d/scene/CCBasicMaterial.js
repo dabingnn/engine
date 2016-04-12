@@ -219,6 +219,8 @@ cc3d.extend( ColorMaterial.prototype, {
 var BasicPhongMaterial = function() {
     this.texture = null;
     this.color = new cc3d.math.Vec3(1,1,1);
+    this.specularColor = new cc3d.math.Vec3(1,1,1);
+    this.shininess = 0.25;
 };
 
 BasicPhongMaterial = cc3d.inherits(BasicPhongMaterial, cc3d.Material);
@@ -269,16 +271,16 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += '#define DIRECTIONAL_LIGHT_COUNT ' + scene._directionalLights.length + '\n';
         pixelSrc += '#define POINT_LIGHT_COUNT ' + scene._pointLights.length + '\n';
         pixelSrc += '#define SPOT_LIGHT_COUNT ' + scene._spotLights.length + '\n';
-
+        pixelSrc += '#define LIGHTING_PHONG\n';
         pixelSrc += cc3d.ShaderChunks.commonVaryings;
         pixelSrc += cc3d.ShaderChunks.lighting;
         pixelSrc += 'uniform sampler2D texture;\n';
         pixelSrc += 'uniform vec3 color;\n';
         pixelSrc += 'void main () {\n' +
-            'vec4 texture_diffuse =' + (this.texture !== null ?  'texture2D(texture, v_uv);\n' : 'vec4(1.0);') +
+            'vec4 albedo =' + (this.texture !== null ?  'texture2D(texture, v_uv);\n' : 'vec4(1.0);') +
             'lighting(v_normal,v_position);\n' +
-            'gl_FragColor.rgb = texture_diffuse.rgb * color * totalDiffuseLight;\n' +
-            'gl_FragColor.a = texture_diffuse.a;\n' +
+            'gl_FragColor.rgb = albedo.rgb * color * totalDiffuseLight + totalSpecularLight;\n' +
+            'gl_FragColor.a = albedo.a;\n' +
             '}';
 
         var attribs = {
@@ -311,6 +313,8 @@ cc3d.extend( BasicPhongMaterial.prototype, {
     update: function() {
         this.setParameter('texture',this.texture);
         this.setParameter('color',this.color.data);
+        this.setParameter('u_material_specular',this.specularColor.data);
+        this.setParameter('u_material_shininess',this.shininess);
     },
 
 });

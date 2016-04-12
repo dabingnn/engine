@@ -18,6 +18,7 @@ var ForwardRenderer = function (graphicDevice) {
     this.normalMatrixID = scope.resolve('matrix_normal');
     this.worldViewID = scope.resolve('matrix_worldview');
     this.sceneAmbientID = scope.resolve('sceneAmbient');
+    this.cameraPosID = scope.resolve('u_camera_position');
 };
 
 function sortDrawCalls(drawCallA, drawCallB) {
@@ -90,6 +91,8 @@ ForwardRenderer.prototype = {
             wv_matrix.mul2(view_matrix,wv_matrix);
             wvp_matrix.mul2(view_matrix,wvp_matrix);
             wvp_matrix.mul2(projection_matrix,wvp_matrix);
+            var cameraPos = camera._node.getPosition();
+            this.cameraPosID.setValue(cameraPos.data);
 
             this.worldID.setValue(world_matrix.data);
             this.viewID.setValue(view_matrix.data);
