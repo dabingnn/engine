@@ -171,10 +171,10 @@ Texture.prototype.destroy = function () {
 
 Texture.prototype.lock =   function (options) {
     // Initialize options to some sensible defaults
-    options = options || { level: 0, face: 0, mode: pc.TEXTURELOCK_WRITE };
+    options = options || { level: 0, face: 0, mode: cc3d.graphics.Enums.TEXTURELOCK_WRITE };
     if (options.level === undefined) { options.level = 0; }
     if (options.face === undefined) { options.face = 0; }
-    if (options.mode === undefined) { options.mode = pc.TEXTURELOCK_WRITE; }
+    if (options.mode === undefined) { options.mode = cc3d.graphics.Enums.TEXTURELOCK_WRITE; }
 
     this._lockedLevel = options.level;
     var cc3dEnums = cc3d.graphics.Enums;
