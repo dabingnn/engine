@@ -17,7 +17,7 @@ var ForwardRenderer = function (graphicDevice) {
     this.worldViewProjectionID = scope.resolve('matrix_worldviewprojection');
     this.normalMatrixID = scope.resolve('matrix_normal');
     this.worldViewID = scope.resolve('matrix_worldview');
-    this.sceneAmbientID = scope.resolve('sceneAmbient');
+    this.sceneAmbientID = scope.resolve('u_scene_ambient');
     this.cameraPosID = scope.resolve('u_camera_position');
 };
 

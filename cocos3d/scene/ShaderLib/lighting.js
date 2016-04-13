@@ -25,10 +25,13 @@ module.exports = '' +
     '#endif\n' +
     'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
     'vec3 totalSpecularLight = vec3( 0.0 );\n' +
+    'vec3 totalAmbientLight = vec3( 0.0 );\n' +
     '//uniforms for specular lighting\n' +
     'uniform vec3 u_camera_position;\n' +
     'uniform vec3 u_material_specular;\n' +
     'uniform float u_material_shininess;\n' +
+    '//uniform for ambient\n' +
+    'uniform vec3 u_scene_ambient;\n' +
     '\n' +
     'float getFalloffLinear(float dist, float lightRange)\n' +
     '{\n' +
@@ -37,6 +40,7 @@ module.exports = '' +
     '\n' +
     'void lighting(vec3 normal, vec3 position)\n' +
     '{\n' +
+    'totalAmbientLight = u_scene_ambient;\n' +
     'float shininess = u_material_shininess;\n' +
     'vec3 specular = u_material_specular;\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +

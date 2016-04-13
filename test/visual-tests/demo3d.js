@@ -515,7 +515,7 @@ function initScene() {
     var material = new cc3d.BasicPhongMaterial();
     material.texture = texture;
     material.color = new cc3d.math.Vec3(1,1,1);
-    material.shininess = 50;
+    material.shininess = 20;
     material.specularColor = new cc3d.math.Vec3(1,0,1);
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
@@ -571,7 +571,7 @@ function initScene() {
 
     initPointLight(scene, new cc3d.math.Vec3(10,4,0), new cc3d.math.Vec3(0.5,0.5,0), generalRange);
 
-    scene._sceneAmbient = new cc3d.math.Vec3(0.6,0.6,0.6);
+    scene._sceneAmbient = new cc3d.math.Vec3(0.2,0.2,0.2);
 
 };
 
