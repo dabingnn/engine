@@ -34,7 +34,7 @@ module.exports = '' +
     'uniform vec3 u_scene_ambient;\n' +
     '\n' +
     '#define saturate(a) clamp( a, 0.0, 1.0 )\n' +
-    'vec3 BRDF_BlinnPhong( in vec3 specularColor, in float shininess, in vec3 normal, in vec3 lightDir, in vec3 viewDir ) {\n' +
+    'vec3 BlinnPhongSpecular( in vec3 specularColor, in float shininess, in vec3 normal, in vec3 lightDir, in vec3 viewDir ) {\n' +
     'vec3 halfDir = normalize( lightDir + viewDir );\n' +
     'float dotNH = saturate( dot( normal, halfDir ) );\n' +
     'return specularColor * pow( dotNH, shininess );' +
@@ -50,18 +50,18 @@ module.exports = '' +
     'totalAmbientLight = u_scene_ambient;\n' +
     'float shininess = u_material_shininess;\n' +
     'vec3 specular = u_material_specular;\n' +
+    'vec3 viewDir = normalize(u_camera_position - position);\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
     'for(int lightIndex = 0; lightIndex < DIRECTIONAL_LIGHT_COUNT; ++lightIndex)\n' +
     '	{\n' +
     'vec3 lightDir = normalize(-u_directional_light_direction[lightIndex]);\n' +
     'vec3 lightColor = u_directional_light_color[lightIndex];\n' +
-    'vec3 viewDir = normalize(u_camera_position - position);\n' +
     'float ldotN = dot(normal, lightDir);\n' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
     '		totalDiffuseLight += ldotN * lightColor;\n' +
     '#ifdef LIGHTING_PHONG\n' +
-    'vec3 brdf = BRDF_BlinnPhong( specular, shininess, normal, lightDir, viewDir );\n' +
-    'totalSpecularLight += brdf * /*specularStrength **/ lightColor * ldotN;\n' +
+    'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
+    'totalSpecularLight += brdf * /*specularStrength **/ lightColor;\n' +
     '#endif\n' +
     '}\n' +
     '#endif\n' +
@@ -69,14 +69,17 @@ module.exports = '' +
     '#if POINT_LIGHT_COUNT>0\n' +
     'for(int lightIndex = 0; lightIndex < POINT_LIGHT_COUNT; ++lightIndex)\n' +
     '{\n' +
-    'vec3 lightV = u_point_light_position[lightIndex] - position;\n' +
-    'float ldotN = dot(normal, normalize(lightV));\n' +
+    'vec3 lightDir = u_point_light_position[lightIndex] - position;\n' +
+    'float lightDist = length(lightDir);\n' +
+    'lightDir = normalize(lightDir);\n' +
+    'vec3 lightColor = u_point_light_color[lightIndex];' +
+    'float ldotN = dot(normal, lightDir);\n' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
-    '		float falloff = getFalloffLinear(length(lightV), u_point_light_range[lightIndex]);\n' +
-    '		totalDiffuseLight += ldotN * falloff *u_point_light_color[lightIndex];\n' +
+    '		float falloff = getFalloffLinear(lightDist, u_point_light_range[lightIndex]);\n' +
+    '		totalDiffuseLight += ldotN * falloff *lightColor;\n' +
     '#ifdef LIGHTING_PHONG\n' +
-    '//vec3 brdf = BRDF_BlinnPhong( specular, shininess, normal, lightDir, viewDir );\n' +
-    '//totalSpecularLight += brdf * specularStrength * lightColor * attenuation * cosineTerm;\n' +
+    'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
+    'totalSpecularLight += brdf  * lightColor * falloff;\n' +
     '#endif\n' +
     '	}\n' +
     '#endif\n' +
