@@ -40,10 +40,9 @@ module.exports = '' +
     'return max(((lightRange - dist) / lightRange), 0.0);\n' +
     '}\n' +
     '\n' +
-    'vec3 lighting(vec3 normal, vec3 position, vec3 albedo, vec3 specular, float shininess)\n' +
+    'vec3 lightingLambert(vec3 normal, vec3 position, vec3 albedo)\n' +
     '{\n' +
     'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
-    'vec3 totalSpecularLight = vec3( 0.0 );\n' +
     'vec3 totalAmbientLight = u_scene_ambient;\n' +
     'vec3 viewDir = normalize(u_camera_position - position);\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
@@ -54,10 +53,6 @@ module.exports = '' +
     'float ldotN = dot(normal, lightDir);\n' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
     '		totalDiffuseLight += ldotN * lightColor;\n' +
-    '#ifdef LIGHTING_PHONG\n' +
-    'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
-    'totalSpecularLight += brdf * /*specularStrength **/ lightColor;\n' +
-    '#endif\n' +
     '}\n' +
     '#endif\n' +
     '\n' +
@@ -72,10 +67,42 @@ module.exports = '' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
     '		float falloff = getFalloffLinear(lightDist, u_point_light_range[lightIndex]);\n' +
     '		totalDiffuseLight += ldotN * falloff *lightColor;\n' +
-    '#ifdef LIGHTING_PHONG\n' +
+    '	}\n' +
+    '#endif\n' +
+    'return albedo * (totalDiffuseLight + totalAmbientLight);\n' +
+    '}'+
+    'vec3 lightingBlinnPhong(vec3 normal, vec3 position, vec3 albedo, vec3 specular, float shininess)\n' +
+    '{\n' +
+    'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
+    'vec3 totalSpecularLight = vec3( 0.0 );\n' +
+    'vec3 totalAmbientLight = u_scene_ambient;\n' +
+    'vec3 viewDir = normalize(u_camera_position - position);\n' +
+    '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
+    'for(int lightIndex = 0; lightIndex < DIRECTIONAL_LIGHT_COUNT; ++lightIndex)\n' +
+    '	{\n' +
+    'vec3 lightDir = normalize(-u_directional_light_direction[lightIndex]);\n' +
+    'vec3 lightColor = u_directional_light_color[lightIndex];\n' +
+    'float ldotN = dot(normal, lightDir);\n' +
+    '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
+    '		totalDiffuseLight += ldotN * lightColor;\n' +
+    'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
+    'totalSpecularLight += brdf * /*specularStrength **/ lightColor;\n' +
+    '}\n' +
+    '#endif\n' +
+    '\n' +
+    '#if POINT_LIGHT_COUNT>0\n' +
+    'for(int lightIndex = 0; lightIndex < POINT_LIGHT_COUNT; ++lightIndex)\n' +
+    '{\n' +
+    'vec3 lightDir = u_point_light_position[lightIndex] - position;\n' +
+    'float lightDist = length(lightDir);\n' +
+    'lightDir = normalize(lightDir);\n' +
+    'vec3 lightColor = u_point_light_color[lightIndex];' +
+    'float ldotN = dot(normal, lightDir);\n' +
+    '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
+    '		float falloff = getFalloffLinear(lightDist, u_point_light_range[lightIndex]);\n' +
+    '		totalDiffuseLight += ldotN * falloff *lightColor;\n' +
     'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
     'totalSpecularLight += brdf  * lightColor * falloff;\n' +
-    '#endif\n' +
     '	}\n' +
     '#endif\n' +
     'return albedo * (totalDiffuseLight + totalAmbientLight) + totalSpecularLight;\n' +

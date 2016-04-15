@@ -387,8 +387,7 @@ function shaderDebugUV() {
           uv = v_position.xy;
         }
         vec4 albedo = toLinear(texture2D(texture, uv));
-        lighting(v_normal,v_position);
-        gl_FragColor.rgb = albedo.rgb * color * totalDiffuseLight;
+        gl_FragColor.rgb = lightingLambert(v_normal,v_position,albedo.rgb);
         gl_FragColor.a = albedo.a;
         gl_FragColor = toGamma(gl_FragColor);
       }
@@ -466,7 +465,7 @@ function initCamera() {
     camera.setNearClip(0.1);
     camera.setAspectRatio(canvas.width/canvas.height);
     var node = camera._node = new cc3d.GraphNode();
-    node.setPosition(new cc3d.math.Vec3(15,15,15));
+    node.setPosition(new cc3d.math.Vec3(30,30,30));
     node.lookAt(cc3d.math.Vec3.ZERO,cc3d.math.Vec3.UP);
 
 };
@@ -539,7 +538,7 @@ function initScene() {
       generalRange
     );
 
-    scene._sceneAmbient = new cc3d.math.Vec3(0.6,0.6,0.6);
+    scene._sceneAmbient = new cc3d.math.Vec3(0.2,0.2,0.2);
     scene.updateLights();
 
     // init objects

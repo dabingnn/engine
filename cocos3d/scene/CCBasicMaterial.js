@@ -122,7 +122,7 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         pixelSrc += 'uniform vec3 color;\n';
         pixelSrc += 'void main () {\n' +
             'vec4 albedo =' + (this.texture !== null ?  'toLinear(texture2D(texture, v_uv));\n' : 'vec4(1.0);\n') +
-            'gl_FragColor.rgb = lighting(v_normal,v_position,albedo.rgb, vec3(0.0), 1.0);\n' +
+            'gl_FragColor.rgb = lightingLambert(v_normal,v_position,albedo.rgb);\n' +
             'gl_FragColor.a = albedo.a;\n' +
             'gl_FragColor = toGamma(gl_FragColor);\n' +
             '}';
@@ -281,7 +281,7 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += 'uniform float u_shininess;\n' ;
         pixelSrc += 'void main () {\n' +
             'vec4 albedo =' + (this.texture !== null ?  'texture2D(u_texture, v_uv);\n' : 'vec4(1.0);\n') +
-            'gl_FragColor.rgb = lighting(v_normal,v_position, albedo.rgb * u_color, u_specular, u_shininess);\n' +
+            'gl_FragColor.rgb = lightingBlinnPhong(v_normal,v_position, albedo.rgb * u_color, u_specular, u_shininess);\n' +
             'gl_FragColor.a = albedo.a;\n' +
             '}';
 
