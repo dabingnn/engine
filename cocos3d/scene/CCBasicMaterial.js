@@ -34,8 +34,8 @@ cc3d.extend( BasicMaterial.prototype, {
                 'varying vec2 v_uv;' +
                 'uniform sampler2D texture;' +
                 'void main() {' +
-                'vec4 diffuseColor = texture2D(texture, v_uv);' +
-                'gl_FragColor = diffuseColor;' +
+                'vec4 albedo = texture2D(texture, v_uv);' +
+                'gl_FragColor = albedo;' +
                 '}';
             var attribs = {
                 a_position: cc3dEnums.SEMANTIC_POSITION,
@@ -121,10 +121,9 @@ cc3d.extend( BasicLambertMaterial.prototype, {
         pixelSrc += 'uniform sampler2D texture;\n';
         pixelSrc += 'uniform vec3 color;\n';
         pixelSrc += 'void main () {\n' +
-            'vec4 texture_diffuse =' + (this.texture !== null ?  'toLinear(texture2D(texture, v_uv));\n' : 'vec4(1.0);') +
-            'lighting(v_normal,v_position);\n' +
-            'gl_FragColor.rgb = texture_diffuse.rgb * color * (totalDiffuseLight + totalAmbientLight);\n' +
-            'gl_FragColor.a = texture_diffuse.a;\n' +
+            'vec4 albedo =' + (this.texture !== null ?  'toLinear(texture2D(texture, v_uv));\n' : 'vec4(1.0);\n') +
+            'gl_FragColor.rgb = lighting(v_normal,v_position,albedo.rgb, vec3(0.0), 1.0);\n' +
+            'gl_FragColor.a = albedo.a;\n' +
             'gl_FragColor = toGamma(gl_FragColor);\n' +
             '}';
 
@@ -276,12 +275,13 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += '#define LIGHTING_PHONG\n';
         pixelSrc += cc3d.ShaderChunks.commonVaryings;
         pixelSrc += cc3d.ShaderChunks.lighting;
-        pixelSrc += 'uniform sampler2D texture;\n';
-        pixelSrc += 'uniform vec3 color;\n';
+        pixelSrc += 'uniform sampler2D u_texture;\n';
+        pixelSrc += 'uniform vec3 u_color;\n' ;
+        pixelSrc += 'uniform vec3 u_specular;\n' ;
+        pixelSrc += 'uniform float u_shininess;\n' ;
         pixelSrc += 'void main () {\n' +
-            'vec4 albedo =' + (this.texture !== null ?  'texture2D(texture, v_uv);\n' : 'vec4(1.0);') +
-            'lighting(v_normal,v_position);\n' +
-            'gl_FragColor.rgb = albedo.rgb * color * (totalDiffuseLight + totalAmbientLight) + totalSpecularLight;\n' +
+            'vec4 albedo =' + (this.texture !== null ?  'texture2D(u_texture, v_uv);\n' : 'vec4(1.0);\n') +
+            'gl_FragColor.rgb = lighting(v_normal,v_position, albedo.rgb * u_color, u_specular, u_shininess);\n' +
             'gl_FragColor.a = albedo.a;\n' +
             '}';
 
@@ -313,10 +313,10 @@ cc3d.extend( BasicPhongMaterial.prototype, {
     },
 
     update: function() {
-        this.setParameter('texture',this.texture);
-        this.setParameter('color',this.color.data);
-        this.setParameter('u_material_specular',this.specularColor.data);
-        this.setParameter('u_material_shininess',this.shininess);
+        this.setParameter('u_texture',this.texture);
+        this.setParameter('u_color',this.color.data);
+        this.setParameter('u_specular',this.specularColor.data);
+        this.setParameter('u_shininess',this.shininess);
     },
 
 });

@@ -23,13 +23,8 @@ module.exports = '' +
     'uniform vec3 u_point_light_color[POINT_LIGHT_COUNT];\n' +
     'uniform float u_point_light_range[POINT_LIGHT_COUNT];\n' +
     '#endif\n' +
-    'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
-    'vec3 totalSpecularLight = vec3( 0.0 );\n' +
-    'vec3 totalAmbientLight = vec3( 0.0 );\n' +
     '//uniforms for specular lighting\n' +
     'uniform vec3 u_camera_position;\n' +
-    'uniform vec3 u_material_specular;\n' +
-    'uniform float u_material_shininess;\n' +
     '//uniform for ambient\n' +
     'uniform vec3 u_scene_ambient;\n' +
     '\n' +
@@ -45,11 +40,11 @@ module.exports = '' +
     'return max(((lightRange - dist) / lightRange), 0.0);\n' +
     '}\n' +
     '\n' +
-    'void lighting(vec3 normal, vec3 position)\n' +
+    'vec3 lighting(vec3 normal, vec3 position, vec3 albedo, vec3 specular, float shininess)\n' +
     '{\n' +
-    'totalAmbientLight = u_scene_ambient;\n' +
-    'float shininess = u_material_shininess;\n' +
-    'vec3 specular = u_material_specular;\n' +
+    'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
+    'vec3 totalSpecularLight = vec3( 0.0 );\n' +
+    'vec3 totalAmbientLight = u_scene_ambient;\n' +
     'vec3 viewDir = normalize(u_camera_position - position);\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
     'for(int lightIndex = 0; lightIndex < DIRECTIONAL_LIGHT_COUNT; ++lightIndex)\n' +
@@ -83,4 +78,5 @@ module.exports = '' +
     '#endif\n' +
     '	}\n' +
     '#endif\n' +
+    'return albedo * (totalDiffuseLight + totalAmbientLight) + totalSpecularLight;\n' +
     '}';
