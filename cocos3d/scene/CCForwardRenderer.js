@@ -22,7 +22,11 @@ var ForwardRenderer = function (graphicDevice) {
 };
 
 function sortDrawCalls(drawCallA, drawCallB) {
-    return drawCallB.material.renderID - drawCallA.material.renderID;
+    if(drawCallA.material.blend && drawCallB.material.blend) {
+        return drawCallA.sortDistance - drawCallB.sortDistance;
+    } else {
+        return drawCallB.material.renderID - drawCallA.material.renderID;
+    }
 }
 
 ForwardRenderer.prototype = {
@@ -77,6 +81,13 @@ ForwardRenderer.prototype = {
     render: function(scene, camera) {
         var device = this.device;
         var meshes = scene.getMeshInstance();
+        var cameraPos = camera._node.getPosition();
+        for (var i = 0, len = meshes.length; i < len; i++) {
+            if(meshes[i].material.blend) {
+                meshes[i].calculateDistance(cameraPos);
+            }
+        }
+
         meshes.sort(sortDrawCalls);
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
@@ -91,7 +102,6 @@ ForwardRenderer.prototype = {
             wv_matrix.mul2(view_matrix,wv_matrix);
             wvp_matrix.mul2(view_matrix,wvp_matrix);
             wvp_matrix.mul2(projection_matrix,wvp_matrix);
-            var cameraPos = camera._node.getPosition();
             this.cameraPosID.setValue(cameraPos.data);
 
             this.worldID.setValue(world_matrix.data);
@@ -102,9 +112,13 @@ ForwardRenderer.prototype = {
             this.normalMatrixID.setValue(normal_matrix.data);
             this.sceneAmbientID.setValue(scene._sceneAmbient.data);
             this.dispatchLights(scene);
-            meshInstance.material.updateShader(device, scene);
-            meshInstance.material.update();
-            device.setShader(meshInstance.material.getShader());
+            var material = meshInstance.material;
+            material.updateShader(device, scene);
+            material.update();
+            device.setShader(material.getShader());
+            device.setBlending(material.blend);
+            device.setBlendFunction(material.blendSrc, material.blendDst);
+            device.setBlendEquation(material.blendEquation);
             meshInstance.material.setParameters(device);
             //apply vertexBuffer
             for(var vertNumber = meshInstance.mesh.vertexBuffer.length, vertIndex = vertNumber-1; vertIndex >= 0;--vertIndex ) {

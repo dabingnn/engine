@@ -66,6 +66,10 @@ var GraphicsDevice = function (canvas, options) {
     this.boundShader = null;
     var gl = this.gl;
     var cc3dEnums = cc3d.graphics.Enums;
+    this.currentBlending = false;
+    this.currentBlendEquation = cc3dEnums.BLENDEQUATION_ADD;
+    this.currentBlendSrc = cc3dEnums.BLENDMODE_ONE;
+    this.currentBlendDst = cc3dEnums.BLENDMODE_ZERO;
     this.glType = [
         gl.BYTE,
         gl.UNSIGNED_BYTE,
@@ -90,6 +94,26 @@ var GraphicsDevice = function (canvas, options) {
         gl.REPEAT,
         gl.CLAMP_TO_EDGE,
         gl.MIRRORED_REPEAT
+    ];
+
+    this.glBlendFunction = [
+        gl.ZERO,
+        gl.ONE,
+        gl.SRC_COLOR,
+        gl.ONE_MINUS_SRC_COLOR,
+        gl.DST_COLOR,
+        gl.ONE_MINUS_DST_COLOR,
+        gl.SRC_ALPHA,
+        gl.SRC_ALPHA_SATURATE,
+        gl.ONE_MINUS_SRC_ALPHA,
+        gl.DST_ALPHA,
+        gl.ONE_MINUS_DST_ALPHA
+    ];
+
+    this.glBlendEquation = [
+        gl.FUNC_ADD,
+        gl.FUNC_SUBTRACT,
+        gl.FUNC_REVERSE_SUBTRACT
     ];
 
     this.glFilter = [
@@ -329,6 +353,44 @@ GraphicsDevice.prototype = {
             //    texture._glInternalFormat = gl.RGBA;
             //    texture._glPixelType = gl.FLOAT;
             //    break;
+        }
+    },
+
+    getBlending: function() {
+        return this.blending;
+    },
+
+    setBlending: function(blending) {
+        if(this.blending !== blending) {
+            blending = !!blending;
+            var gl = this.gl;
+            if(blending) {
+                gl.enable(gl.BLEND);
+            } else {
+                gl.disable(gl.BLEND);
+            }
+
+            this.currentBlending = blending;
+        }
+    },
+
+    setBlendFunction: function (blendSrc, blendDst) {
+        if(blendDst === undefined) {
+            blendDst = blendSrc.blendDst;
+            blendSrc = blendSrc.blendSrc;
+        }
+        if ((this.currentBlendSrc !== blendSrc) || (this.currentBlendDst !== blendDst)) {
+            this.gl.blendFunc(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst]);
+            this.currentBlendSrc = blendSrc;
+            this.currentBlendDst = blendDst;
+        }
+    },
+
+    setBlendEquation: function (blendEquation) {
+        if (this.currentBlendEquation !== blendEquation) {
+            var gl = this.gl;
+            gl.blendEquation(this.glBlendEquation[blendEquation]);
+            this.currentBlendEquation = blendEquation;
         }
     },
 

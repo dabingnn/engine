@@ -151,6 +151,10 @@ Material.prototype = {
         this.shader = shader;
     },
 
+    hasBlend: function() {
+        return this.blend === true;
+    },
+
     _generateRenderKey: function() {
         this.renderID =  ((this.shader ? this.shader.shaderID : NaN) << 16) + this.materialID;
     }
