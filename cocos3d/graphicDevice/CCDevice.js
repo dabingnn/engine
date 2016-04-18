@@ -357,11 +357,11 @@ GraphicsDevice.prototype = {
     },
 
     getBlending: function() {
-        return this.blending;
+        return this.currentBlending;
     },
 
     setBlending: function(blending) {
-        if(this.blending !== blending) {
+        if(this.currentBlending !== blending) {
             blending = !!blending;
             var gl = this.gl;
             if(blending) {

@@ -24,6 +24,10 @@ var ForwardRenderer = function (graphicDevice) {
 function sortDrawCalls(drawCallA, drawCallB) {
     if(drawCallA.material.blend && drawCallB.material.blend) {
         return drawCallA.sortDistance - drawCallB.sortDistance;
+    } else if (drawCallA.material.blend) {
+        return 1;
+    } else if(drawCallB.material.blend) {
+        return -1;
     } else {
         return drawCallB.material.renderID - drawCallA.material.renderID;
     }
