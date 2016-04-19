@@ -386,8 +386,10 @@ function shaderDebugUV() {
         } else {
           uv = v_position.xy;
         }
+        PhongMaterial material;
         vec4 albedo = toLinear(texture2D(texture, uv));
-        gl_FragColor.rgb = lightingLambert(v_normal,v_position,albedo.rgb);
+        material.albedo = albedo.rgb;
+        gl_FragColor.rgb = lightingLambert(v_normal,v_position,material);
         gl_FragColor.a = albedo.a;
         gl_FragColor = toGamma(gl_FragColor);
       }

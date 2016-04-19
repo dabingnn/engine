@@ -550,6 +550,7 @@ function initScene() {
     objectNodes.push(node);
     material = new cc3d.BasicPhongMaterial();
     //material.texture = texture;
+    material.color = new cc3d.math.Vec3(1,0,1);
     material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 

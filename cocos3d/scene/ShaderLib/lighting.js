@@ -1,4 +1,11 @@
 module.exports = '' +
+    '/*material parameters for blinn phong and lambert lighting*/' +
+    'struct PhongMaterial {' +
+    'vec3 albedo;' +
+    'float opacity;' +
+    'vec3 specular;' +
+    'float shininess;' +
+    '};' +
     '/**\n' +
     'directional lighting chunk\n' +
     'defines:\n' +
@@ -40,8 +47,9 @@ module.exports = '' +
     'return max(((lightRange - dist) / lightRange), 0.0);\n' +
     '}\n' +
     '\n' +
-    'vec3 lightingLambert(vec3 normal, vec3 position, vec3 albedo)\n' +
+    'vec3 lightingLambert(vec3 normal, vec3 position, PhongMaterial material)\n' +
     '{\n' +
+    'vec3 albedo = material.albedo;' +
     'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
     'vec3 totalAmbientLight = u_scene_ambient;\n' +
     'vec3 viewDir = normalize(u_camera_position - position);\n' +
@@ -71,8 +79,11 @@ module.exports = '' +
     '#endif\n' +
     'return albedo * (totalDiffuseLight + totalAmbientLight);\n' +
     '}'+
-    'vec3 lightingBlinnPhong(vec3 normal, vec3 position, vec3 albedo, vec3 specular, float shininess)\n' +
+    'vec3 lightingBlinnPhong(vec3 normal, vec3 position, PhongMaterial material)\n' +
     '{\n' +
+    'vec3 albedo = material.albedo;' +
+    'vec3 specular = material.specular;' +
+    'float shininess = material.shininess;' +
     'vec3 totalDiffuseLight = vec3( 0.0 );\n' +
     'vec3 totalSpecularLight = vec3( 0.0 );\n' +
     'vec3 totalAmbientLight = u_scene_ambient;\n' +

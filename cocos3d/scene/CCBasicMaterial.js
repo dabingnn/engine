@@ -127,20 +127,41 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += cc3d.ShaderChunks.commonVaryings;
         pixelSrc += cc3d.ShaderChunks.lighting;
         pixelSrc += cc3d.ShaderChunks.gamma;
+
+        //begin of material computing
         pixelSrc += 'uniform sampler2D u_texture;\n';
         pixelSrc += 'uniform vec3 u_color;\n' ;
         pixelSrc += 'uniform vec3 u_specular;\n' ;
         pixelSrc += 'uniform float u_shininess;\n' ;
         pixelSrc += 'uniform float u_opacity;\n' ;
-        pixelSrc += 'void main () {\n' +
-            'vec4 albedo =' + (this.texture !== null ?  'toLinear(texture2D(u_texture, v_uv));\n' : 'vec4(1.0);\n');
-        if(this.useLambertLighting) {
-            pixelSrc += 'gl_FragColor.rgb = lightingLambert(v_normal,v_position, albedo.rgb * u_color);\n';
+        pixelSrc += 'PhongMaterial material;\n';
+        pixelSrc += 'void getPhongMaterial() {\n';
+        if(this.texture !==null) {
+            pixelSrc += 'vec4 albedo = texture2D(u_texture, v_uv);\n ' +
+                'material.albedo = albedo.rgb; \n ' +
+                'material.opacity = albedo.a;\n';
         } else {
-            pixelSrc += 'gl_FragColor.rgb = lightingBlinnPhong(v_normal,v_position, albedo.rgb * u_color, u_specular, u_shininess);\n';
+            pixelSrc += 'material.albedo = u_color;\n ' +
+                'material.opacity = 1.0;\n';
         }
 
-        pixelSrc += 'gl_FragColor.a = albedo.a * u_opacity;\n';
+        pixelSrc += 'material.specular = u_specular;\n';
+        pixelSrc += 'material.opacity = material.opacity * u_opacity;\n';
+        pixelSrc += 'material.shininess = u_shininess;\n';
+        pixelSrc += '}\n';
+
+        //end of material computing
+
+        pixelSrc += 'void main () {\n' +
+            'getPhongMaterial();';
+        pixelSrc += 'material.albedo = toLinear(material.albedo);\n';
+        if(this.useLambertLighting) {
+            pixelSrc += 'gl_FragColor.rgb = lightingLambert(v_normal,v_position, material);\n';
+        } else {
+            pixelSrc += 'gl_FragColor.rgb = lightingBlinnPhong(v_normal,v_position, material);\n';
+        }
+
+        pixelSrc += 'gl_FragColor.a = material.opacity;\n';
 
         pixelSrc += 'gl_FragColor = toGamma(gl_FragColor);\n' +
             '}';
