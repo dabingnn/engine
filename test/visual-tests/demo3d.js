@@ -500,12 +500,18 @@ function initScene() {
     material.texture = texture;
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
+    material.blend = true;
+    material.blendSrc = cc3dEnums.BLENDMODE_SRC_ALPHA;
+    material.blendDst = cc3dEnums.BLENDMODE_ONE_MINUS_SRC_ALPHA;
+    material.opacity = 0.2;
+
     node = initObjectNode();
     node.translate(3.5, 2, -3);
     //node.setLocalScale(3,3,3);
     objectNodes.push(node);
-    var material = new cc3d.BasicLambertMaterial();
+    var material = new cc3d.BasicPhongMaterial();
     material.texture = texture;
+    material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
     node = initObjectNode();
@@ -517,6 +523,11 @@ function initScene() {
     material.color = new cc3d.math.Vec3(1,1,1);
     material.shininess = 20;
     material.specularColor = new cc3d.math.Vec3(1,0,1);
+    material.blend = true;
+    material.blendSrc = cc3dEnums.BLENDMODE_SRC_ALPHA;
+    material.blendDst = cc3dEnums.BLENDMODE_ONE_MINUS_SRC_ALPHA;
+    material.opacity = 0.5;
+
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
     {
@@ -537,16 +548,18 @@ function initScene() {
     node.translate(-3.5, 2, -3);
     //node.setLocalScale(3,3,3);
     objectNodes.push(node);
-    material = new cc3d.BasicLambertMaterial();
+    material = new cc3d.BasicPhongMaterial();
     //material.texture = texture;
+    material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
 
     node = initObjectNode();
     node.translate(-9.5, 2, -3);
     objectNodes.push(node);
-    material = new cc3d.BasicLambertMaterial();
+    material = new cc3d.BasicPhongMaterial();
     material.texture = texture;
+    material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
 
