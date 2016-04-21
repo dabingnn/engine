@@ -6,6 +6,7 @@ var scale = cc3d.math.Vec3.ONE.clone();
 var position = new cc3d.math.Vec3(0,0,0);
 
 var texture = null;
+var texture2 = null;
 var device = null;
 var cc3dEnums = cc3d.graphics.Enums;
 var objectNodes = [];
@@ -32,6 +33,23 @@ function initTexture() {
         //gl.bindTexture(gl.TEXTURE_2D, null);
     };
     image.src = './crate.gif';
+
+    //var gl = device.gl;
+    texture2 = new cc3d.graphics.Texture(device);
+    //texture = gl.createTexture();
+    var image2 = new Image();
+    image2.onload = function () {
+        texture2.setSource(image2);
+        //gl.bindTexture(gl.TEXTURE_2D, texture);
+        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        ////gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        //gl.generateMipmap(gl.TEXTURE_2D);
+        //gl.bindTexture(gl.TEXTURE_2D, null);
+    };
+    image2.src = './grossini.png';
 };
 
 function initSphereMesh( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {
@@ -497,7 +515,8 @@ function initScene() {
     objectNodes.push(node);
 
     var material = new cc3d.BasicMaterial();
-    material.texture = texture;
+    material.texture = texture2;
+    material.alphaTest = 0.1;
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
     material.blend = true;
@@ -559,7 +578,8 @@ function initScene() {
     node.translate(-9.5, 2, -3);
     objectNodes.push(node);
     material = new cc3d.BasicPhongMaterial();
-    material.texture = texture;
+    material.texture = texture2;
+    material.alphaTest = 0.1;
     material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 

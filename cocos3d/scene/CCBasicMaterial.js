@@ -9,7 +9,11 @@ BasicMaterial = cc3d.inherits(BasicMaterial, cc3d.Material);
 
 cc3d.extend( BasicMaterial.prototype, {
     _generateShaderKey: function (device, scene) {
-        return 'BasicMaterialShader';
+        var key = 'BasicMaterialShader';
+        if(this.hasAlphaTest()) {
+            key += '_alphaTest';
+        }
+        return key;
     },
 
     updateShader: function (device, scene, objDefs) {
@@ -34,10 +38,16 @@ cc3d.extend( BasicMaterial.prototype, {
             pixelSrc = 'precision mediump float;' +
                 'varying vec2 v_uv;' +
                 'uniform sampler2D texture;' +
-                'uniform float u_opacity;' +
-                'void main() {' +
-                'vec4 albedo = texture2D(texture, v_uv);' +
-                'gl_FragColor = albedo;' +
+                'uniform float u_opacity;';
+            if(this.hasAlphaTest()) {
+                pixelSrc += 'uniform float alphaTestRef;';
+            }
+            pixelSrc += 'void main() {' +
+                'vec4 albedo = texture2D(texture, v_uv);';
+            if(this.hasAlphaTest()) {
+                pixelSrc += 'if(albedo.a < alphaTestRef) discard;';
+            }
+            pixelSrc += 'gl_FragColor = albedo;' +
                 'gl_FragColor.a *= u_opacity;' +
                 '}';
             var attribs = {
@@ -61,6 +71,9 @@ cc3d.extend( BasicMaterial.prototype, {
     update: function() {
         this.setParameter('texture',this.texture);
         this.setParameter('u_opacity', this.opacity);
+        if(this.hasAlphaTest()) {
+            this.setParameter('alphaTestRef', this.alphaTest);
+        }
     },
 
 });
@@ -84,7 +97,11 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         key += '_pointLight_' + scene._pointLights.length;
         key += '_spotLight_' + scene._spotLights.length;
         if(this.texture) {
-            key += 'texture';
+            key += '_texture';
+        }
+
+        if(this.hasAlphaTest()) {
+            key += '_alphaTest';
         }
 
         return key;
@@ -129,6 +146,11 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += cc3d.ShaderChunks.gamma;
 
         //begin of material computing
+
+        if(this.hasAlphaTest()) {
+            pixelSrc += 'uniform float alphaTestRef;';
+        }
+
         pixelSrc += 'uniform sampler2D u_texture;\n';
         pixelSrc += 'uniform vec3 u_color;\n' ;
         pixelSrc += 'uniform vec3 u_specular;\n' ;
@@ -154,6 +176,11 @@ cc3d.extend( BasicPhongMaterial.prototype, {
 
         pixelSrc += 'void main () {\n' +
             'getPhongMaterial();';
+
+        if(this.hasAlphaTest()) {
+            pixelSrc += 'if(material.opacity < alphaTestRef * u_opacity) discard;';
+        }
+
         pixelSrc += 'material.albedo = toLinear(material.albedo);\n';
         if(this.useLambertLighting) {
             pixelSrc += 'gl_FragColor.rgb = lightingLambert(v_normal,v_position, material);\n';
@@ -198,6 +225,9 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         this.setParameter('u_specular',this.specularColor.data);
         this.setParameter('u_shininess',this.shininess);
         this.setParameter('u_opacity', this.opacity);
+        if(this.hasAlphaTest()) {
+            this.setParameter('alphaTestRef', this.alphaTest);
+        }
     },
 
 });

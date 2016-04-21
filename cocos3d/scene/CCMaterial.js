@@ -155,6 +155,10 @@ Material.prototype = {
         return this.blend === true;
     },
 
+    hasAlphaTest: function() {
+        return this.alphaTest !== 0;
+    },
+
     _generateRenderKey: function() {
         this.renderID =  ((this.shader ? this.shader.shaderID : NaN) << 16) + this.materialID;
     }
