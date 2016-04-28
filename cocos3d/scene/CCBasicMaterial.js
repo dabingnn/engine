@@ -288,6 +288,79 @@ cc3d.extend( ColorMaterial.prototype, {
 
 });
 
+var DepthMaterial = function() {
+    //this.texture = null;
+    //this.opacity = 1.0;
+};
+
+DepthMaterial = cc3d.inherits(DepthMaterial, cc3d.Material);
+
+cc3d.extend( DepthMaterial.prototype, {
+    _generateShaderKey: function (device, scene) {
+        var key = 'DepthMaterialShader';
+        return key;
+    },
+
+    updateShader: function (device, scene, objDefs) {
+        var key = this._generateShaderKey(device, scene);
+        if(key === this.shaderKey) return;
+        this.shaderKey = key;
+        var shader = cc3d.ShaderLibs.getShaderByKey(key);
+        if(shader) {
+            this.shader = shader;
+        } else {
+
+            var vertSrc, pixelSrc;
+            vertSrc = '' +
+                'attribute vec4 a_position;\n' +
+                'uniform mat4 matrix_worldviewprojection;\n' +
+                'void main() {\n' +
+                'gl_Position = matrix_worldviewprojection * a_position;\n' +
+                '}\n';
+            pixelSrc = 'precision mediump float;\n';
+            pixelSrc += 'vec4 packFloat(float depth)\n';
+            pixelSrc += '{\n';
+            pixelSrc += '    const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);\n';
+            pixelSrc += '    const vec4 bit_mask  = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);\n';
+            // combination of mod and multiplication and division works better
+            pixelSrc += '    vec4 res = mod(depth * bit_shift * vec4(255), vec4(256) ) / vec4(255);\n';
+            pixelSrc += '    res -= res.xxyz * bit_mask;\n';
+            pixelSrc += '    return res;\n';
+            pixelSrc += '}\n\n';
+
+            pixelSrc += 'void main() {\n';
+            pixelSrc += 'vec3 depth = gl_FragCoord.xyz/1000.0;\n'+
+                'gl_FragColor = vec4(depth,1.0);\n' +
+                '}';
+            var attribs = {
+                a_position: cc3dEnums.SEMANTIC_POSITION,
+                //a_uv: cc3dEnums.SEMANTIC_TEXCOORD0
+                //a_normal: cc3dEnums.SEMANTIC_NORMAL
+            };
+            var definition = {
+                vshader: vertSrc,
+                fshader: pixelSrc,
+                attributes: attribs
+            };
+            this.shader = new cc3d.graphics.Shader(device, definition);
+            //link it
+            this.shader.link();
+            cc3d.ShaderLibs.addShader(this.shaderKey, this.shader);
+        }
+        this._generateRenderKey();
+    },
+
+    update: function() {
+        //this.setParameter('texture',this.texture);
+        //this.setParameter('u_opacity', this.opacity);
+        //if(this.hasAlphaTest()) {
+        //    this.setParameter('alphaTestRef', this.alphaTest);
+        //}
+    },
+
+});
+
 cc3d.BasicMaterial = BasicMaterial;
 cc3d.BasicPhongMaterial = BasicPhongMaterial;
 cc3d.ColorMaterial = ColorMaterial;
+cc3d.DepthMaterial = DepthMaterial;

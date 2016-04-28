@@ -521,7 +521,7 @@ function initScene() {
     var sunLight = new cc3d.Light();
     // objectNodes.push(node);
     sunLight._node = initObjectNode();
-    sunLight._direction = new cc3d.math.Vec3(-1, -1, 1);
+    //sunLight._direction = new cc3d.math.Vec3(-1, -1, 1);
     sunLight.setColor(new cc3d.math.Vec3(0.5,0.5,0.5));
     scene.addLight(sunLight);
 

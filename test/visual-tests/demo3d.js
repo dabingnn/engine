@@ -589,10 +589,11 @@ function initScene() {
     //init light
     var light = new cc3d.Light();
     node = initObjectNode();
-    //objectNodes.push(node);
+    objectNodes.push(node);
     light._node = node;
-    light._direction = new cc3d.math.Vec3(0, -1, 0);
+    //light._direction = new cc3d.math.Vec3(0, -1, 0);
     light.setColor(new cc3d.math.Vec3(0.6,0.6,0.6));
+    light.setCastShadows(true);
     scene.addLight(light);
     var generalRange = 10;
     initPointLight(scene, new cc3d.math.Vec3(-10,4,0), new cc3d.math.Vec3(1.0,0.0,0.0), generalRange);

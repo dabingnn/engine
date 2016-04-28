@@ -284,9 +284,9 @@ Camera.prototype = {
         return this._rect;
     },
 
-    //getRenderTarget: function () {
-    //    return this._renderTarget;
-    //},
+    getRenderTarget: function () {
+        return this._renderTarget;
+    },
 
     setAspectRatio: function (aspect) {
         this._aspect = aspect;
@@ -334,9 +334,9 @@ Camera.prototype = {
         this._rect.height = height;
     },
 
-    //setRenderTarget: function (target) {
-    //    this._renderTarget = target;
-    //},
+    setRenderTarget: function (target) {
+        this._renderTarget = target;
+    }
     //
     //requestDepthMap: function () {
     //    this._renderDepthRequests++;

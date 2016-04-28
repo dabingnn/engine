@@ -5,7 +5,7 @@ var Light = function () {
     this._type = cc3d.SceneEnums.LIGHTTYPE_DIRECTIONAL;
     this._color = new cc3d.math.Vec3(0.8, 0.8, 0.8);
     this._intensity = 1;
-    //this._castShadows = false;
+    this._castShadows = false;
     this._enabled = false;
 
     // Point and spot properties
@@ -23,7 +23,7 @@ var Light = function () {
     this._finalColor = new cc3d.math.Vec3(0.8, 0.8, 0.8);
     this._linearFinalColor = new cc3d.math.Vec3();
     this._position = new cc3d.math.Vec3(0, 0, 0);
-    this._direction = new cc3d.math.Vec3(0, 0, 0);
+    //this._direction = new cc3d.math.Vec3(0, 0, 0);
     this._innerConeAngleCos = Math.cos(this._innerConeAngle * Math.PI / 180);
     this._outerConeAngleCos = Math.cos(this._outerConeAngle * Math.PI / 180);
 
@@ -92,6 +92,10 @@ Light.prototype = {
     //getCastShadows: function () {
     //    return this._castShadows && this.mask!==pc.MASK_LIGHTMAP && this.mask!==0;
     //},
+
+    getCastShadows: function () {
+        return this._castShadows;
+    },
 
     getColor: function () {
         return this._color;
@@ -175,12 +179,12 @@ Light.prototype = {
     //    }
     //},
 
-    //setCastShadows: function (castShadows) {
-    //    this._castShadows = castShadows;
-    //    if (this._scene !== null) {
-    //        this._scene.updateShaders = true;
-    //    }
-    //},
+    setCastShadows: function (castShadows) {
+        this._castShadows = castShadows;
+        //if (this._scene !== null) {
+        //    this._scene.updateShaders = true;
+        //}
+    },
 
     setColor: function () {
         var r, g, b;

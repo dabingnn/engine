@@ -124,7 +124,7 @@ var GraphicsDevice = function (canvas, options) {
         gl.LINEAR_MIPMAP_NEAREST,
         gl.LINEAR_MIPMAP_LINEAR
     ];
-
+    this.renderTarget = null;
     this.scope = new cc3d.graphics.ScopeSpace('GraphicsDevice');
     //uniform commit function;
     this.commitFunction = {};
@@ -190,6 +190,48 @@ GraphicsDevice.prototype = {
                 shader.link();
             this.gl.useProgram(shader.program);
         }
+    },
+
+    setRenderTarget: function(renderTarget) {
+        this.renderTarget = renderTarget;
+        var gl = this.gl;
+        //build renderTarget if it is not ready
+        if(renderTarget && !renderTarget.ready) {
+            var texture = renderTarget.colorBuffer;
+            if (!texture._glTextureId) {
+                this.initializeTexture(texture);
+                gl.bindTexture(gl.TEXTURE_2D, texture._glTextureId);
+                gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,renderTarget.width, renderTarget.height,0,gl.RGBA, gl.UNSIGNED_BYTE,null);
+                this.textureUnits[0] = 0;
+            }
+            var fbo = renderTarget._frameBufferObject = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._frameBufferObject);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                gl.COLOR_ATTACHMENT0,
+                gl.TEXTURE_2D,
+                texture._glTextureId,
+                0);
+            if(renderTarget._depth) {
+                var depthBuffer = renderTarget._depthBuffer = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, renderTarget.width, renderTarget.height);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+            }
+
+            renderTarget.ready = true;
+        }
+
+        if(renderTarget) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._frameBufferObject);
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+    },
+
+    getRenderTarget: function() {
+        return this.renderTarget;
     },
 
     setTexture: function (texture, textureUnit) {

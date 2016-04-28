@@ -7,3 +7,4 @@ require('./CCVertexFormat');
 require('./CCIndexBuffer');
 require('./CCShader');
 require('./CCTexture');
+require('./CCRenderTarget');

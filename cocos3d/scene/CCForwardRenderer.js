@@ -32,6 +32,31 @@ function sortDrawCalls(drawCallA, drawCallB) {
         return drawCallB.material.renderID - drawCallA.material.renderID;
     }
 }
+var shadowCameraResulotion = 1024;
+function createShadowMap(forwardRender ,scene, light) {
+    var device = forwardRender.device;
+    var colorBuffer = new cc3d.graphics.Texture(device, {
+        format: cc3d.graphics.PIXELFORMAT_R8_G8_B8_A8,
+        width: shadowCameraResulotion,
+        height: shadowCameraResulotion,
+        autoMipmap: false
+    });
+    colorBuffer.minFilter = cc3d.graphics.Enums.FILTER_NEAREST;
+    colorBuffer.magFilter = cc3d.graphics.Enums.FILTER_NEAREST;
+    colorBuffer.addressU = cc3d.graphics.Enums.ADDRESS_CLAMP_TO_EDGE;
+    colorBuffer.addressV = cc3d.graphics.Enums.ADDRESS_CLAMP_TO_EDGE;
+
+    var camera = new cc3d.Camera();
+    camera.setClearOptions({
+        color: [1.0, 1.0, 1.0, 1.0],
+        depth: 1.0,
+        flags: cc3d.graphics.Enums.CLEARFLAG_COLOR | cc3d.graphics.Enums.CLEARFLAG_DEPTH
+    });
+    camera._node = new cc3d.GraphNode();
+    var renderTarget = new cc3d.graphics.RenderTarget(device,colorBuffer);
+    camera.setRenderTarget(renderTarget);
+    return camera;
+}
 
 ForwardRenderer.prototype = {
     dispatchLights: function(scene) {
@@ -45,7 +70,7 @@ ForwardRenderer.prototype = {
             lightColor[3* index + 0] = light._color.x;
             lightColor[3* index + 1] = light._color.y;
             lightColor[3* index + 2] = light._color.z;
-            var lightDir = light._direction.clone();
+            var lightDir = cc3d.math.Vec3.FORWARD;
             lightDir = light._node.getWorldTransform().transformVector(lightDir);
             lightdirection[3* index + 0] = lightDir.x;
             lightdirection[3* index + 1] = lightDir.y;
@@ -82,6 +107,70 @@ ForwardRenderer.prototype = {
         scope.resolve('u_point_light_range[0]').setValue(lightRange);
     },
 
+    renderShadowMap: function(scene, light) {
+        if(!light.shadowMapCamera) {
+            light.shadowMapCamera = createShadowMap(this,scene, light);
+        }
+        var device = this.device;
+        //update shadow camera, hard coded
+        //todo: add shadow camera calculation here
+        var shadowCam = light.shadowMapCamera;
+        shadowCam._node.setPosition(light._node.getPosition());
+        shadowCam._node.setRotation(light._node.getRotation());
+        //shadowCam._node.rotateLocal(-90, 0, 0);
+
+        shadowCam.setProjection(cc3d.SceneEnums.PROJECTION_ORTHOGRAPHIC);
+        shadowCam.setNearClip(0);
+        shadowCam.setFarClip(2e6);
+        shadowCam.setAspectRatio(1.0);
+        shadowCam.setOrthoHeight(20);
+        var material = this.depthMaterial;
+        if(!this.depthMaterial) {
+            material = this.depthMaterial = new cc3d.DepthMaterial();
+        }
+        device.setRenderTarget(shadowCam.getRenderTarget());
+        var gl = device.gl;
+        gl.clearColor( 0.5, 0.5, 0.5, 1.0 );
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        var meshes = scene.getMeshInstance();
+        for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
+            var meshInstance = meshes[index];
+            var world_matrix = meshInstance._node.getWorldTransform().clone();
+            var normal_matrix = world_matrix.clone();
+            normal_matrix.invert();
+            normal_matrix.transpose();
+            var view_matrix = shadowCam._node.getWorldTransform().clone().invert();
+            var projection_matrix = shadowCam.getProjectionMatrix();
+            var wvp_matrix = world_matrix.clone();
+            var wv_matrix = world_matrix.clone();
+            wv_matrix.mul2(view_matrix, wv_matrix);
+            wvp_matrix.mul2(view_matrix, wvp_matrix);
+            wvp_matrix.mul2(projection_matrix, wvp_matrix);
+
+            this.worldID.setValue(world_matrix.data);
+            this.viewID.setValue(view_matrix.data);
+            this.projectionID.setValue(projection_matrix.data);
+            this.worldViewID.setValue(wv_matrix.data);
+            this.worldViewProjectionID.setValue(wvp_matrix.data);
+            this.normalMatrixID.setValue(normal_matrix.data);
+
+            material.updateShader(device, scene);
+            material.update();
+
+            device.setShader(material.getShader());
+
+            material.setParameters(device);
+            //apply vertexBuffer
+            for(var vertNumber = meshInstance.mesh.vertexBuffer.length, vertIndex = vertNumber-1; vertIndex >= 0;--vertIndex ) {
+                device.setVertexBuffer(meshInstance.mesh.vertexBuffer[vertIndex],vertIndex);
+            }
+            if(meshInstance.mesh.indexBuffer) {
+                device.setIndexBuffer(meshInstance.mesh.indexBuffer);
+            }
+            device.draw(meshInstance.mesh.primitive);
+        }
+    },
+
     render: function(scene, camera) {
         var device = this.device;
         var meshes = scene.getMeshInstance();
@@ -92,6 +181,17 @@ ForwardRenderer.prototype = {
             }
         }
 
+        //rendering to shadow map
+        var lightCount = scene._directionalLights.length;
+        for(var dirLightIndex = 0; dirLightIndex < lightCount; ++dirLightIndex) {
+            var light = scene._directionalLights[dirLightIndex];
+            if(light && light.getCastShadows()) {
+                this.renderShadowMap(scene, light);
+            }
+        }
+
+        device.setRenderTarget(camera.getRenderTarget());
+        //normal rendering
         meshes.sort(sortDrawCalls);
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
