@@ -330,7 +330,7 @@ cc3d.extend( DepthMaterial.prototype, {
 
             pixelSrc += 'void main() {\n';
             pixelSrc += 'vec3 depth = gl_FragCoord.xyz/1000.0;\n'+
-                'gl_FragColor = vec4(depth,1.0);\n' +
+                'gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n' +
                 '}';
             var attribs = {
                 a_position: cc3dEnums.SEMANTIC_POSITION,

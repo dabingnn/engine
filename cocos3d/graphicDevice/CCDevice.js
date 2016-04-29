@@ -197,20 +197,48 @@ GraphicsDevice.prototype = {
         var gl = this.gl;
         //build renderTarget if it is not ready
         if(renderTarget && !renderTarget.ready) {
-            var texture = renderTarget.colorBuffer;
-            if (!texture._glTextureId) {
-                this.initializeTexture(texture);
-                gl.bindTexture(gl.TEXTURE_2D, texture._glTextureId);
-                gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,renderTarget.width, renderTarget.height,0,gl.RGBA, gl.UNSIGNED_BYTE,null);
-                this.textureUnits[0] = 0;
-            }
             var fbo = renderTarget._frameBufferObject = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._frameBufferObject);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER,
-                gl.COLOR_ATTACHMENT0,
-                gl.TEXTURE_2D,
-                texture._glTextureId,
-                0);
+
+            var colorBuffer = renderTarget.colorBuffer;
+            if(renderTarget._textureColorBuffer) {
+                //colorBuffer = new cc3d.graphics.Texture(device, {
+                //    format: cc3d.graphics.PIXELFORMAT_R8_G8_B8_A8,
+                //    width: renderTarget.width,
+                //    height: renderTarget.height,
+                //    autoMipmap: false
+                //});
+                colorBuffer = gl.createTexture();
+
+                renderTarget._colorBuffer = colorBuffer;
+
+                //this.initializeTexture(colorBuffer);
+                gl.bindTexture(gl.TEXTURE_2D, colorBuffer);
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+                gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,renderTarget.width, renderTarget.height,0,gl.RGBA, gl.UNSIGNED_BYTE,null);
+
+                for (var i = 0; i < 16; i++) {
+                    this.textureUnits[i] = null;
+                }
+
+                gl.framebufferTexture2D(gl.FRAMEBUFFER,
+                    gl.COLOR_ATTACHMENT0,
+                    gl.TEXTURE_2D,
+                    colorBuffer,
+                    0);
+            } else {
+                renderTarget._colorBuffer = colorBuffer = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER,colorBuffer);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, renderTarget.width, renderTarget.height);
+                gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorBuffer);
+            }
+
             if(renderTarget._depth) {
                 var depthBuffer = renderTarget._depthBuffer = gl.createRenderbuffer();
                 gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
@@ -220,13 +248,15 @@ GraphicsDevice.prototype = {
                 gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
             }
 
-            renderTarget.ready = true;
+            renderTarget.ready = (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
         }
 
         if(renderTarget) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._frameBufferObject);
+            gl.viewport(0, 0, renderTarget.width, renderTarget.height);
         } else {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         }
     },
 

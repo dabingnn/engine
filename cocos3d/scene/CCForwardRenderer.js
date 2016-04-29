@@ -35,16 +35,6 @@ function sortDrawCalls(drawCallA, drawCallB) {
 var shadowCameraResulotion = 1024;
 function createShadowMap(forwardRender ,scene, light) {
     var device = forwardRender.device;
-    var colorBuffer = new cc3d.graphics.Texture(device, {
-        format: cc3d.graphics.PIXELFORMAT_R8_G8_B8_A8,
-        width: shadowCameraResulotion,
-        height: shadowCameraResulotion,
-        autoMipmap: false
-    });
-    colorBuffer.minFilter = cc3d.graphics.Enums.FILTER_NEAREST;
-    colorBuffer.magFilter = cc3d.graphics.Enums.FILTER_NEAREST;
-    colorBuffer.addressU = cc3d.graphics.Enums.ADDRESS_CLAMP_TO_EDGE;
-    colorBuffer.addressV = cc3d.graphics.Enums.ADDRESS_CLAMP_TO_EDGE;
 
     var camera = new cc3d.Camera();
     camera.setClearOptions({
@@ -53,7 +43,9 @@ function createShadowMap(forwardRender ,scene, light) {
         flags: cc3d.graphics.Enums.CLEARFLAG_COLOR | cc3d.graphics.Enums.CLEARFLAG_DEPTH
     });
     camera._node = new cc3d.GraphNode();
-    var renderTarget = new cc3d.graphics.RenderTarget(device,colorBuffer);
+    var renderTarget = new cc3d.graphics.RenderTarget(device, shadowCameraResulotion, shadowCameraResulotion, {
+        face: 0, depth: true, textureColorBuffer: true
+    });
     camera.setRenderTarget(renderTarget);
     return camera;
 }
@@ -130,7 +122,7 @@ ForwardRenderer.prototype = {
         }
         device.setRenderTarget(shadowCam.getRenderTarget());
         var gl = device.gl;
-        gl.clearColor( 0.5, 0.5, 0.5, 1.0 );
+        gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         var meshes = scene.getMeshInstance();
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {

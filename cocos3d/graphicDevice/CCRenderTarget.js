@@ -6,16 +6,19 @@ var defaultOptions = {
     face: 0
 };
 
-var RenderTarget = function (graphicsDevice, colorBuffer, options) {
+var RenderTarget = function (graphicsDevice, width, height, options) {
     this._device = graphicsDevice;
-    this._colorBuffer = colorBuffer;
 
     // Process optional arguments
     options = (options !== undefined) ? options : defaultOptions;
     this._face = (options.face !== undefined) ? options.face : 0;
     this._depth = (options.depth !== undefined) ? options.depth : true;
     this.ready = false;
+    this._width = width;
+    this._height = height;
+    this._textureColorBuffer = !!options.textureColorBuffer;
     //openGL handle
+    this._colorBuffer = null;
     this._depthBuffer = null;
     this._frameBufferObject = null;
 };
@@ -39,11 +42,11 @@ Object.defineProperty(RenderTarget.prototype, 'face', {
 });
 
 Object.defineProperty(RenderTarget.prototype, 'width', {
-    get: function() { return this._colorBuffer.width; }
+    get: function() { return this._width; }
 });
 
 Object.defineProperty(RenderTarget.prototype, 'height', {
-    get: function() { return this._colorBuffer.height; }
+    get: function() { return this._height; }
 });
 
 cc3d.graphics.RenderTarget = RenderTarget;
