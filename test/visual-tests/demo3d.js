@@ -158,8 +158,12 @@ function initSphereMesh( radius, widthSegments, heightSegments, phiStart, phiLen
     var indexBuffer = new cc3d.graphics.IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
 
 
-    var indexArray = new Uint16Array(indexBuffer.lock());
-    indexArray.set(indices);
+    //var indexArray = new Uint16Array(indexBuffer.lock());
+    //indexArray.set(indices);
+    var indexArray = new Uint16Array(indices);
+    //indexArray.set(indices);
+    indexBuffer.storage = indexArray;
+
     indexBuffer.unlock();
 
     mesh.indexBuffer = indexBuffer;
@@ -323,8 +327,9 @@ function initMesh() {
     var indexBuffer = new cc3d.graphics.IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
 
 
-    var indexArray = new Uint16Array(indexBuffer.lock());
-    indexArray.set(indices);
+    var indexArray = new Uint16Array(indices);
+    //indexArray.set(indices);
+    indexBuffer.storage = indexArray;
     indexBuffer.unlock();
 
     mesh.indexBuffer = indexBuffer;
