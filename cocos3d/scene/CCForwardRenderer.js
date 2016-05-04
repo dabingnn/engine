@@ -10,13 +10,11 @@ var ForwardRenderer = function (graphicDevice) {
     //'uniform vec3 lightDirInWorld;' +
     //'uniform vec3 lightColor;' +
     this.worldID = scope.resolve('matrix_world');
-    this.viewID = scope.resolve('matrix_view');
-    this.projectionID = scope.resolve('matrix_projection');
     this.lightDirID = scope.resolve('lightDirInWorld');
     this.lightColorID = scope.resolve('lightColor');
+    this.viewProjectionID = scope.resolve('matrix_viewprojection');
     this.worldViewProjectionID = scope.resolve('matrix_worldviewprojection');
     this.normalMatrixID = scope.resolve('matrix_normal');
-    this.worldViewID = scope.resolve('matrix_worldview');
     this.sceneAmbientID = scope.resolve('u_scene_ambient');
     this.cameraPosID = scope.resolve('u_camera_position');
 };
@@ -133,6 +131,8 @@ ForwardRenderer.prototype = {
             normal_matrix.transpose();
             var view_matrix = shadowCam._node.getWorldTransform().clone().invert();
             var projection_matrix = shadowCam.getProjectionMatrix();
+            var vp_matrix = view_matrix.clone();
+            vp_matrix.mul2(projection_matrix, view_matrix);
             var wvp_matrix = world_matrix.clone();
             var wv_matrix = world_matrix.clone();
             wv_matrix.mul2(view_matrix, wv_matrix);
@@ -140,9 +140,7 @@ ForwardRenderer.prototype = {
             wvp_matrix.mul2(projection_matrix, wvp_matrix);
 
             this.worldID.setValue(world_matrix.data);
-            this.viewID.setValue(view_matrix.data);
-            this.projectionID.setValue(projection_matrix.data);
-            this.worldViewID.setValue(wv_matrix.data);
+            this.viewProjectionID.setValue(vp_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
             this.normalMatrixID.setValue(normal_matrix.data);
 
@@ -193,6 +191,9 @@ ForwardRenderer.prototype = {
             normal_matrix.transpose();
             var view_matrix = camera._node.getWorldTransform().clone().invert();
             var projection_matrix = camera.getProjectionMatrix();
+            var vp_matrix = view_matrix.clone();
+            vp_matrix.mul2(projection_matrix, view_matrix);
+
             var wvp_matrix = world_matrix.clone();
             var wv_matrix = world_matrix.clone();
             wv_matrix.mul2(view_matrix,wv_matrix);
@@ -201,9 +202,7 @@ ForwardRenderer.prototype = {
             this.cameraPosID.setValue(cameraPos.data);
 
             this.worldID.setValue(world_matrix.data);
-            this.viewID.setValue(view_matrix.data);
-            this.projectionID.setValue(projection_matrix.data);
-            this.worldViewID.setValue(wv_matrix.data);
+            this.viewProjectionID.setValue(vp_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
             this.normalMatrixID.setValue(normal_matrix.data);
             this.sceneAmbientID.setValue(scene._sceneAmbient.data);
