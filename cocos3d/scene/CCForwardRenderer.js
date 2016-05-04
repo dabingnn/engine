@@ -65,6 +65,11 @@ ForwardRenderer.prototype = {
             lightdirection[3* index + 0] = lightDir.x;
             lightdirection[3* index + 1] = lightDir.y;
             lightdirection[3* index + 2] = lightDir.z;
+            if(light._castShadows) {
+                //specify shadow matrix and shadow texture
+                scope.resolve('shadowMatrix_directional' + index).setValue(light.shadowMatrix.data);
+                scope.resolve('shadowTexture_directional' + index).setValue(light.shadowMapCamera.getRenderTarget()._colorBuffer);
+            }
         }
 
         scope.resolve('u_directional_light_color[0]').setValue(lightColor);
@@ -127,6 +132,15 @@ ForwardRenderer.prototype = {
         var vp_matrix = view_matrix.clone();
         vp_matrix.mul2(projection_matrix, view_matrix);
         this.viewProjectionID.setValue(vp_matrix.data);
+        var shadowMatrix= vp_matrix.clone();
+        // Global shadowmap resources
+        var scaleShift = new cc3d.math.Mat4().mul2(
+            new cc3d.math.Mat4().setTranslate(0.5, 0.5, 0.5),
+            new cc3d.math.Mat4().setScale(0.5, 0.5, 0.5)
+        );
+
+        shadowMatrix.mul2(scaleShift, shadowMatrix);
+        light.shadowMatrix = shadowMatrix;
 
         var meshes = scene.getMeshInstance();
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {

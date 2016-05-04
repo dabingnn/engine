@@ -141,6 +141,7 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += '#define POINT_LIGHT_COUNT ' + scene._pointLights.length + '\n';
         pixelSrc += '#define SPOT_LIGHT_COUNT ' + scene._spotLights.length + '\n';
         pixelSrc += '#define LIGHTING_PHONG\n';
+        pixelSrc += '#define LIGHTING_SHADOW\n';
         pixelSrc += cc3d.ShaderChunks.commonVaryings;
         pixelSrc += cc3d.ShaderChunks.lighting;
         pixelSrc += cc3d.ShaderChunks.gamma;
@@ -172,10 +173,47 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         pixelSrc += 'material.shininess = u_shininess;\n';
         pixelSrc += '}\n';
 
+        pixelSrc += cc3d.ShaderChunks.shadowMap;
         //end of material computing
+
+        //shadow map uniforms
+        for(var index = 0; index < scene._directionalLights.length; ++index) {
+            //
+            var light = scene._directionalLights[index];
+            if(light._castShadows) {
+                //todo add uniforms here
+                pixelSrc += 'uniform mat4 shadowMatrix_directional' + index + ';\n';
+                pixelSrc += 'uniform sampler2D shadowTexture_directional' + index + ';\n';
+            }
+        }
+
+        //for(var index = 0; index < scene._directionalLights.length; ++index) {
+        //    //
+        //}
+
+        //end shadow map
 
         pixelSrc += 'void main () {\n' +
             'getPhongMaterial();';
+        //shadow map
+        for(var index = 0; index < scene._directionalLights.length; ++index) {
+            //
+            var light = scene._directionalLights[index];
+            if(light._castShadows) {
+                //float shadowSampling(mat4 shadowMatrix, vec3 position, sampler2D shadowMap)
+                pixelSrc += 'shadow_directional[' + index + ']' + '= \n' +
+                    'shadowSampling( shadowMatrix_directional' + index + ', v_position, shadowTexture_directional' + index + ');\n';
+            } else {
+                pixelSrc += 'shadow_directional[' + index + ']' + '= 0.0;\n';
+            }
+        }
+
+        for(var index = 0; index < scene._pointLights.length; ++index) {
+            //
+            pixelSrc += 'shadow_point[' + index + ']' + '= 1.0;\n';
+        }
+
+        //end shadow map
 
         if(this.hasAlphaTest()) {
             pixelSrc += 'if(material.opacity < alphaTestRef * u_opacity) discard;';

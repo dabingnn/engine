@@ -18,6 +18,9 @@ module.exports = '' +
     'defines: \n' +
     'LIGHTING_PHONG\n' +
     'calculate specular lighting and diffuse light as phong models.\n' +
+    'defines: \n' +
+    'LIGHTING_SHADOW\n' +
+    'calculate shadow\n' +
     '*/\n' +
     '\n' +
     '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
@@ -34,6 +37,16 @@ module.exports = '' +
     'uniform vec3 u_camera_position;\n' +
     '//uniform for ambient\n' +
     'uniform vec3 u_scene_ambient;\n' +
+    '\n' +
+    '#ifdef LIGHTING_SHADOW\n' +
+    '#if DIRECTIONAL_LIGHT_COUNT>0\n' +
+    'float shadow_directional[DIRECTIONAL_LIGHT_COUNT];\n' +
+    '#endif\n' +
+    //'float shadow_spot[];' +
+    '#if POINT_LIGHT_COUNT>0\n' +
+    'float shadow_point[POINT_LIGHT_COUNT];\n' +
+    '#endif\n' +
+    '#endif\n' +
     '\n' +
     '#define saturate(a) clamp( a, 0.0, 1.0 )\n' +
     'vec3 BlinnPhongSpecular( in vec3 specularColor, in float shininess, in vec3 normal, in vec3 lightDir, in vec3 viewDir ) {\n' +
@@ -60,7 +73,8 @@ module.exports = '' +
     'vec3 lightColor = u_directional_light_color[lightIndex];\n' +
     'float ldotN = dot(normal, lightDir);\n' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
-    '		totalDiffuseLight += ldotN * lightColor;\n' +
+    '       #ifdef LIGHTING_SHADOW\n float outofShadow = shadow_directional[lightIndex];\n #else\n float outofShadow = 1.0;\n #endif\n' +
+    '		totalDiffuseLight += ldotN * lightColor;// * outofShadow;\n' +
     '}\n' +
     '#endif\n' +
     '\n' +
@@ -97,7 +111,8 @@ module.exports = '' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
     '		totalDiffuseLight += ldotN * lightColor;\n' +
     'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
-    'totalSpecularLight += brdf * /*specularStrength **/ lightColor;\n' +
+    '       #ifdef LIGHTING_SHADOW\n float outofShadow = shadow_directional[lightIndex];\n #else\n float outofShadow = 1.0;\n #endif\n' +
+    'totalSpecularLight += brdf * /*specularStrength **/ lightColor;// * outofShadow;\n' +
     '}\n' +
     '#endif\n' +
     '\n' +
