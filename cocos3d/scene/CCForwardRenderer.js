@@ -122,6 +122,12 @@ ForwardRenderer.prototype = {
         var gl = device.gl;
         gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        var view_matrix = shadowCam._node.getWorldTransform().clone().invert();
+        var projection_matrix = shadowCam.getProjectionMatrix();
+        var vp_matrix = view_matrix.clone();
+        vp_matrix.mul2(projection_matrix, view_matrix);
+        this.viewProjectionID.setValue(vp_matrix.data);
+
         var meshes = scene.getMeshInstance();
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
@@ -129,18 +135,10 @@ ForwardRenderer.prototype = {
             var normal_matrix = world_matrix.clone();
             normal_matrix.invert();
             normal_matrix.transpose();
-            var view_matrix = shadowCam._node.getWorldTransform().clone().invert();
-            var projection_matrix = shadowCam.getProjectionMatrix();
-            var vp_matrix = view_matrix.clone();
-            vp_matrix.mul2(projection_matrix, view_matrix);
             var wvp_matrix = world_matrix.clone();
-            var wv_matrix = world_matrix.clone();
-            wv_matrix.mul2(view_matrix, wv_matrix);
-            wvp_matrix.mul2(view_matrix, wvp_matrix);
-            wvp_matrix.mul2(projection_matrix, wvp_matrix);
+            wvp_matrix.mul2(vp_matrix, world_matrix);
 
             this.worldID.setValue(world_matrix.data);
-            this.viewProjectionID.setValue(vp_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
             this.normalMatrixID.setValue(normal_matrix.data);
 
@@ -183,29 +181,29 @@ ForwardRenderer.prototype = {
         device.setRenderTarget(camera.getRenderTarget());
         //normal rendering
         meshes.sort(sortDrawCalls);
+
+        //set global value, view projection matrix, camera position, scene ambient etc
+        var view_matrix = camera._node.getWorldTransform().clone().invert();
+        var projection_matrix = camera.getProjectionMatrix();
+        var vp_matrix = view_matrix.clone();
+        vp_matrix.mul2(projection_matrix, view_matrix);
+        this.viewProjectionID.setValue(vp_matrix.data);
+        this.cameraPosID.setValue(cameraPos.data);
+        this.sceneAmbientID.setValue(scene._sceneAmbient.data);
+
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
             var world_matrix = meshInstance._node.getWorldTransform().clone();
             var normal_matrix = world_matrix.clone();
             normal_matrix.invert();
             normal_matrix.transpose();
-            var view_matrix = camera._node.getWorldTransform().clone().invert();
-            var projection_matrix = camera.getProjectionMatrix();
-            var vp_matrix = view_matrix.clone();
-            vp_matrix.mul2(projection_matrix, view_matrix);
 
             var wvp_matrix = world_matrix.clone();
-            var wv_matrix = world_matrix.clone();
-            wv_matrix.mul2(view_matrix,wv_matrix);
-            wvp_matrix.mul2(view_matrix,wvp_matrix);
-            wvp_matrix.mul2(projection_matrix,wvp_matrix);
-            this.cameraPosID.setValue(cameraPos.data);
+            wvp_matrix.mul2(vp_matrix,wvp_matrix);
 
             this.worldID.setValue(world_matrix.data);
-            this.viewProjectionID.setValue(vp_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
             this.normalMatrixID.setValue(normal_matrix.data);
-            this.sceneAmbientID.setValue(scene._sceneAmbient.data);
             this.dispatchLights(scene);
             var material = meshInstance.material;
             material.updateShader(device, scene);
