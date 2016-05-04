@@ -318,19 +318,21 @@ cc3d.extend( DepthMaterial.prototype, {
                 'gl_Position = matrix_worldviewprojection * a_position;\n' +
                 '}\n';
             pixelSrc = 'precision mediump float;\n';
-            pixelSrc += 'vec4 packFloat(float depth)\n';
+            pixelSrc += 'vec4 packFloat(float v)\n';
             pixelSrc += '{\n';
-            pixelSrc += '    const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);\n';
-            pixelSrc += '    const vec4 bit_mask  = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);\n';
-            // combination of mod and multiplication and division works better
-            pixelSrc += '    vec4 res = mod(depth * bit_shift * vec4(255), vec4(256) ) / vec4(255);\n';
-            pixelSrc += '    res -= res.xxyz * bit_mask;\n';
-            pixelSrc += '    return res;\n';
+            pixelSrc += '    vec4 enc = vec4(1.0, 255.0, 65025.0, 160581375.0) * v;\n';
+            pixelSrc += '    enc = fract(enc);\n';
+            pixelSrc += '    enc -= enc.yzww * vec4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);\n';
+            pixelSrc += '    return enc;\n';
             pixelSrc += '}\n\n';
 
+            pixelSrc += 'float unpackFloat(vec4 rgba) \n';
+            pixelSrc += '{\n';
+            pixelSrc += '    return dot( rgba, vec4(1.0, 1.0/255.0, 1.0/65025.0, 1.0/160581375.0) );\n';
+            pixelSrc += '}\n';
             pixelSrc += 'void main() {\n';
-            pixelSrc += 'vec3 depth = gl_FragCoord.xyz/1000.0;\n'+
-                'gl_FragColor = vec4(1.0,0.0,0.0,1.0);\n' +
+            pixelSrc += '//vec3 depth = gl_FragCoord.zzz/1000.0;\n'+
+                'gl_FragColor = packFloat(gl_FragCoord.z);\n' +
                 '}';
             var attribs = {
                 a_position: cc3dEnums.SEMANTIC_POSITION,
