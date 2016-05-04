@@ -640,7 +640,7 @@ GraphicsDevice.prototype = {
             }
             if(samplerValue) {
                 this.setTexture(samplerValue,textureUnit);
-                //gl.uniform1i(sampler.locationId, textureUnit);
+                gl.uniform1i(sampler.locationId, textureUnit);
                 //gl.activeTexture(gl.TEXTURE0 + textureUnit);
                 //gl.bindTexture(gl.TEXTURE_2D,samplerValue.value);
                 textureUnit++;
