@@ -200,21 +200,24 @@ GraphicsDevice.prototype = {
             var fbo = renderTarget._frameBufferObject = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._frameBufferObject);
 
-            var colorBuffer = renderTarget.colorBuffer;
+            var colorBuffer = null;
             if(renderTarget._textureColorBuffer) {
-                //colorBuffer = new cc3d.graphics.Texture(device, {
-                //    format: cc3d.graphics.PIXELFORMAT_R8_G8_B8_A8,
-                //    width: renderTarget.width,
-                //    height: renderTarget.height,
-                //    autoMipmap: false
-                //});
-                colorBuffer = gl.createTexture();
-
+                colorBuffer = new cc3d.graphics.Texture(device, {
+                    format: cc3d.graphics.PIXELFORMAT_R8_G8_B8_A8,
+                    width: renderTarget.width,
+                    height: renderTarget.height,
+                    autoMipmap: false
+                });
+                //colorBuffer = gl.createTexture();
+                colorBuffer.magFilter = cc3d.graphics.Enums.FILTER_NEAREST;
+                colorBuffer.minFilter = cc3d.graphics.Enums.FILTER_NEAREST;
+                colorBuffer.addressU = cc3d.graphics.Enums.ADDRESS_CLAMP_TO_EDGE;
+                colorBuffer.addressV = cc3d.graphics.Enums.ADDRESS_CLAMP_TO_EDGE;
                 renderTarget._colorBuffer = colorBuffer;
 
-                //this.initializeTexture(colorBuffer);
-                gl.bindTexture(gl.TEXTURE_2D, colorBuffer);
-                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+                this.initializeTexture(colorBuffer);
+                gl.bindTexture(gl.TEXTURE_2D, colorBuffer._glTextureId);
+                //gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -229,7 +232,7 @@ GraphicsDevice.prototype = {
                 gl.framebufferTexture2D(gl.FRAMEBUFFER,
                     gl.COLOR_ATTACHMENT0,
                     gl.TEXTURE_2D,
-                    colorBuffer,
+                    colorBuffer._glTextureId,
                     0);
             } else {
                 renderTarget._colorBuffer = colorBuffer = gl.createRenderbuffer();

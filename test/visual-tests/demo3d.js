@@ -488,6 +488,7 @@ function initObjectNode() {
 };
 
 function initPointLight(scene, pos, color, range) {
+    return;
     var light = new cc3d.Light();
     var node = initObjectNode();
     node.setPosition(cc3d.math.Vec3.ZERO);
@@ -594,7 +595,8 @@ function initScene() {
     //init light
     var light = new cc3d.Light();
     node = initObjectNode();
-    objectNodes.push(node);
+    //objectNodes.push(node);
+    node.setLocalEulerAngles(new cc3d.math.Vec3(-90,0,0));
     light._node = node;
     //light._direction = new cc3d.math.Vec3(0, -1, 0);
     light.setColor(new cc3d.math.Vec3(0.6,0.6,0.6));

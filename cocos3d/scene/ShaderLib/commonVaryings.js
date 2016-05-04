@@ -2,7 +2,7 @@ module.exports = '/**\n' +
     'common varying used\n' +
     '*/\n' +
     '#ifdef VARYING_POSITION\n' +
-    'varying vec3 v_position; //pos in view\n' +
+    'varying vec3 v_position; //pos in world\n' +
     '#endif\n' +
     '\n' +
     '#ifdef VARYING_COLOR\n' +
@@ -10,7 +10,7 @@ module.exports = '/**\n' +
     '#endif\n' +
     '\n' +
     '#ifdef VARYING_NORMAL\n' +
-    'varying vec3 v_normal; //normal in view\n' +
+    'varying vec3 v_normal; //normal in world\n' +
     '#endif\n' +
     '\n' +
     '#ifdef VARYING_UV\n' +

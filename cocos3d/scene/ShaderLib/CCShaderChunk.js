@@ -7,6 +7,6 @@ ShaderChunks.commonUniforms = require('./commonUniforms');
 ShaderChunks.commonVaryings = require('./commonVaryings');
 ShaderChunks.lighting = require('./lighting');
 ShaderChunks.gamma = require('./gamma');
-//ShaderChunks.commonAttributes = require('./commonAttributes');
+ShaderChunks.shadowMap = require('./shadowMap');
 
 cc3d.ShaderChunks = ShaderChunks;
