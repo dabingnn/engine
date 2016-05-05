@@ -112,13 +112,12 @@ ForwardRenderer.prototype = {
         var shadowCam = light.shadowMapCamera;
         shadowCam._node.setPosition(light._node.getPosition());
         shadowCam._node.setRotation(light._node.getRotation());
-        //shadowCam._node.rotateLocal(-90, 0, 0);
 
         shadowCam.setProjection(cc3d.SceneEnums.PROJECTION_ORTHOGRAPHIC);
-        shadowCam.setNearClip(0);
-        shadowCam.setFarClip(2e6);
+        shadowCam.setNearClip(-100);
+        shadowCam.setFarClip(100);
         shadowCam.setAspectRatio(1.0);
-        shadowCam.setOrthoHeight(20);
+        shadowCam.setOrthoHeight(80);
         var material = this.depthMaterial;
         if(!this.depthMaterial) {
             material = this.depthMaterial = new cc3d.DepthMaterial();
@@ -141,7 +140,7 @@ ForwardRenderer.prototype = {
 
         shadowMatrix.mul2(scaleShift, shadowMatrix);
         light.shadowMatrix = shadowMatrix;
-
+        device.setBlending(false);
         var meshes = scene.getMeshInstance();
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];

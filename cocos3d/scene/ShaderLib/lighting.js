@@ -74,7 +74,7 @@ module.exports = '' +
     'float ldotN = dot(normal, lightDir);\n' +
     '		ldotN = ldotN >=0.0 ? ldotN : 0.0;\n' +
     '       #ifdef LIGHTING_SHADOW\n float outofShadow = shadow_directional[lightIndex];\n #else\n float outofShadow = 1.0;\n #endif\n' +
-    '		totalDiffuseLight += ldotN * lightColor;// * outofShadow;\n' +
+    '		totalDiffuseLight += ldotN * lightColor * outofShadow;\n' +
     '}\n' +
     '#endif\n' +
     '\n' +
@@ -112,7 +112,7 @@ module.exports = '' +
     '		totalDiffuseLight += ldotN * lightColor;\n' +
     'vec3 brdf = BlinnPhongSpecular( specular, shininess, normal, lightDir, viewDir );\n' +
     '       #ifdef LIGHTING_SHADOW\n float outofShadow = shadow_directional[lightIndex];\n #else\n float outofShadow = 1.0;\n #endif\n' +
-    'totalSpecularLight += brdf * /*specularStrength **/ lightColor;// * outofShadow;\n' +
+    'totalSpecularLight += brdf * /*specularStrength **/ lightColor * outofShadow;\n' +
     '}\n' +
     '#endif\n' +
     '\n' +

@@ -471,10 +471,10 @@ function initCamera() {
     camera.setProjection(cc3d.SceneEnums.PROJECTION_PERSPECTIVE);
     camera.setFov(45);
     camera.setFarClip(1000);
-    camera.setNearClip(0.1);
+    camera.setNearClip(5);
     camera.setAspectRatio(canvas.width/canvas.height);
     var node = camera._node = new cc3d.GraphNode();
-    node.setPosition(new cc3d.math.Vec3(0,0,20));
+    node.setPosition(new cc3d.math.Vec3(0,20,20));
     node.lookAt(cc3d.math.Vec3.ZERO,cc3d.math.Vec3.UP);
 
 };
@@ -589,6 +589,16 @@ function initScene() {
     material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
+    //init platform
+    node = initObjectNode();
+    node.translate(0,0,0);
+    node.setLocalScale(10,0.1,10);
+    //objectNodes.push(node);
+    material = new cc3d.BasicPhongMaterial();
+    //material.texture = texture2;
+    material.alphaTest = 0.1;
+    material.useLambertLighting = true;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
     renderer = new cc3d.ForwardRenderer(device);
 
@@ -596,7 +606,7 @@ function initScene() {
     var light = new cc3d.Light();
     node = initObjectNode();
     //objectNodes.push(node);
-    node.setLocalEulerAngles(new cc3d.math.Vec3(-90,0,0));
+    node.setLocalEulerAngles(new cc3d.math.Vec3(-90,0,60));
     light._node = node;
     //light._direction = new cc3d.math.Vec3(0, -1, 0);
     light.setColor(new cc3d.math.Vec3(0.6,0.6,0.6));
