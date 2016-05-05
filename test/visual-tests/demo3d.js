@@ -600,6 +600,28 @@ function initScene() {
     material.useLambertLighting = true;
     scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
+    //init right wall
+    node = initObjectNode();
+    node.translate(10,0,0);
+    node.setLocalScale(0.1,10,10);
+    //objectNodes.push(node);
+    material = new cc3d.BasicPhongMaterial();
+    //material.texture = texture2;
+    material.alphaTest = 0.1;
+    material.useLambertLighting = true;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+
+    //init left wall
+    node = initObjectNode();
+    node.translate(-8,-4,0);
+    node.setLocalScale(0.1,10,10);
+    //objectNodes.push(node);
+    material = new cc3d.BasicPhongMaterial();
+    //material.texture = texture2;
+    material.color = new cc3d.math.Vec3(0.2,0.8,0.3);
+    material.useLambertLighting = true;
+    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+
     renderer = new cc3d.ForwardRenderer(device);
 
     //init light
