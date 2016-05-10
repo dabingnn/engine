@@ -398,7 +398,7 @@ Mat4.prototype = {
         z = new cc3d.math.Vec3();
 
         return function (position, target, up) {
-            z.sub2(position, target).normalize();
+            z.sub2(target, position).normalize();
             y.copy(up).normalize();
             x.cross(y, z).normalize();
             y.cross(z, x);
@@ -445,7 +445,8 @@ Mat4.prototype = {
      */
     setFrustum: function (left, right, bottom, top, znear, zfar) {
         var temp1, temp2, temp3, temp4, r;
-
+        zfar *= -1;
+        znear *= -1;
         temp1 = 2 * znear;
         temp2 = right - left;
         temp3 = top - bottom;
@@ -488,7 +489,8 @@ Mat4.prototype = {
      */
     setPerspective: function (fovy, aspect, znear, zfar, fovIsHorizontal) {
         var xmax, ymax;
-
+        zfar *= -1;
+        znear *= -1;
         if (!fovIsHorizontal) {
             ymax = znear * Math.tan(fovy * Math.PI / 360);
             xmax = ymax * aspect;
@@ -518,7 +520,8 @@ Mat4.prototype = {
      */
     setOrtho: function (left, right, bottom, top, near, far) {
         var r = this.data;
-
+        far *= -1;
+        near *= -1;
         r[0] = 2 / (right - left);
         r[1] = 0;
         r[2] = 0;
