@@ -551,7 +551,7 @@ Object.defineProperty(Vec3.prototype, 'z', {
  */
 Object.defineProperty(Vec3, 'BACK', {
     get: (function () {
-        var back = new Vec3(0, 0, 1);
+        var back = new Vec3(0, 0, -1);
         return function () {
             return back;
         };
@@ -583,7 +583,7 @@ Object.defineProperty(Vec3, 'DOWN', {
  */
 Object.defineProperty(Vec3, 'FORWARD', {
     get: (function () {
-        var forward = new Vec3(0, 0, -1);
+        var forward = new Vec3(0, 0, 1);
         return function () {
             return forward;
         };

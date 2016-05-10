@@ -445,8 +445,6 @@ Mat4.prototype = {
      */
     setFrustum: function (left, right, bottom, top, znear, zfar) {
         var temp1, temp2, temp3, temp4, r;
-        zfar *= -1;
-        znear *= -1;
         temp1 = 2 * znear;
         temp2 = right - left;
         temp3 = top - bottom;
@@ -461,10 +459,10 @@ Mat4.prototype = {
         r[5] = temp1 / temp3;
         r[6] = 0;
         r[7] = 0;
-        r[8] = (right + left) / temp2;
-        r[9] = (top + bottom) / temp3;
-        r[10] = (-zfar - znear) / temp4;
-        r[11] = -1;
+        r[8] = -(right + left) / temp2;
+        r[9] = -(top + bottom) / temp3;
+        r[10] = (zfar + znear) / temp4;
+        r[11] = 1;
         r[12] = 0;
         r[13] = 0;
         r[14] = (-temp1 * zfar) / temp4;
@@ -489,8 +487,6 @@ Mat4.prototype = {
      */
     setPerspective: function (fovy, aspect, znear, zfar, fovIsHorizontal) {
         var xmax, ymax;
-        zfar *= -1;
-        znear *= -1;
         if (!fovIsHorizontal) {
             ymax = znear * Math.tan(fovy * Math.PI / 360);
             xmax = ymax * aspect;
@@ -520,8 +516,6 @@ Mat4.prototype = {
      */
     setOrtho: function (left, right, bottom, top, near, far) {
         var r = this.data;
-        far *= -1;
-        near *= -1;
         r[0] = 2 / (right - left);
         r[1] = 0;
         r[2] = 0;
@@ -532,7 +526,7 @@ Mat4.prototype = {
         r[7] = 0;
         r[8] = 0;
         r[9] = 0;
-        r[10] = -2 / (far - near);
+        r[10] = 2 / (far - near);
         r[11] = 0;
         r[12] = -(right + left) / (right - left);
         r[13] = -(top + bottom) / (top - bottom);
