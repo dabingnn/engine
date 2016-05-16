@@ -15,6 +15,7 @@ var renderer = null;
 var camera = null;
 var boxMesh = null;
 var sphereMesh = null;
+var jsonMeshes = [];
 var lights = [];
 function initTexture() {
     //var gl = device.gl;
@@ -32,7 +33,7 @@ function initTexture() {
         //gl.generateMipmap(gl.TEXTURE_2D);
         //gl.bindTexture(gl.TEXTURE_2D, null);
     };
-    image.src = './crate.gif';
+    image.src = './res3d/crate.gif';
 
     //var gl = device.gl;
     texture2 = new cc3d.graphics.Texture(device);
@@ -49,8 +50,98 @@ function initTexture() {
         //gl.generateMipmap(gl.TEXTURE_2D);
         //gl.bindTexture(gl.TEXTURE_2D, null);
     };
-    image2.src = './grossini.png';
+    image2.src = './res3d/grossini.png';
 };
+
+function initJasonMesh() {
+    var request = new XMLHttpRequest();
+    var loadedCallback = function() {
+        console.log('jason mesh loaded');
+        var jason = JSON.parse(request.responseText);
+        //parse vertexFormat
+        //[{semantic:cc3dEnums.SEMANTIC_POSITION,type:cc3dEnums.ELEMENTTYPE_FLOAT32, components:3}]
+        var semanticMap = {
+            VERTEX_ATTRIB_POSITION: cc3dEnums.SEMANTIC_POSITION,
+            VERTEX_ATTRIB_NORMAL: cc3dEnums.SEMANTIC_NORMAL,
+            VERTEX_ATTRIB_TEX_COORD: cc3dEnums.SEMANTIC_TEXCOORD0,
+            VERTEX_ATTRIB_TEX_COORD1: cc3dEnums.SEMANTIC_TEXCOORD1,
+            VERTEX_ATTRIB_BLEND_WEIGHT: cc3dEnums.SEMANTIC_BLENDWEIGHT,
+            VERTEX_ATTRIB_BLEND_INDEX: cc3dEnums.SEMANTIC_BLENDINDICES,
+            VERTEX_ATTRIB_COLOR: cc3dEnums.SEMANTIC_COLOR,
+        };
+        var typeMap = {
+            GL_FLOAT: cc3dEnums.ELEMENTTYPE_FLOAT32,
+            GL_BYTE: cc3dEnums.ELEMENTTYPE_INT8,
+            GL_UNSIGNED_BYTE: cc3dEnums.ELEMENTTYPE_UINT8,
+            GL_SHORT: cc3dEnums.ELEMENTTYPE_INT16,
+            GL_UNSIGNED_SHORT: cc3dEnums.ELEMENTTYPE_UINT16,
+            GL_INT: cc3dEnums.ELEMENTTYPE_INT32,
+            GL_UNSIGNED_INT: cc3dEnums.ELEMENTTYPE_UINT32,
+        };
+
+        var vertexAttribs = [];
+        for(var meshIndex = 0, meshLengh = jason.meshes.length; meshIndex < meshLengh; ++meshIndex) {
+            var mesh = jason.meshes[meshIndex];
+            //parse attributes
+            var attribs_parsed = [];
+            for(var attributeIndex = 0, attributeLength = mesh.attributes.length; attributeIndex < attributeLength; ++attributeIndex) {
+                var attrib = mesh.attributes[attributeIndex];
+                attribs_parsed.push({semantic:semanticMap[attrib.attribute],type:typeMap[attrib.type], components:attrib.size});
+            }
+            var vertexFormat = new cc3d.graphics.VertexFormat(attribs_parsed);
+            //parse vertices/normals etc
+            var vertices = new Float32Array(mesh.vertices);
+
+            //generate vertexBuffers
+            var vertexBuffer = new cc3d.graphics.VertexBuffer(device, vertexFormat,vertices.byteLength/vertexFormat.size);
+
+            vertexBuffer.setData(vertices);
+
+            //parse indices and generate meshes
+            for(var partIndex = 0, partLength = mesh.parts.length; partIndex < partLength; ++partIndex) {
+
+                var germesh = new cc3d.Mesh();
+                germesh.vertexBuffer = vertexBuffer;
+
+                var part = mesh.parts[partIndex];
+
+                var indices = new Uint16Array(part.indices);
+                var indexBuffer = new cc3d.graphics.IndexBuffer(device, cc3dEnums.INDEXFORMAT_UINT16,indices.length);
+                indexBuffer.storage = indices;
+
+                indexBuffer.unlock();
+                germesh.indexBuffer = indexBuffer;
+
+                germesh.primitive = {
+                    type: cc3dEnums.PRIMITIVE_TRIANGLES,
+                    indexed: true,
+                    base: 0,
+                    count: indexBuffer.getNumIndices(),
+                };
+
+                jsonMeshes.push(germesh);
+
+            }
+
+
+        }
+
+        //init character
+        for(var jsonMeshIndex = 0; jsonMeshIndex < jsonMeshes.length; ++jsonMeshIndex) {
+            var node = initObjectNode();
+            node.translate(0,5,0);
+            //objectNodes.push(node);
+            var material = new cc3d.BasicPhongMaterial();
+            material.texture = texture2;
+            material.useLambertLighting = true;
+            scene.addMeshInstance(new cc3d.MeshInstance(node, jsonMeshes[jsonMeshIndex], material));
+        }
+
+    }
+    request.addEventListener('load', loadedCallback);
+    request.open('GET', './res3d/role_elf_warrior_run_001.c3t');
+    request.send();
+}
 
 function initSphereMesh( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {
 
@@ -658,6 +749,7 @@ function run3d() {
     canvas = document.getElementById("gameCanvas");
     device = new cc3d.graphics.GraphicsDevice(canvas);
     initTexture();
+    initJasonMesh();
     boxMesh = initMesh();
     sphereMesh = initSphereMesh(1.5, 32, 32);
     initScene();
