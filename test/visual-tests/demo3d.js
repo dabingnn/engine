@@ -10,6 +10,7 @@ var texture2 = null;
 var device = null;
 var cc3dEnums = cc3d.graphics.Enums;
 var objectNodes = [];
+var characterNode = null;
 var scene = null;
 var renderer = null;
 var camera = null;
@@ -17,40 +18,20 @@ var boxMesh = null;
 var sphereMesh = null;
 var jsonMeshes = [];
 var lights = [];
-function initTexture() {
-    //var gl = device.gl;
-    texture = new cc3d.graphics.Texture(device);
-    //texture = gl.createTexture();
+function initTexture(fileName) {
+    var  texture = new cc3d.graphics.Texture(device);
     var image = new Image();
     image.onload = function () {
         texture.setSource(image);
-        //gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        ////gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        //gl.generateMipmap(gl.TEXTURE_2D);
-        //gl.bindTexture(gl.TEXTURE_2D, null);
     };
-    image.src = './res3d/crate.gif';
+    image.src = fileName;
+    return texture;
+}
+function initTextures() {
 
+    texture = initTexture('./res3d/role_elf_warrior.png');
     //var gl = device.gl;
-    texture2 = new cc3d.graphics.Texture(device);
-    //texture = gl.createTexture();
-    var image2 = new Image();
-    image2.onload = function () {
-        texture2.setSource(image2);
-        //gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        ////gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        //gl.generateMipmap(gl.TEXTURE_2D);
-        //gl.bindTexture(gl.TEXTURE_2D, null);
-    };
-    image2.src = './res3d/grossini.png';
+    texture2 = initTexture('./res3d/weapon_elf_warrior.png');
 };
 
 function initJasonMesh() {
@@ -101,7 +82,7 @@ function initJasonMesh() {
             for(var partIndex = 0, partLength = mesh.parts.length; partIndex < partLength; ++partIndex) {
 
                 var germesh = new cc3d.Mesh();
-                germesh.vertexBuffer = vertexBuffer;
+                germesh.vertexBuffer.push(vertexBuffer);
 
                 var part = mesh.parts[partIndex];
 
@@ -126,21 +107,27 @@ function initJasonMesh() {
 
         }
 
-        //init character
-        for(var jsonMeshIndex = 0; jsonMeshIndex < jsonMeshes.length; ++jsonMeshIndex) {
-            var node = initObjectNode();
-            node.translate(0,5,0);
-            //objectNodes.push(node);
-            var material = new cc3d.BasicPhongMaterial();
-            material.texture = texture2;
-            material.useLambertLighting = true;
-            scene.addMeshInstance(new cc3d.MeshInstance(node, jsonMeshes[jsonMeshIndex], material));
-        }
-
+        initCharacter();
     }
     request.addEventListener('load', loadedCallback);
     request.open('GET', './res3d/role_elf_warrior_run_001.c3t');
     request.send();
+}
+
+function initCharacter() {
+    //init character
+    var nodeTop = initObjectNode();
+    nodeTop.translate(0,10,-8);
+    nodeTop.rotate(0,0,0);
+    nodeTop.rotate(-110,180,0);
+    nodeTop.setLocalScale(0.02,0.02,0.02);
+    for(var jsonMeshIndex = 0; jsonMeshIndex < jsonMeshes.length; ++jsonMeshIndex) {
+        //objectNodes.push(node);
+        var material = new cc3d.BasicPhongMaterial();
+        material.texture = texture;
+        material.useLambertLighting = true;
+        scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[jsonMeshIndex], material));
+    }
 }
 
 function initSphereMesh( radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {
@@ -553,7 +540,6 @@ function animate() {
         objectNodes[rotIndex].rotateLocal(rotX,rotY * Math.pow(-1,rotIndex),rotZ);
     }
 
-
     scene.update();
 };
 
@@ -748,7 +734,7 @@ function initScene() {
 function run3d() {
     canvas = document.getElementById("gameCanvas");
     device = new cc3d.graphics.GraphicsDevice(canvas);
-    initTexture();
+    initTextures();
     initJasonMesh();
     boxMesh = initMesh();
     sphereMesh = initSphereMesh(1.5, 32, 32);
