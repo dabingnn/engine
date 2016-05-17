@@ -16,7 +16,8 @@ var renderer = null;
 var camera = null;
 var boxMesh = null;
 var sphereMesh = null;
-var jsonMeshes = [];
+var jsonMeshes = {};
+var jsonMaterials = {};
 var lights = [];
 function initTexture(fileName) {
     var  texture = new cc3d.graphics.Texture(device);
@@ -29,12 +30,12 @@ function initTexture(fileName) {
 }
 function initTextures() {
 
-    texture = initTexture('./res3d/role_elf_warrior.png');
+    texture = initTexture('./res3d/crate.gif');
     //var gl = device.gl;
-    texture2 = initTexture('./res3d/weapon_elf_warrior.png');
+    texture2 = initTexture('./res3d/grossini.png');
 };
 
-function initJasonMesh() {
+function initJasonModel() {
     var request = new XMLHttpRequest();
     var loadedCallback = function() {
         console.log('jason mesh loaded');
@@ -100,33 +101,45 @@ function initJasonMesh() {
                     count: indexBuffer.getNumIndices(),
                 };
 
-                jsonMeshes.push(germesh);
+                jsonMeshes[part.id] = germesh;
 
             }
 
 
         }
 
-        initCharacter();
+        //load material
+        var materials = jason.materials;
+        for(var index = materials.length - 1; index >= 0; --index) {
+            var material = jsonMaterials[materials[index].id] = new cc3d.BasicPhongMaterial();
+            var texture = initTexture('./res3d/'+ materials[index].textures[0].filename);
+            material.texture = texture;
+            material.useLambertLighting = true;
+        }
+
+        initCharacter(jason.nodes);
     }
     request.addEventListener('load', loadedCallback);
     request.open('GET', './res3d/role_elf_warrior_run_001.c3t');
     request.send();
 }
 
-function initCharacter() {
+function initCharacter(nodes) {
     //init character
     var nodeTop = initObjectNode();
     nodeTop.translate(0,10,-8);
     nodeTop.rotate(0,0,0);
     nodeTop.rotate(-110,180,0);
     nodeTop.setLocalScale(0.02,0.02,0.02);
-    for(var jsonMeshIndex = 0; jsonMeshIndex < jsonMeshes.length; ++jsonMeshIndex) {
-        //objectNodes.push(node);
-        var material = new cc3d.BasicPhongMaterial();
-        material.texture = texture;
-        material.useLambertLighting = true;
-        scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[jsonMeshIndex], material));
+    for(var index = nodes.length - 1; index >= 0; --index) {
+        var meshParts = nodes[index].parts;
+        if(!meshParts) continue;
+        for(var meshIndex = 0; meshIndex < meshParts.length; ++meshIndex) {
+            var meshPart = meshParts[meshIndex];
+            scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[meshPart.meshpartid], jsonMaterials[meshPart.materialid]));
+        }
+
+
     }
 }
 
@@ -735,7 +748,7 @@ function run3d() {
     canvas = document.getElementById("gameCanvas");
     device = new cc3d.graphics.GraphicsDevice(canvas);
     initTextures();
-    initJasonMesh();
+    initJasonModel();
     boxMesh = initMesh();
     sphereMesh = initSphereMesh(1.5, 32, 32);
     initScene();
