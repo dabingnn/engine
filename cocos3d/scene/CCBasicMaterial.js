@@ -108,7 +108,8 @@ cc3d.extend( BasicPhongMaterial.prototype, {
     },
 
     _generateShader : function(device, scene) {
-
+        //todo: add skinned setting here
+        var skinned = false;
         var vertSrc,pixelSrc;
         //todo add define here
         vertSrc = '\n';
@@ -118,6 +119,9 @@ cc3d.extend( BasicPhongMaterial.prototype, {
 
         vertSrc += '#define USE_UV\n';
         vertSrc += '#define USE_NORMAL\n';
+        if(skinned) {
+            vertSrc += '#define USE_SKIN\n';
+        }
 
         vertSrc += cc3d.ShaderChunks.commonUniforms;
         vertSrc += cc3d.ShaderChunks.commonAttributes;
