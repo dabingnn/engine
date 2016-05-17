@@ -1,5 +1,10 @@
 'use strict';
 
+var SkinInfo = function() {
+    this.boneName = [];
+    this.boneMatrix = [];
+};
+
 var Mesh = function() {
     this.vertexBuffer = [];
     this.indexBuffer = null;
@@ -8,14 +13,16 @@ var Mesh = function() {
         base : 0,
         count: 0
     };
+
 };
 
-var MeshInstance = function MeshInstance(node, mesh, material) {
+var MeshInstance = function MeshInstance(node, mesh, material, skin) {
     this._node = node;
     this.mesh = mesh;
     this.material = material;
     //used for rendering sorting
     this.sortDistance = NaN;
+    this.skinInstance = skin || null;
 };
 
 MeshInstance.prototype = {
@@ -31,3 +38,4 @@ MeshInstance.prototype = {
 
 cc3d.Mesh = Mesh;
 cc3d.MeshInstance = MeshInstance;
+cc3d.SkinInfo = SkinInfo;

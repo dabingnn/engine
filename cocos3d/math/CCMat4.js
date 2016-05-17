@@ -5,11 +5,11 @@
  * @class A 4x4 matrix.
  * @description Creates a new Mat4 object
  */
-var Mat4 = function () {
+var Mat4 = function (array) {
     this.data = new Float32Array(16);
 
-    if (arguments.length === 16) {
-        this.data.set(arguments);
+    if (array && (array.length === 16)) {
+        this.data.set(array);
     } else {
         this.setIdentity();
     }

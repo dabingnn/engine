@@ -136,7 +136,15 @@ function initCharacter(nodes) {
         if(!meshParts) continue;
         for(var meshIndex = 0; meshIndex < meshParts.length; ++meshIndex) {
             var meshPart = meshParts[meshIndex];
-            scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[meshPart.meshpartid], jsonMaterials[meshPart.materialid]));
+            var skinInfo = new cc3d.SkinInfo();
+            //parse skin
+            for(var skinBoneIndex = 0; skinBoneIndex < meshPart.bones.length; ++skinBoneIndex) {
+                var skinBone = meshPart.bones[skinBoneIndex];
+                skinInfo.boneName.push(skinBone.node);
+                var skinMat = new cc3d.math.Mat4(skinBone.transform);
+                skinInfo.boneMatrix.push(skinMat);
+            }
+            scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[meshPart.meshpartid], jsonMaterials[meshPart.materialid], skinInfo));
         }
 
 
