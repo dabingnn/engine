@@ -615,6 +615,9 @@ GraphicsDevice.prototype = {
         var attributes = this.boundShader.attributes;
         var uniforms = this.boundShader.uniforms;
         var samplers = this.boundShader.samplers;
+        for(var i = 0; i < 8; ++i) {
+            gl.disableVertexAttribArray(i);
+        }
         for(var i = 0, len = attributes.length; i< len; ++i) {
             var element = this.elements[attributes[i].name];
             if(element) {

@@ -12,6 +12,7 @@ var ForwardRenderer = function (graphicDevice) {
     this.worldID = scope.resolve('matrix_world');
     this.lightDirID = scope.resolve('lightDirInWorld');
     this.lightColorID = scope.resolve('lightColor');
+
     this.viewProjectionID = scope.resolve('matrix_viewprojection');
     this.worldViewProjectionID = scope.resolve('matrix_worldviewprojection');
     this.normalMatrixID = scope.resolve('matrix_normal');
@@ -154,7 +155,6 @@ ForwardRenderer.prototype = {
             this.worldID.setValue(world_matrix.data);
             this.worldViewProjectionID.setValue(wvp_matrix.data);
             this.normalMatrixID.setValue(normal_matrix.data);
-
             material.updateShader(device, scene);
             material.update();
 
@@ -219,7 +219,20 @@ ForwardRenderer.prototype = {
             this.normalMatrixID.setValue(normal_matrix.data);
             this.dispatchLights(scene);
             var material = meshInstance.material;
-            material.updateShader(device, scene);
+            var objDefs = {};
+            objDefs.skinned = meshInstance.isSkinned();
+            material.updateShader(device, scene, objDefs);
+            if(objDefs.skinned) {
+                //update skinned
+                var matrix_palette = new Float32Array(50 * 16);
+                var bone_matrix = meshInstance.skinInstance.boneMatrix;
+                for(var matrix_index = 0; matrix_index < 50 && matrix_index < bone_matrix.length; ++matrix_index) {
+                    var bone = bone_matrix[matrix_index];
+                    matrix_palette.set(bone.data, matrix_index * 16);
+                }
+                var scope = this.device.scope;
+                scope.resolve('matrix_skin[0]').setValue(matrix_palette);
+            }
             material.update();
             device.setShader(material.getShader());
             device.setBlending(material.blend);

@@ -33,6 +33,10 @@ MeshInstance.prototype = {
 
     resetDistance: function() {
         this.sortDistance = NaN;
+    },
+
+    isSkinned : function() {
+        return !!this.skinInstance;
     }
 };
 

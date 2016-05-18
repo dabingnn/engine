@@ -21,6 +21,6 @@ module.exports = '/**\n' +
     '#endif\n' +
     '\n' +
     '#ifdef USE_SKIN\n' +
-    'attribute vec3 a_skinIndex;\n' +
-    'attribute vec2 a_skinWeight;\n' +
+    'attribute vec4 a_skinIndex;\n' +
+    'attribute vec4 a_skinWeight;\n' +
     '#endif\n';

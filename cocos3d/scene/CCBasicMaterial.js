@@ -90,8 +90,12 @@ var BasicPhongMaterial = function() {
 BasicPhongMaterial = cc3d.inherits(BasicPhongMaterial, cc3d.Material);
 
 cc3d.extend( BasicPhongMaterial.prototype, {
-    _generateShaderKey: function (device, scene) {
+    _generateShaderKey: function (device, scene, objDefs) {
+        var skinned = (objDefs && objDefs.skinned) || false;
         var key = 'BasicMaterial';
+        if(skinned){
+            key += '_skinned';
+        }
         key += this.useLambertLighting ? '_Lambert' : '_BlinnPhong';
         key += '_directionalLight_' + scene._directionalLights.length;
         key += '_pointLight_' + scene._pointLights.length;
@@ -107,9 +111,9 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         return key;
     },
 
-    _generateShader : function(device, scene) {
+    _generateShader : function(device, scene,objDefs) {
         //todo: add skinned setting here
-        var skinned = false;
+        var skinned = (objDefs && objDefs.skinned) || false;
         var vertSrc,pixelSrc;
         //todo add define here
         vertSrc = '\n';
@@ -126,9 +130,17 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         vertSrc += cc3d.ShaderChunks.commonUniforms;
         vertSrc += cc3d.ShaderChunks.commonAttributes;
         vertSrc += cc3d.ShaderChunks.commonVaryings;
-        vertSrc += 'void main() {\n' +
-            'vec4 tranformedPos = vec4(a_position, 1.0);\n' +
-            'gl_Position = matrix_worldviewprojection * tranformedPos;\n' +
+        if(skinned) {
+            vertSrc += cc3d.ShaderChunks.skin;
+        }
+        vertSrc += 'void main() {\n';
+        if(skinned) {
+            vertSrc += 'mat4 skinMatrix = getSkinMatrix(a_skinIndex, a_skinWeight);\n';
+            vertSrc += 'vec4 tranformedPos = skinMatrix * vec4(a_position, 1.0);\n';
+        } else {
+            vertSrc += 'vec4 tranformedPos = vec4(a_position, 1.0);\n';
+        }
+        vertSrc += 'gl_Position = matrix_worldviewprojection * tranformedPos;\n' +
             'v_position = (matrix_world * tranformedPos).xyz;\n' +
             'vec4 normal = matrix_normal * vec4(a_normal,0.0);\n' +
             'v_normal = normalize(normal.xyz);\n' +
@@ -240,6 +252,10 @@ cc3d.extend( BasicPhongMaterial.prototype, {
             a_uv: cc3dEnums.SEMANTIC_TEXCOORD0,
             a_normal: cc3dEnums.SEMANTIC_NORMAL
         };
+        if(skinned) {
+            attribs['a_skinIndex'] = cc3dEnums.SEMANTIC_BLENDINDICES;
+            attribs['a_skinWeight'] = cc3dEnums.SEMANTIC_BLENDWEIGHT;
+        }
         var definition = {
             vshader: vertSrc,
             fshader: pixelSrc,
@@ -250,14 +266,14 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         cc3d.ShaderLibs.addShader(this.shaderKey, this.shader);
     },
     updateShader: function (device, scene, objDefs) {
-        var key = this._generateShaderKey(device, scene);
+        var key = this._generateShaderKey(device, scene, objDefs);
         if(key === this.shaderKey) return;
         this.shaderKey = key;
         var shader = cc3d.ShaderLibs.getShaderByKey(key);
         if(shader) {
             this.shader = shader;
         } else {
-            this._generateShader(device,scene);
+            this._generateShader(device,scene, objDefs);
         }
         this._generateRenderKey();
     },
