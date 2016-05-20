@@ -1,12 +1,12 @@
 'use strict';
 
 /**
-    var matrix = [m0,    m1,     m2,     m3,
-                  m4,    m5,     m6,     m7,
-                  m8,    m9,     m10,    m11,
-                  m12,   m13,    m14,    m15];
-    var vector4 = [v0, v1, v2, v3];
-    result = vector4 * matrix;
+ * using column major matrix, which means for a array m[16]
+ * the matrix will be treated like
+    matrix =  m0,    m4,     m8,     m12,
+              m1,    m5,     m9,     m13,
+              m2,    m6,     m10,    m14,
+              m3,    m7,     m11,    m15;
  */
 var Mat4 = function (array) {
     this.data = new Float32Array(16);
@@ -130,57 +130,57 @@ Mat4.prototype = {
             r = this.data;
 
         a00 = a[0];
-        a01 = a[1];
-        a02 = a[2];
-        a03 = a[3];
-        a10 = a[4];
+        a10 = a[1];
+        a20 = a[2];
+        a30 = a[3];
+        a01 = a[4];
         a11 = a[5];
-        a12 = a[6];
-        a13 = a[7];
-        a20 = a[8];
-        a21 = a[9];
+        a21 = a[6];
+        a31 = a[7];
+        a02 = a[8];
+        a12 = a[9];
         a22 = a[10];
-        a23 = a[11];
-        a30 = a[12];
-        a31 = a[13];
-        a32 = a[14];
+        a32 = a[11];
+        a03 = a[12];
+        a13 = a[13];
+        a23 = a[14];
         a33 = a[15];
 
         b0 = b[0];
         b1 = b[1];
         b2 = b[2];
         b3 = b[3];
-        r[0]  = a00 * b0 + a10 * b1 + a20 * b2 + a30 * b3;
-        r[1]  = a01 * b0 + a11 * b1 + a21 * b2 + a31 * b3;
-        r[2]  = a02 * b0 + a12 * b1 + a22 * b2 + a32 * b3;
-        r[3]  = a03 * b0 + a13 * b1 + a23 * b2 + a33 * b3;
+        r[0]  = a00 * b0 + a01 * b1 + a02 * b2 + a03 * b3;
+        r[1]  = a10 * b0 + a11 * b1 + a12 * b2 + a13 * b3;
+        r[2]  = a20 * b0 + a21 * b1 + a22 * b2 + a23 * b3;
+        r[3]  = a30 * b0 + a31 * b1 + a32 * b2 + a33 * b3;
 
         b0 = b[4];
         b1 = b[5];
         b2 = b[6];
         b3 = b[7];
-        r[4]  = a00 * b0 + a10 * b1 + a20 * b2 + a30 * b3;
-        r[5]  = a01 * b0 + a11 * b1 + a21 * b2 + a31 * b3;
-        r[6]  = a02 * b0 + a12 * b1 + a22 * b2 + a32 * b3;
-        r[7]  = a03 * b0 + a13 * b1 + a23 * b2 + a33 * b3;
+        r[4]  = a00 * b0 + a01 * b1 + a02 * b2 + a03 * b3;
+        r[5]  = a10 * b0 + a11 * b1 + a12 * b2 + a13 * b3;
+        r[6]  = a20 * b0 + a21 * b1 + a22 * b2 + a23 * b3;
+        r[7]  = a30 * b0 + a31 * b1 + a32 * b2 + a33 * b3;
 
         b0 = b[8];
         b1 = b[9];
         b2 = b[10];
         b3 = b[11];
-        r[8]  = a00 * b0 + a10 * b1 + a20 * b2 + a30 * b3;
-        r[9]  = a01 * b0 + a11 * b1 + a21 * b2 + a31 * b3;
-        r[10] = a02 * b0 + a12 * b1 + a22 * b2 + a32 * b3;
-        r[11] = a03 * b0 + a13 * b1 + a23 * b2 + a33 * b3;
+        r[8]  = a00 * b0 + a01 * b1 + a02 * b2 + a03 * b3;
+        r[9]  = a10 * b0 + a11 * b1 + a12 * b2 + a13 * b3;
+        r[10] = a20 * b0 + a21 * b1 + a22 * b2 + a23 * b3;
+        r[11] = a30 * b0 + a31 * b1 + a32 * b2 + a33 * b3;
 
         b0 = b[12];
         b1 = b[13];
         b2 = b[14];
         b3 = b[15];
-        r[12] = a00 * b0 + a10 * b1 + a20 * b2 + a30 * b3;
-        r[13] = a01 * b0 + a11 * b1 + a21 * b2 + a31 * b3;
-        r[14] = a02 * b0 + a12 * b1 + a22 * b2 + a32 * b3;
-        r[15] = a03 * b0 + a13 * b1 + a23 * b2 + a33 * b3;
+        r[12] = a00 * b0 + a01 * b1 + a02 * b2 + a03 * b3;
+        r[13] = a10 * b0 + a11 * b1 + a12 * b2 + a13 * b3;
+        r[14] = a20 * b0 + a21 * b1 + a22 * b2 + a23 * b3;
+        r[15] = a30 * b0 + a31 * b1 + a32 * b2 + a33 * b3;
 
         return this;
     },
@@ -607,7 +607,7 @@ Mat4.prototype = {
 
         det =  m[0] * a11 + m[1] * a12 + m[2] * a13;
         if (det === 0) { // no inverse
-            console.warn("pc.Mat4#invertTo3x3: Matrix not invertible");
+            console.warn("cc3d.Mat4#invertTo3x3: Matrix not invertible");
             return this;
         }
 
