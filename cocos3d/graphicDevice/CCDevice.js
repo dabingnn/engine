@@ -163,12 +163,6 @@ GraphicsDevice.prototype = {
     setVertexBuffer: function(vertexBuffer, stream) {
         if(this.vertexBuffers[stream] !== vertexBuffer) {
             this.vertexBuffers[stream] = vertexBuffer;
-            var elements = vertexBuffer.getFormat().elements;
-            for(var i = 0; i < elements.length; ++i) {
-                var element = elements[i];
-                element.stream = stream;
-                this.elements[element.name] = element;
-            }
         }
     },
 
@@ -617,6 +611,17 @@ GraphicsDevice.prototype = {
         var samplers = this.boundShader.samplers;
         for(var i = 0; i < 8; ++i) {
             gl.disableVertexAttribArray(i);
+        }
+        //
+        for(var streamIndex = this.vertexBuffers.length - 1; streamIndex >= 0; --streamIndex) {
+            var vertexBuffer = this.vertexBuffers[streamIndex];
+            if(!vertexBuffer) continue;
+            var elements = vertexBuffer.getFormat().elements;
+            for(var i = 0; i < elements.length; ++i) {
+                var element = elements[i];
+                element.stream = streamIndex;
+                this.elements[element.name] = element;
+            }
         }
         for(var i = 0, len = attributes.length; i< len; ++i) {
             var element = this.elements[attributes[i].name];

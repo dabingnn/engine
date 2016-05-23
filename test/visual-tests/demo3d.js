@@ -117,7 +117,7 @@ function initJasonModel() {
             material.useLambertLighting = true;
         }
 
-        //initCharacter(jason.nodes);
+        initCharacter(jason.nodes);
     }
     request.addEventListener('load', loadedCallback);
     request.open('GET', './res3d/role_elf_warrior_run_001.c3t');
