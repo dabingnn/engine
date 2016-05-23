@@ -1,7 +1,7 @@
 
 var canvas = null;
 
-var rotX = 0, rotY = 0, rotZ = 0;
+var rotAngle = 0.0;
 var scale = cc3d.math.Vec3.ONE.clone();
 var position = new cc3d.math.Vec3(0,0,0);
 
@@ -117,7 +117,7 @@ function initJasonModel() {
             material.useLambertLighting = true;
         }
 
-        initCharacter(jason.nodes);
+        //initCharacter(jason.nodes);
     }
     request.addEventListener('load', loadedCallback);
     request.open('GET', './res3d/role_elf_warrior_run_001.c3t');
@@ -128,8 +128,8 @@ function initCharacter(nodes) {
     //init character
     var nodeTop = initObjectNode();
     nodeTop.translate(0,10,-8);
-    nodeTop.rotate(0,0,0);
-    nodeTop.rotate(-110,180,0);
+    //nodeTop.rotate(0,0,0);
+    //nodeTop.rotate(-110,180,0);
     nodeTop.setLocalScale(0.02,0.02,0.02);
     for(var index = nodes.length - 1; index >= 0; --index) {
         var meshParts = nodes[index].parts;
@@ -529,9 +529,9 @@ function animate() {
     var timeNow = new Date().getTime();
     if (lastTime) {
         var dt = timeNow - lastTime;
-
-        rotX = (10 * dt) / 500.0;
-        rotY = (10 * dt) / 500.0;
+        rotAngle = (10 * dt) / 500.0;
+        //rotX = (10 * dt) / 500.0;
+        //rotY = (10 * dt) / 500.0;
         // rotZ += (90 * dt) / 1000.0;
         //y += dt / 1000.0;
 
@@ -555,10 +555,11 @@ function animate() {
     }
 
     lastTime = timeNow;
-
+    var rotQuat = new cc3d.math.Quat();
+    rotQuat.setFromAxisAngle(new cc3d.math.Vec3(0,1,0), rotAngle);
     for(var rotIndex = 0; rotIndex < objectNodes.length; ++rotIndex)
     {
-        objectNodes[rotIndex].rotateLocal(rotX,rotY * Math.pow(-1,rotIndex),rotZ);
+        objectNodes[rotIndex].rotateLocal(rotQuat);
     }
 
     scene.update();
@@ -580,7 +581,7 @@ function initCamera() {
 function initObjectNode() {
     var node = new cc3d.GraphNode();
     node.setLocalPosition(position);
-    node.setEulerAngles(rotX,rotY,rotZ);
+    node.setLocalRotation(cc3d.math.Quat.IDENTITY);
     node.setLocalScale(scale);
     return node;
 };
@@ -728,9 +729,14 @@ function initScene() {
     //init light
     var light = new cc3d.Light();
     node = initObjectNode();
-    //objectNodes.push(node);
-    node.rotate(0,90,0);
-    node.rotate(0,0,-30);
+    objectNodes.push(node);
+    var quat = new cc3d.math.Quat();
+    quat.setFromAxisAngle(cc3d.math.Vec3.RIGHT,90);
+    node.rotate(quat);
+    quat.setFromAxisAngle(cc3d.math.Vec3.UP,50);
+    node.rotateLocal(quat);
+    //node.rotate(0,90,0);
+
     //node.setLocalEulerAngles(new cc3d.math.Vec3(0,90,-60));
     light._node = node;
     //light._direction = new cc3d.math.Vec3(0, -1, 0);

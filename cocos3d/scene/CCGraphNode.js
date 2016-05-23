@@ -9,12 +9,12 @@ var GraphNode = function GraphNode() {
     this.localPosition = new cc3d.math.Vec3(0, 0, 0);
     this.localRotation = new cc3d.math.Quat(0, 0, 0, 1);
     this.localScale = new cc3d.math.Vec3(1, 1, 1);
-    this.localEulerAngles = new cc3d.math.Vec3(0, 0, 0); // Only calculated on request
+    //this.localEulerAngles = new cc3d.math.Vec3(0, 0, 0); // Only calculated on request
 
     // World-space properties of transform
     this.position = new cc3d.math.Vec3(0, 0, 0);
     this.rotation = new cc3d.math.Quat(0, 0, 0, 1);
-    this.eulerAngles = new cc3d.math.Vec3(0, 0, 0);
+    //this.eulerAngles = new cc3d.math.Vec3(0, 0, 0);
 
     this.localTransform = new cc3d.math.Mat4();
     this.dirtyLocal = false;
@@ -47,7 +47,7 @@ Object.defineProperty(GraphNode.prototype, 'up', {
 
 Object.defineProperty(GraphNode.prototype, 'forward', {
     get: function() {
-        return this.getWorldTransform().getZ(this._forward).normalize().scale(-1);
+        return this.getWorldTransform().getZ(this._forward).normalize();
     }
 });
 
@@ -95,11 +95,11 @@ cc3d.extend(GraphNode.prototype, {
         clone.localPosition.copy(this.localPosition);
         clone.localRotation.copy(this.localRotation);
         clone.localScale.copy(this.localScale);
-        clone.localEulerAngles.copy(this.localEulerAngles);
+        //clone.localEulerAngles.copy(this.localEulerAngles);
 
         clone.position.copy(this.position);
         clone.rotation.copy(this.rotation);
-        clone.eulerAngles.copy(this.eulerAngles);
+        //clone.eulerAngles.copy(this.eulerAngles);
 
         clone.localTransform.copy(this.localTransform);
         clone.dirtyLocal = this.dirtyLocal;
@@ -214,7 +214,7 @@ cc3d.extend(GraphNode.prototype, {
             var format = "{0}/{1}";
 
             while (parent && parent._parent) {
-                path = pc.string.format(format, parent.name, path);
+                path = String.format(format, parent.name, path);
                 parent = parent._parent;
             }
 
@@ -245,15 +245,15 @@ cc3d.extend(GraphNode.prototype, {
         return this._children;
     },
 
-    getEulerAngles: function () {
-        this.getWorldTransform().getEulerAngles(this.eulerAngles);
-        return this.eulerAngles;
-    },
+    //getEulerAngles: function () {
+    //    this.getWorldTransform().getEulerAngles(this.eulerAngles);
+    //    return this.eulerAngles;
+    //},
 
-    getLocalEulerAngles: function () {
-        this.localRotation.getEulerAngles(this.localEulerAngles);
-        return this.localEulerAngles;
-    },
+    //getLocalEulerAngles: function () {
+    //    this.localRotation.getEulerAngles(this.localEulerAngles);
+    //    return this.localEulerAngles;
+    //},
 
     getLocalPosition: function () {
         return this.localPosition;
@@ -325,24 +325,24 @@ cc3d.extend(GraphNode.prototype, {
         }
     },
 
-    setLocalEulerAngles: function () {
-        var ex, ey, ez;
-        switch (arguments.length) {
-            case 1:
-                ex = arguments[0].x;
-                ey = arguments[0].y;
-                ez = arguments[0].z;
-                break;
-            case 3:
-                ex = arguments[0];
-                ey = arguments[1];
-                ez = arguments[2];
-                break;
-        }
-
-        this.localRotation.setFromEulerAngles(ex, ey, ez);
-        this.dirtyLocal = true;
-    },
+    //setLocalEulerAngles: function () {
+    //    var ex, ey, ez;
+    //    switch (arguments.length) {
+    //        case 1:
+    //            ex = arguments[0].x;
+    //            ey = arguments[0].y;
+    //            ez = arguments[0].z;
+    //            break;
+    //        case 3:
+    //            ex = arguments[0];
+    //            ey = arguments[1];
+    //            ez = arguments[2];
+    //            break;
+    //    }
+    //
+    //    this.localRotation.setFromEulerAngles(ex, ey, ez);
+    //    this.dirtyLocal = true;
+    //},
 
     setLocalPosition: function () {
         if (arguments.length === 1) {
@@ -418,34 +418,34 @@ cc3d.extend(GraphNode.prototype, {
         };
     }(),
 
-    setEulerAngles: function () {
-        var invParentRot = new cc3d.math.Quat();
-
-        return function () {
-            var ex, ey, ez;
-            switch (arguments.length) {
-                case 1:
-                    ex = arguments[0].x;
-                    ey = arguments[0].y;
-                    ez = arguments[0].z;
-                    break;
-                case 3:
-                    ex = arguments[0];
-                    ey = arguments[1];
-                    ez = arguments[2];
-                    break;
-            }
-
-            this.localRotation.setFromEulerAngles(ex, ey, ez);
-
-            if (this._parent !== null) {
-                var parentRot = this._parent.getRotation();
-                invParentRot.copy(parentRot).invert();
-                this.localRotation.mul2(invParentRot, this.localRotation);
-            }
-            this.dirtyLocal = true;
-        };
-    }(),
+    //setEulerAngles: function () {
+    //    var invParentRot = new cc3d.math.Quat();
+    //
+    //    return function () {
+    //        var ex, ey, ez;
+    //        switch (arguments.length) {
+    //            case 1:
+    //                ex = arguments[0].x;
+    //                ey = arguments[0].y;
+    //                ez = arguments[0].z;
+    //                break;
+    //            case 3:
+    //                ex = arguments[0];
+    //                ey = arguments[1];
+    //                ez = arguments[2];
+    //                break;
+    //        }
+    //
+    //        this.localRotation.setFromEulerAngles(ex, ey, ez);
+    //
+    //        if (this._parent !== null) {
+    //            var parentRot = this._parent.getRotation();
+    //            invParentRot.copy(parentRot).invert();
+    //            this.localRotation.mul2(invParentRot, this.localRotation);
+    //        }
+    //        this.dirtyLocal = true;
+    //    };
+    //}(),
 
     addChild: function (node) {
         if (node.getParent() !== null) {
@@ -510,7 +510,9 @@ cc3d.extend(GraphNode.prototype, {
     removeChild: function (child) {
         var i;
         var length = this._children.length;
-
+        if (node.getParent() !== this) {
+            throw new Error("GraphNode is not child of this node");
+        }
         // Clear parent
         child._parent = null;
 
@@ -671,21 +673,16 @@ cc3d.extend(GraphNode.prototype, {
         var invParentRot = new cc3d.math.Quat();
 
         return function () {
-            var ex, ey, ez;
             switch (arguments.length) {
                 case 1:
-                    ex = arguments[0].x;
-                    ey = arguments[0].y;
-                    ez = arguments[0].z;
+                    quaternion.copy(arguments[0]);
                     break;
-                case 3:
-                    ex = arguments[0];
-                    ey = arguments[1];
-                    ez = arguments[2];
+                case 4:
+                    quaternion.set(arguments[0],arguments[1],arguments[2],arguments[3]);
                     break;
             }
 
-            quaternion.setFromEulerAngles(ex, ey, ez);
+            //quaternion.setFromEulerAngles(ex, ey, ez);
 
             if (this._parent === null) {
                 this.localRotation.mul2(quaternion, this.localRotation);
@@ -706,21 +703,14 @@ cc3d.extend(GraphNode.prototype, {
         var quaternion = new cc3d.math.Quat();
 
         return function () {
-            var ex, ey, ez;
             switch (arguments.length) {
                 case 1:
-                    ex = arguments[0].x;
-                    ey = arguments[0].y;
-                    ez = arguments[0].z;
+                    quaternion.copy(arguments[0]);
                     break;
-                case 3:
-                    ex = arguments[0];
-                    ey = arguments[1];
-                    ez = arguments[2];
+                case 4:
+                    quaternion.set(arguments[0],arguments[1],arguments[2],arguments[3]);
                     break;
             }
-
-            quaternion.setFromEulerAngles(ex, ey, ez);
 
             this.localRotation.mul(quaternion);
             this.dirtyLocal = true;
