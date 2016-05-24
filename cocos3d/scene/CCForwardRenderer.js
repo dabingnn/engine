@@ -225,7 +225,8 @@ ForwardRenderer.prototype = {
             if(objDefs.skinned) {
                 //update skinned
                 var matrix_palette = new Float32Array(50 * 16);
-                var bone_matrix = meshInstance.skinInstance.boneMatrix;
+                var bone_matrix = meshInstance.skinInstance.poseMatrix;
+                meshInstance.skinInstance.updatePose();
                 for(var matrix_index = 0; matrix_index < 50 && matrix_index < bone_matrix.length; ++matrix_index) {
                     var bone = bone_matrix[matrix_index];
                     matrix_palette.set(bone.data, matrix_index * 16);

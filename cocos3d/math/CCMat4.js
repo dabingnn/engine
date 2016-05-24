@@ -669,6 +669,12 @@ Mat4.prototype = {
         };
     }()),
 
+    getRotation: function() {
+        var result = new cc3d.math.Quat();
+        result.setFromMat4(this);
+        return result;
+    },
+
     setFromEulerAngles: function (ex, ey, ez) {
         var s1, c1, s2, c2, s3, c3, m;
 

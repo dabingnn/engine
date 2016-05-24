@@ -19,6 +19,7 @@ var sphereMesh = null;
 var jsonMeshes = {};
 var jsonMaterials = {};
 var lights = [];
+var characterSkeleton = null;
 function initTexture(fileName) {
     var  texture = new cc3d.graphics.Texture(device);
     var image = new Image();
@@ -117,11 +118,52 @@ function initJasonModel() {
             material.useLambertLighting = true;
         }
 
+        for(var nodeIndex = jason.nodes.length - 1; nodeIndex >= 0; --nodeIndex) {
+            var skeleton = loadSkeleton(jason.nodes[nodeIndex]);
+            if(skeleton) {
+                characterSkeleton = skeleton;
+                console.log('skeleton loaded successfully!');
+            }
+        }
+
         initCharacter(jason.nodes);
     }
     request.addEventListener('load', loadedCallback);
     request.open('GET', './res3d/role_elf_warrior_run_001.c3t');
     request.send();
+}
+
+function loadSkeleton(jasonSkeleton) {
+    if(!jasonSkeleton || !jasonSkeleton['skeleton']) {
+        return null;
+    }
+    var skeleton = new cc3d.Skeleton();
+    var parseBoneHierarchy = function(jNode) {
+        //parse self
+        var bone = new cc3d.Bone();
+        bone.setName(jNode['id']);
+        var tm = new cc3d.math.Mat4(jNode['transform']);
+        var scale = tm.getScale();
+        var translation = tm.getTranslation();
+        var rotate = tm.getRotation();
+        bone.setLocalPosition(translation);
+        bone.setLocalScale(scale);
+        bone.setLocalRotation(rotate);
+        //parse children
+        var children = jNode['children'];
+        if(children) {
+            for(var childIndex = children.length - 1; childIndex >= 0; --childIndex) {
+                var childBone = parseBoneHierarchy(children[childIndex]);
+                bone.addChild(childBone);
+            }
+        }
+        skeleton._bones[bone.getName()] = bone;
+        return bone;
+    };
+
+    skeleton._rootBone = parseBoneHierarchy(jasonSkeleton);
+
+    return skeleton;
 }
 
 function initCharacter(nodes) {
@@ -136,7 +178,7 @@ function initCharacter(nodes) {
         if(!meshParts) continue;
         for(var meshIndex = 0; meshIndex < meshParts.length; ++meshIndex) {
             var meshPart = meshParts[meshIndex];
-            var skinInfo = new cc3d.SkinInfo();
+            var skinInfo = new cc3d.Skin();
             //parse skin
             for(var skinBoneIndex = 0; skinBoneIndex < meshPart.bones.length; ++skinBoneIndex) {
                 var skinBone = meshPart.bones[skinBoneIndex];
@@ -144,7 +186,11 @@ function initCharacter(nodes) {
                 var skinMat = new cc3d.math.Mat4(skinBone.transform);
                 skinInfo.boneMatrix.push(skinMat);
             }
-            scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[meshPart.meshpartid], jsonMaterials[meshPart.materialid], skinInfo));
+            var skinIntance = null;
+            if(skinInfo) {
+                skinIntance = new cc3d.SkinInstance(skinInfo, characterSkeleton);
+            }
+            scene.addMeshInstance(new cc3d.MeshInstance(nodeTop, jsonMeshes[meshPart.meshpartid], jsonMaterials[meshPart.materialid], skinIntance));
         }
 
 
