@@ -21,6 +21,9 @@ var jsonMaterials = {};
 var lights = [];
 var characterSkeleton = null;
 var animationClips = [];
+var skeletonTesting = {};
+var skeletonTestingRoot = null;
+
 function initTexture(fileName) {
     var  texture = new cc3d.graphics.Texture(device);
     var image = new Image();
@@ -210,7 +213,7 @@ function initCharacter(nodes) {
     var nodeTop = initObjectNode();
     nodeTop.translate(0,10,-8);
     //nodeTop.rotate(0,0,0);
-    //nodeTop.rotate(-110,180,0);
+    //nodeTop.rotateLocal(0,180,0);
     nodeTop.setLocalScale(0.02,0.02,0.02);
     for(var index = nodes.length - 1; index >= 0; --index) {
         var meshParts = nodes[index].parts;
@@ -638,6 +641,7 @@ function animate() {
         percentage = percentage - Math.floor(percentage);
         var poses = animationClip.updatePoses(percentage);
         characterSkeleton.applyLocalPose(poses);
+
     }
 
     if(animationInterval >4000) {
@@ -669,14 +673,14 @@ function initCamera() {
     camera.setAspectRatio(canvas.width/canvas.height);
     var node = camera._node = new cc3d.GraphNode();
     node.setPosition(new cc3d.math.Vec3(0,20,-20));
-    node.lookAt(cc3d.math.Vec3.ZERO,cc3d.math.Vec3.UP);
+    node.lookAt(cc3d.math.Vec3.ZERO.clone(),cc3d.math.Vec3.UP.clone());
 
 };
 
 function initObjectNode() {
     var node = new cc3d.GraphNode();
     node.setLocalPosition(position);
-    node.setLocalRotation(cc3d.math.Quat.IDENTITY);
+    node.setLocalRotation(cc3d.math.Quat.IDENTITY.clone());
     node.setLocalScale(scale);
     return node;
 };
@@ -685,7 +689,7 @@ function initPointLight(scene, pos, color, range) {
     return;
     var light = new cc3d.Light();
     var node = initObjectNode();
-    node.setPosition(cc3d.math.Vec3.ZERO);
+    node.setPosition(cc3d.math.Vec3.ZERO.clone());
     light._node = node;
     light.setColor(color);
     light.setType(cc3d.SceneEnums.LIGHTTYPE_POINT);
@@ -826,9 +830,9 @@ function initScene() {
     node = initObjectNode();
     objectNodes.push(node);
     var quat = new cc3d.math.Quat();
-    quat.setFromAxisAngle(cc3d.math.Vec3.RIGHT,90);
+    quat.setFromAxisAngle(cc3d.math.Vec3.RIGHT.clone(),90);
     node.rotate(quat);
-    quat.setFromAxisAngle(cc3d.math.Vec3.UP,50);
+    quat.setFromAxisAngle(cc3d.math.Vec3.UP.clone(),50);
     node.rotateLocal(quat);
     //node.rotate(0,90,0);
 
@@ -836,7 +840,7 @@ function initScene() {
     light._node = node;
     //light._direction = new cc3d.math.Vec3(0, -1, 0);
     light.setColor(new cc3d.math.Vec3(0.6,0.6,0.6));
-    light.setCastShadows(true);
+    //light.setCastShadows(true);
     scene.addLight(light);
     var generalRange = 10;
     initPointLight(scene, new cc3d.math.Vec3(-10,4,0), new cc3d.math.Vec3(1.0,0.0,0.0), generalRange);

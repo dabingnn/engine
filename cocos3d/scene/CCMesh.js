@@ -11,7 +11,7 @@ var SkinInstance = function(skin, skeleton) {
 
     this.poseMatrix = [];
     for(var index = 0; index < skin.boneMatrix.length; ++index) {
-        this.poseMatrix.push(cc3d.math.Mat4.IDENTITY);
+        this.poseMatrix.push(new cc3d.math.Mat4().copy(cc3d.math.Mat4.IDENTITY));
     }
 };
 
