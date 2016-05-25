@@ -220,7 +220,7 @@ cc3d.extend( BasicPhongMaterial.prototype, {
                 pixelSrc += 'shadow_directional[' + index + ']' + '= \n' +
                     'shadowSampling( shadowMatrix_directional' + index + ', v_position, shadowTexture_directional' + index + ');\n';
             } else {
-                pixelSrc += 'shadow_directional[' + index + ']' + '= 0.0;\n';
+                pixelSrc += 'shadow_directional[' + index + ']' + '= 1.0;\n';
             }
         }
 
