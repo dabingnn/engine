@@ -20,6 +20,7 @@ var jsonMeshes = {};
 var jsonMaterials = {};
 var lights = [];
 var characterSkeleton = null;
+var animationClips = [];
 function initTexture(fileName) {
     var  texture = new cc3d.graphics.Texture(device);
     var image = new Image();
@@ -118,11 +119,49 @@ function initJasonModel() {
             material.useLambertLighting = true;
         }
 
+        //load skeleton
         for(var nodeIndex = jason.nodes.length - 1; nodeIndex >= 0; --nodeIndex) {
             var skeleton = loadSkeleton(jason.nodes[nodeIndex]);
             if(skeleton) {
                 characterSkeleton = skeleton;
                 console.log('skeleton loaded successfully!');
+            }
+        }
+
+        //load animation
+        var jsonanimations = jason.animations;
+        for(var animationIndex = 0; animationIndex < jsonanimations.length; ++animationIndex) {
+            var jsonanimation = jsonanimations[animationIndex];
+            var aniClip = new cc3d.AnimationClip();
+            animationClips.push(aniClip);
+            aniClip.name = jsonanimation.id;
+            aniClip.duration = jsonanimation['length'];
+            var jsonanimationDatas = jsonanimation.bones;
+            for(var boneIndex = 0; boneIndex < jsonanimationDatas.length; ++boneIndex) {
+                var jsonboneKeys = jsonanimationDatas[boneIndex];
+                var boneKeys = {};
+                boneKeys.translations = [];
+                boneKeys.scales = [];
+                boneKeys.rotations = [];
+                aniClip.boneKeys[jsonboneKeys.boneId] = boneKeys;
+
+                for(var keyIndex = 0; keyIndex < jsonboneKeys.keyframes.length; ++keyIndex) {
+                    var jsonKeyFrame = jsonboneKeys.keyframes[keyIndex];
+                    if(jsonKeyFrame.scale) {
+                        var scaleKey = new cc3d.math.Vec3(jsonKeyFrame.scale[0], jsonKeyFrame.scale[1], jsonKeyFrame.scale[2]);
+                        boneKeys.scales.push({time: jsonKeyFrame.keytime, key: scaleKey});
+                    }
+
+                    if(jsonKeyFrame.translation) {
+                        var translationKey = new cc3d.math.Vec3(jsonKeyFrame.translation[0],jsonKeyFrame.translation[1], jsonKeyFrame.translation[2]);
+                        boneKeys.translations.push({time: jsonKeyFrame.keytime, key: translationKey});
+                    }
+
+                    if(jsonKeyFrame.rotation) {
+                        var rotKey = new cc3d.math.Quat(jsonKeyFrame.rotation[0], jsonKeyFrame.rotation[1], jsonKeyFrame.rotation[2], jsonKeyFrame.rotation[3]);
+                        boneKeys.rotations.push({time: jsonKeyFrame.keytime, key: rotKey});
+                    }
+                }
             }
         }
 

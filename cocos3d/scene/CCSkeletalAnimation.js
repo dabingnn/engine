@@ -25,5 +25,12 @@ cc3d.extend(Skeleton.prototype, {
     }
 });
 
+var AnimationClip = function() {
+    this.boneKeys = {};
+    this.duration = 0;
+    this.name = '';
+};
+
 cc3d.Bone = Bone;
 cc3d.Skeleton = Skeleton;
+cc3d.AnimationClip = AnimationClip;
