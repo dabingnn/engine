@@ -610,6 +610,7 @@ function  update_removeLights() {
 }
 var lastTime = null;
 var animationInterval = 0;
+var skeletalTime = 0;
 function animate() {
     var timeNow = new Date().getTime();
     if (lastTime) {
@@ -628,6 +629,15 @@ function animate() {
         }
 
         animationInterval += dt;
+        skeletalTime += dt/1000;
+    }
+    //update animation
+    if(characterSkeleton && animationClips.length > 0) {
+        var animationClip = animationClips[0];
+        var percentage = skeletalTime / animationClip.duration;
+        percentage = percentage - Math.floor(percentage);
+        var poses = animationClip.updatePoses(percentage);
+        characterSkeleton.applyLocalPose(poses);
     }
 
     if(animationInterval >4000) {
