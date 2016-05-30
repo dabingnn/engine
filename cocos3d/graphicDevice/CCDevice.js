@@ -125,7 +125,6 @@ var GraphicsDevice = function (canvas, options) {
         gl.LINEAR_MIPMAP_LINEAR
     ];
     this.renderTarget = null;
-    this.scope = new cc3d.graphics.ScopeSpace('GraphicsDevice');
     //uniform commit function;
     this.commitFunction = {};
     this.commitFunction[cc3dEnums.UNIFORMTYPE_BOOL ] = function (locationId, value) { gl.uniform1i(locationId, value); };
@@ -152,6 +151,7 @@ var GraphicsDevice = function (canvas, options) {
     for (var i = 0; i < 16; i++) {
         this.textureUnits[i] = null;
     }
+    this.uniformTable = {};
 };
 
 GraphicsDevice.prototype = {
@@ -636,21 +636,24 @@ GraphicsDevice.prototype = {
         //apply uniforms
         for(i = 0, len = uniforms.length; i< uniforms.length; ++i) {
             var uniform = uniforms[i];
-            var scopeId = this.scope.resolve(uniform.name);
-            if(scopeId.value)
-                this.commitFunction[uniform.dataType](uniform.locationId,scopeId.value);
+            var uniformValue = this._getUniformValue(uniform.name);
+            if(uniformValue && uniform.version < uniformValue.version) {
+                this.commitFunction[uniform.dataType](uniform.locationId,uniformValue.value);
+                uniform.version = uniformValue.version;
+            }
         }
 
         //apply textures
         var textureUnit = 0;
         for (i = 0, len = samplers.length; i < len; i++) {
             var sampler = samplers[i];
-            var samplerValue = this.scope.resolve(sampler.name).value;
+            var samplerValue = this._getUniformValue(sampler.name);
             if(!samplerValue) {
                 continue;
             }
-            if(samplerValue) {
-                this.setTexture(samplerValue,textureUnit);
+            if(samplerValue && sampler.version < samplerValue.version) {
+                this.setTexture(samplerValue.value,textureUnit);
+                sampler.version = samplerValue.version;
                 gl.uniform1i(sampler.locationId, textureUnit);
                 //gl.activeTexture(gl.TEXTURE0 + textureUnit);
                 //gl.bindTexture(gl.TEXTURE_2D,samplerValue.value);
@@ -675,6 +678,20 @@ GraphicsDevice.prototype = {
                 primitive.base,
                 primitive.count);
         }
+    },
+
+    setUniformValue: function(key, value) {
+        var oldValue = this.uniformTable[key];
+        if(undefined === oldValue) {
+            this.uniformTable[key] = {value: value, version: 1 };
+        } else {
+            oldValue.value = value;
+            oldValue.version++;
+        }
+    },
+    //used for rendering
+    _getUniformValue: function(key) {
+        return this.uniformTable[key];
     }
 };
 cc3d.graphics.GraphicsDevice = GraphicsDevice;

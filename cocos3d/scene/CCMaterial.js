@@ -128,10 +128,7 @@ Material.prototype = {
         // Push each shader parameter into scope
         for (var paramName in this.parameters) {
             var parameter = this.parameters[paramName];
-            if (!parameter.scopeId) {
-                parameter.scopeId = device.scope.resolve(paramName);
-            }
-            parameter.scopeId.setValue(parameter.data);
+            device.setUniformValue(paramName, parameter.data);
         }
     },
 

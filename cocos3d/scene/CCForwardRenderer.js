@@ -2,22 +2,6 @@
 
 var ForwardRenderer = function (graphicDevice) {
     this.device = graphicDevice;
-    var scope = this.device.scope;
-    //'uniform mat4 world;' +
-    //'uniform mat4 view;' +
-    //'uniform mat4 projection;' +
-    //'uniform mat4 worldViewProjection;' +
-    //'uniform vec3 lightDirInWorld;' +
-    //'uniform vec3 lightColor;' +
-    this.worldID = scope.resolve('matrix_world');
-    this.lightDirID = scope.resolve('lightDirInWorld');
-    this.lightColorID = scope.resolve('lightColor');
-
-    this.viewProjectionID = scope.resolve('matrix_viewprojection');
-    this.worldViewProjectionID = scope.resolve('matrix_worldviewprojection');
-    this.normalMatrixID = scope.resolve('matrix_normal');
-    this.sceneAmbientID = scope.resolve('u_scene_ambient');
-    this.cameraPosID = scope.resolve('u_camera_position');
 };
 
 function sortDrawCalls(drawCallA, drawCallB) {
@@ -51,7 +35,6 @@ function createShadowMap(forwardRender ,scene, light) {
 
 ForwardRenderer.prototype = {
     dispatchLights: function(scene) {
-        var scope = this.device.scope;
         var index = 0, lightCount = scene._directionalLights.length;
         var lightColor = new Float32Array(3 * lightCount);
         var lightdirection = new Float32Array(3 * lightCount); //used for
@@ -68,13 +51,14 @@ ForwardRenderer.prototype = {
             lightdirection[3* index + 2] = lightDir.z;
             if(light._castShadows) {
                 //specify shadow matrix and shadow texture
-                scope.resolve('shadowMatrix_directional' + index).setValue(light.shadowMatrix.data);
-                scope.resolve('shadowTexture_directional' + index).setValue(light.shadowMapCamera.getRenderTarget()._colorBuffer);
+                device.setUniformValue('shadowMatrix_directional' + index, light.shadowMatrix.data);
+                device.setUniformValue('shadowTexture_directional' + index, light.shadowMapCamera.getRenderTarget()._colorBuffer);
             }
         }
 
-        scope.resolve('u_directional_light_color[0]').setValue(lightColor);
-        scope.resolve('u_directional_light_direction[0]').setValue(lightdirection);
+        device.setUniformValue('u_directional_light_color[0]', lightColor);
+        device.setUniformValue('u_directional_light_direction[0]', lightdirection);
+
         index = 0; lightCount = scene._pointLights.length;
         lightColor = new Float32Array(3 * lightCount);
         var lightPos = new Float32Array(3 * lightCount);
@@ -98,9 +82,10 @@ ForwardRenderer.prototype = {
         //'uniform vec3 u_point_light_color[POINT_LIGHT_COUNT];' +
         //'uniform float u_point_light_range[POINT_LIGHT_COUNT];' +
 
-        scope.resolve('u_point_light_color[0]').setValue(lightColor);
-        scope.resolve('u_point_light_position[0]').setValue(lightPos);
-        scope.resolve('u_point_light_range[0]').setValue(lightRange);
+        device.setUniformValue('u_point_light_color[0]', lightColor);
+        device.setUniformValue('u_point_light_position[0]', lightPos);
+        device.setUniformValue('u_point_light_range[0]', lightRange);
+
     },
 
     renderShadowMap: function(scene, light) {
@@ -131,7 +116,7 @@ ForwardRenderer.prototype = {
         var projection_matrix = shadowCam.getProjectionMatrix();
         var vp_matrix = view_matrix.clone();
         vp_matrix.mul2(projection_matrix, view_matrix);
-        this.viewProjectionID.setValue(vp_matrix.data);
+        device.setUniformValue('matrix_viewprojection', vp_matrix.data);
         var shadowMatrix= vp_matrix.clone();
         // Global shadowmap resources
         var scaleShift = new cc3d.math.Mat4().mul2(
@@ -152,9 +137,10 @@ ForwardRenderer.prototype = {
             var wvp_matrix = world_matrix.clone();
             wvp_matrix.mul2(vp_matrix, world_matrix);
 
-            this.worldID.setValue(world_matrix.data);
-            this.worldViewProjectionID.setValue(wvp_matrix.data);
-            this.normalMatrixID.setValue(normal_matrix.data);
+
+            device.setUniformValue('matrix_world', world_matrix.data);
+            device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
+            device.setUniformValue('matrix_normal', normal_matrix.data);
             material.updateShader(device, scene);
             material.update();
 
@@ -200,9 +186,9 @@ ForwardRenderer.prototype = {
         var projection_matrix = camera.getProjectionMatrix();
         var vp_matrix = view_matrix.clone();
         vp_matrix.mul2(projection_matrix, view_matrix);
-        this.viewProjectionID.setValue(vp_matrix.data);
-        this.cameraPosID.setValue(cameraPos.data);
-        this.sceneAmbientID.setValue(scene._sceneAmbient.data);
+        device.setUniformValue('matrix_viewprojection', vp_matrix.data);
+        device.setUniformValue('u_camera_position', cameraPos.data);
+        device.setUniformValue('u_scene_ambient', scene._sceneAmbient.data);
 
         for(var index = 0, meshCount = meshes.length; index < meshCount; ++index ) {
             var meshInstance = meshes[index];
@@ -214,9 +200,9 @@ ForwardRenderer.prototype = {
             var wvp_matrix = world_matrix.clone();
             wvp_matrix.mul2(vp_matrix,wvp_matrix);
 
-            this.worldID.setValue(world_matrix.data);
-            this.worldViewProjectionID.setValue(wvp_matrix.data);
-            this.normalMatrixID.setValue(normal_matrix.data);
+            device.setUniformValue('matrix_world', world_matrix.data);
+            device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
+            device.setUniformValue('matrix_normal', normal_matrix.data);
             this.dispatchLights(scene);
             var material = meshInstance.material;
             var objDefs = {};
@@ -231,8 +217,7 @@ ForwardRenderer.prototype = {
                     var bone = bone_matrix[matrix_index];
                     matrix_palette.set(bone.data, matrix_index * 16);
                 }
-                var scope = this.device.scope;
-                scope.resolve('matrix_skin[0]').setValue(matrix_palette);
+                device.setUniformValue('matrix_skin[0]', matrix_palette);
             }
             material.update();
             device.setShader(material.getShader());

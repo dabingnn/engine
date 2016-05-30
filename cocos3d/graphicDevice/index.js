@@ -1,6 +1,5 @@
 
 require('./CCGraphicEnums');
-require('./CCScope');
 require('./CCDevice');
 require('./CCVertexBuffer');
 require('./CCVertexFormat');

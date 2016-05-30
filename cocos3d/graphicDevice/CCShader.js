@@ -11,7 +11,7 @@ var ShaderInput = function (graphicsDevice, name, type, locationId) {
     //this.scopeId = graphicsDevice.scope.resolve(name);
     this.name = name;
     // Create the version
-    //this.version = new pc.Version();
+    this.version = 0;
 
     // Set the data type
     this.dataType = type;
