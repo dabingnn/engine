@@ -46,7 +46,7 @@ var Animation = cc.Class({
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.others/Animation',
-        help: 'app://docs/html/components/animation.html',
+        help: 'i18n:COMPONENT.help_url.animation',
         executeInEditMode: true,
     },
 
@@ -79,8 +79,7 @@ var Animation = cc.Class({
                 return this._defaultClip;
             },
             set: function (value) {
-                var engine = cc.engine;
-                if (!CC_EDITOR || (engine && engine.isPlaying)) {
+                if (!CC_EDITOR || (cc.engine && cc.engine.isPlaying)) {
                     return;
                 }
 
@@ -113,12 +112,8 @@ var Animation = cc.Class({
             get: function () {
                 return this._currentClip;
             },
-            set: function (value, force) {
+            set: function (value) {
                 this._currentClip = value;
-
-                if (CC_EDITOR && force && value) {
-                    this._updateClip(value);
-                }
             },
             type: AnimationClip,
             visible: false
@@ -151,7 +146,7 @@ var Animation = cc.Class({
         }
     },
 
-    onLoad: function () {
+    __preload: function () {
         if (CC_EDITOR) return;
 
         this._init();
@@ -168,6 +163,10 @@ var Animation = cc.Class({
 
     onDisable: function () {
         this.pause();
+    },
+
+    onDestroy: function () {
+        this.stop();
     },
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -406,21 +405,15 @@ var Animation = cc.Class({
         return newState;
     },
 
-    _removeStateIfNotUsed: function (state, force) {
-        var needRemove = state.clip !== this._defaultClip && !cc.js.array.contains(this._clips, state.clip);
-        if (force || needRemove) {
-            if (state.isPlaying) {
-                this.stop(state.name);
-            }
-            delete this._nameToState[state.name];
-        }
-    },
-
     /**
-     * !#en Remove clip from the animation list. This will remove the clip and any animation states based on it.
+     * !#en 
+     * Remove clip from the animation list. This will remove the clip and any animation states based on it.
+     * If there are animation states depand on the clip are playing or clip is defaultClip, it will not delete the clip.
+     * But if force is true, then will always remove the clip and any animation states based on it. If clip is defaultClip, defaultClip will be reset to null
      * !#zh
      * 从动画列表中移除指定的动画剪辑，<br/>
-     * 如果动画剪辑正在播放并且 force 参数为 true，这会停止该动画剪辑，然后在移除该动画剪辑，反之为 false，则会停止该动画。
+     * 如果依赖于 clip 的 AnimationState 正在播放或者 clip 是 defaultClip 的话，默认是不会删除 clip 的。
+     * 但是如果 force 参数为 true，则会强制停止该动画，然后移除该动画剪辑和相关的动画。这时候如果 clip 是 defaultClip，defaultClip 将会被重置为 null。
      * @method removeClip
      * @param {AnimationClip} clip
      * @param {Boolean} force If force is true, then will always remove the clip and any animation states based on it.
@@ -432,17 +425,37 @@ var Animation = cc.Class({
         }
         this._init();
 
-        this._clips = this._clips.filter(function (item) {
-            return item !== clip;
-        });
-
         var state;
         for (var name in this._nameToState) {
             state = this._nameToState[name];
             var stateClip = state.clip;
             if (stateClip === clip) {
-                this._removeStateIfNotUsed(state, force);
+                break;
             }
+        }
+
+        if (clip === this._defaultClip) {
+            if (force) this._defaultClip = null;
+            else {
+                if (!CC_TEST) cc.warn('clip is defaultClip, set force to true to force remove clip and animation state');
+                return;
+            } 
+        }
+
+        if (state && state.isPlaying) {
+            if (force) this.stop(state.name);
+            else {
+                if (!CC_TEST) cc.warn('animation state is playing, set force to true to force stop and remove clip and animation state');
+                return;
+            }
+        }
+
+        this._clips = this._clips.filter(function (item) {
+            return item !== clip;
+        });
+
+        if (state) {
+            delete this._nameToState[state.name];    
         }
     },
 
@@ -502,42 +515,6 @@ var Animation = cc.Class({
 
             this._nameToState[state.name] = state;
         }
-    },
-
-    _updateClip: (CC_TEST || CC_EDITOR) && function (clip, clipName) {
-        this._init();
-
-        clipName = clipName || clip.name;
-
-        var oldState;
-        for (var name in this._nameToState) {
-            var state = this._nameToState[name];
-            var stateClip = state.clip;
-            if (equalClips(stateClip, clip)) {
-                if (!clip._uuid) clip._uuid = stateClip._uuid;
-                oldState = state;
-                break;
-            }
-        }
-
-        if (!oldState) {
-            cc.error('Can\'t find state from clip [' + clipName + ']');
-            return;
-        }
-
-        var clips = this._clips;
-        var index = clips.indexOf(oldState.clip);
-        clips[index] = clip;
-
-        // clip name changed
-        if (oldState.name !== clipName) {
-            delete this._nameToState[oldState.name];
-            this._nameToState[clipName] = oldState;
-            oldState._name = clipName;
-        }
-
-        oldState._clip = clip;
-        this._animator._reloadClip(oldState);
     }
 });
 

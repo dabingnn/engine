@@ -143,15 +143,17 @@ var enumerateObject = function (obj, parent) {
                 }
             }
         }
-        if ((clone instanceof cc._BaseNode || clone instanceof cc.Component) && CC_EDITOR) {
+        if (CC_EDITOR && (clone instanceof cc._BaseNode || clone instanceof cc.Component)) {
             clone._id = '';
         }
     }
     else {
         // primitive javascript object
         for (key in obj) {
-            //cc.log(key);
-            if (!obj.hasOwnProperty(key) || (key.charCodeAt(0) === 95 && key.charCodeAt(1) === 95)) {  // starts with __
+            if ( !obj.hasOwnProperty(key) ||
+                 // starts with "__" but not "__type__"
+                 (key.charCodeAt(0) === 95 && key.charCodeAt(1) === 95 && key !== '__type__')
+               ) {
                 continue;
             }
             value = obj[key];

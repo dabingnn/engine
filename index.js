@@ -34,7 +34,7 @@ eval(
     'if(typeof CC_EDITOR=="undefined")' +
         'CC_EDITOR=typeof Editor=="object"&&typeof process=="object"&&"electron" in process.versions;' +
     'if(typeof CC_DEV=="undefined")' +
-        'CC_DEV=CC_EDITOR||CC_TEST;' +
+        'CC_DEV=CC_EDITOR||CC_TEST;' + /* CC_DEV contains CC_TEST and CC_EDITOR */
     'if(typeof CC_JSB=="undefined")' +
         'CC_JSB=false;'
 );
@@ -45,8 +45,8 @@ require('./predefine');
 
 // LOAD BUNDLED COCOS2D
 
-var isCoreLevel = CC_EDITOR && Editor.isCoreLevel;
-if (!isCoreLevel) {
+var isMainProcess = CC_EDITOR && Editor.isMainProcess;
+if (!isMainProcess) {
     // LOAD ORIGIN COCOS2D COMPILED BY CLOSURE
     require('./bin/modular-cocos2d');
     require('./cocos3d');
@@ -70,10 +70,10 @@ if (CC_EDITOR) {
     cc._require = require;
 }
 
-if (isCoreLevel) {
+if (isMainProcess) {
     Editor.versions['cocos2d'] = require('./package.json').version;
 }
-else if (CC_DEV) {
+else {
     require('./cocos2d/deprecated');
 }
 

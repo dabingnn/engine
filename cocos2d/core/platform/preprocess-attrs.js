@@ -135,14 +135,14 @@ function parseType (val, type, className, propName) {
 }
 
 function postCheckType (val, type, className, propName) {
-    if (typeof type === 'function' && CC_EDITOR) {
+    if (CC_EDITOR && typeof type === 'function') {
         if (cc.Class._isCCClass(type) && val.serializable !== false && !cc.js._getClassId(type, false)) {
             cc.warn('Can not serialize "%s.%s" because the specified type is anonymous, please provide a class name or set the "serializable" attribute of "%s.%s" to "false".', className, propName, className, propName);
         }
     }
 }
 
-function getBaseClassWherePropertyDefined (propName, cls) {
+function getBaseClassWherePropertyDefined_DEV (propName, cls) {
     if (CC_DEV) {
         var res;
         for (; cls && cls.__props__ && cls.__props__.indexOf(propName) !== -1; cls = cls.$super) {
@@ -176,8 +176,10 @@ module.exports = function (properties, className, cls) {
                     };
                 }
                 else {
-                    val = {
-                        default: cc.isChildClassOf(type, cc.ValueType) ? (new type()) : null,
+                    val = cc.isChildClassOf(type, cc.ValueType) ? {
+                        default: new type()
+                    } : {
+                        default: null,
                         type: val
                     };
                 }
@@ -206,9 +208,9 @@ module.exports = function (properties, className, cls) {
                         className, propName);
                 }
             }
-            if (!val.override && cls.__props__.indexOf(propName) !== -1 && CC_DEV) {
+            if (CC_DEV && !val.override && cls.__props__.indexOf(propName) !== -1) {
                 // check override
-                var baseClass = cc.js.getClassName(getBaseClassWherePropertyDefined(propName, cls));
+                var baseClass = cc.js.getClassName(getBaseClassWherePropertyDefined_DEV(propName, cls));
                 cc.warn('"%s.%s" hides inherited property "%s.%s". To make the current property override that implementation, add the `override: true` attribute please.', className, propName, baseClass, propName);
             }
             var notify = val.notify;

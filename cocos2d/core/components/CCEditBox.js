@@ -165,7 +165,7 @@ var EditBox = cc.Class({
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.ui/EditBox',
         inspector: 'app://editor/page/inspector/cceditbox.html',
-        help: 'app://docs/html/components/editbox.html',
+        help: 'i18n:COMPONENT.help_url.editbox',
         executeInEditMode: true,
     },
 
@@ -420,7 +420,10 @@ var EditBox = cc.Class({
 
         this._createBackgroundSprite();
 
-        if (!this._useOriginalSize) {
+        if (CC_EDITOR && this._useOriginalSize) {
+            this.node.setContentSize(sgNode.getContentSize());
+            this._useOriginalSize = false;
+        } else {
             sgNode.setContentSize(this.node.getContentSize());
         }
 
@@ -441,27 +444,57 @@ var EditBox = cc.Class({
         sgNode.setDelegate(this);
     },
 
-    _resized: function () {
-        this._useOriginalSize = false;
-    },
-
-    onLoad: function () {
-        this._super();
-
-        this.node.on('size-changed', this._resized, this);
-    },
-
     editBoxEditingDidBegan: function() {
-        cc.Component.EventHandler.emitEvents(this.editingDidBegan);
+        cc.Component.EventHandler.emitEvents(this.editingDidBegan, this);
     },
 
     editBoxEditingDidEnded: function() {
-        cc.Component.EventHandler.emitEvents(this.editingDidEnded);
+        cc.Component.EventHandler.emitEvents(this.editingDidEnded, this);
     },
 
     editBoxTextChanged: function(editBox, text) {
-        cc.Component.EventHandler.emitEvents(this.textChanged, text);
+        cc.Component.EventHandler.emitEvents(this.textChanged, text, this);
     },
+
+    __preload: function() {
+        this._super();
+
+        if (!CC_EDITOR) {
+            this._registerEvent();
+        }
+    },
+
+    _registerEvent: function () {
+        if(!CC_JSB) {
+            this.node.on(cc.Node.EventType.TOUCH_START, this._onTouchBegan, this);
+            this.node.on(cc.Node.EventType.TOUCH_END, this._onTouchEnded, this);
+        }
+    },
+
+    _onTouchBegan: function(event) {
+        if (this._sgNode) {
+            this._sgNode._onTouchBegan(event.touch);
+        }
+        event.stopPropagation();
+    },
+
+    _onTouchEnded: function(event) {
+        if (this._sgNode) {
+            this._sgNode._onTouchEnded();
+        }
+        event.stopPropagation();
+    }
+
 });
+
+if(CC_JSB) {
+    EditBox.prototype.editBoxEditingDidBegin = function (sender) {
+        this.editBoxEditingDidBegan(sender);
+    }
+
+    EditBox.prototype.editBoxEditingDidEnd = function (sender) {
+        this.editBoxEditingDidEnded(sender);
+    }
+}
 
 cc.EditBox = module.exports = EditBox;

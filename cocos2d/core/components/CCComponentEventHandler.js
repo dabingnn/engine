@@ -35,11 +35,10 @@
  * @class Component.EventHandler
  * @example
  * // Create new EventHandler
- * 1. var eventHandler = cc.Component.EventHandler(target, "MainMenu", "OnClick");
- * 2. var eventHandler = cc.Component.EventHandler();
- *    eventHandler.target = newTarget;
- *    eventHandler.component = "MainMenu";
- *    eventHandler.handler = "OnClick"
+ * var eventHandler = new cc.Component.EventHandler();
+ * eventHandler.target = newTarget;
+ * eventHandler.component = "MainMenu";
+ * eventHandler.handler = "OnClick"
  */
 cc.Component.EventHandler = cc.Class({
     name: 'cc.ClickEvent',
@@ -81,15 +80,15 @@ cc.Component.EventHandler = cc.Class({
         /**
          * @method emitEvents
          * @param {Component.EventHandler[]} events
-         * @param {*} params
          * @statics
          */
-        emitEvents: function(events, params) {
+        emitEvents: function(events) {
+            'use strict';
             for (var i = 0, l = events.length; i < l; i++) {
                 var event = events[i];
                 if (! event instanceof cc.Component.EventHandler) continue;
 
-                event.emit(params);
+                event.emit(Array.prototype.slice.call(arguments,1));
             }
         }
     },
@@ -101,7 +100,10 @@ cc.Component.EventHandler = cc.Class({
      * @param {*} params
      * @example
      * // Call Function
-     * var eventHandler = cc.Component.EventHandler(target, "MainMenu", "OnClick");
+     * var eventHandler = new cc.Component.EventHandler();
+     * eventHandler.target = newTarget;
+     * eventHandler.component = "MainMenu";
+     * eventHandler.handler = "OnClick"
      * eventHandler.emit("This is the argument to the callback function!");
      */
     emit: function(params) {
@@ -114,6 +116,6 @@ cc.Component.EventHandler = cc.Class({
         var handler = comp[this.handler];
         if (typeof(handler) !== 'function') return;
 
-        handler.call(comp, params);
+        handler.apply(comp, params);
     }
 });

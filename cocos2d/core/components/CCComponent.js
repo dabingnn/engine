@@ -29,36 +29,41 @@ var IdGenerater = require('../platform/id-generater');
 
 var Flags = cc.Object.Flags;
 var IsOnEnableCalled = Flags.IsOnEnableCalled;
+var IsEditorOnEnableCalled = Flags.IsEditorOnEnableCalled;
+var IsPreloadCalled = Flags.IsPreloadCalled;
 var IsOnLoadStarted = Flags.IsOnLoadStarted;
 var IsOnLoadCalled = Flags.IsOnLoadCalled;
 var IsOnStartCalled = Flags.IsOnStartCalled;
+
+// only use eval in editor
 
 var ExecInTryCatchTmpl = CC_EDITOR && '(function call_FUNC_InTryCatch(c){try{c._FUNC_()}catch(e){cc._throw(e)}})';
 if (CC_TEST) {
     ExecInTryCatchTmpl = '(function call_FUNC_InTryCatch (c) { c._FUNC_() })';
 }
-var callOnEnableInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onEnable'));
-var callOnDisableInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onDisable'));
+var callPreloadInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, '__preload'));
 var callOnLoadInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onLoad'));
+var callOnEnableInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onEnable'));
 var callStartInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'start'));
+var callOnDisableInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onDisable'));
 var callOnDestroyInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onDestroy'));
 var callOnFocusInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onFocusInEditor'));
 var callOnLostFocusInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onLostFocusInEditor'));
 
 function callOnEnable (self, enable) {
     if (CC_EDITOR) {
-        //if (enable ) {
-        //    if ( !(self._objFlags & IsEditorOnEnabledCalled) ) {
-        //        editorCallback.onComponentEnabled(self);
-        //        self._objFlags |= IsEditorOnEnabledCalled;
-        //    }
-        //}
-        //else {
-        //    if (self._objFlags & IsEditorOnEnabledCalled) {
-        //        editorCallback.onComponentDisabled(self);
-        //        self._objFlags &= ~IsEditorOnEnabledCalled;
-        //    }
-        //}
+        if (enable) {
+            if ( !(self._objFlags & IsEditorOnEnableCalled) ) {
+                cc.engine.emit('component-enabled', self.uuid);
+                self._objFlags |= IsEditorOnEnableCalled;
+            }
+        }
+        else {
+            if (self._objFlags & IsEditorOnEnableCalled) {
+                cc.engine.emit('component-disabled', self.uuid);
+                self._objFlags &= ~IsEditorOnEnableCalled;
+            }
+        }
         if ( !(cc.engine.isPlaying || self.constructor._executeInEditMode) ) {
             return;
         }
@@ -75,30 +80,31 @@ function callOnEnable (self, enable) {
                 }
             }
 
-            cc.director.getScheduler().resumeTarget(self);
+            var deactivatedDuringOnEnable = !self.node._activeInHierarchy;
+            if (deactivatedDuringOnEnable) {
+                return;
+            }
 
+            cc.director.getScheduler().resumeTarget(self);
             _registerEvent(self, true);
 
             self._objFlags |= IsOnEnableCalled;
         }
     }
-    else {
-        if (enableCalled) {
-            if (self.onDisable) {
-                if (CC_EDITOR) {
-                    callOnDisableInTryCatch(self);
-                }
-                else {
-                    self.onDisable();
-                }
+    else if (enableCalled) {
+        if (self.onDisable) {
+            if (CC_EDITOR) {
+                callOnDisableInTryCatch(self);
             }
-
-            cc.director.getScheduler().pauseTarget(self);
-
-            _registerEvent(self, false);
-
-            self._objFlags &= ~IsOnEnableCalled;
+            else {
+                self.onDisable();
+            }
         }
+
+        cc.director.getScheduler().pauseTarget(self);
+        _registerEvent(self, false);
+
+        self._objFlags &= ~IsOnEnableCalled;
     }
 }
 
@@ -109,16 +115,31 @@ function _registerEvent (self, on) {
         cc.director.once(cc.Director.EVENT_BEFORE_UPDATE, _callStart, self);
     }
 
-    if (self.update) {
-        if (on) cc.director.on(cc.Director.EVENT_COMPONENT_UPDATE, _callUpdate, self);
-        else cc.director.off(cc.Director.EVENT_COMPONENT_UPDATE, _callUpdate, self);
+    if (!self.update && !self.lateUpdate) {
+        return;
     }
 
-    if (self.lateUpdate) {
-        if (on) cc.director.on(cc.Director.EVENT_COMPONENT_LATE_UPDATE, _callLateUpdate, self);
-        else cc.director.off(cc.Director.EVENT_COMPONENT_LATE_UPDATE, _callLateUpdate, self);
+    if (on) {
+        cc.director.on(cc.Director.EVENT_BEFORE_UPDATE, _registerUpdateEvent, self);
+    }
+    else {
+        cc.director.off(cc.Director.EVENT_BEFORE_UPDATE, _registerUpdateEvent, self);
+        cc.director.off(cc.Director.EVENT_COMPONENT_UPDATE, _callUpdate, self);
+        cc.director.off(cc.Director.EVENT_COMPONENT_LATE_UPDATE, _callLateUpdate, self);
     }
 }
+
+var _registerUpdateEvent = function () {
+    cc.director.off(cc.Director.EVENT_BEFORE_UPDATE, _registerUpdateEvent, this);
+
+    if (this.update) {
+        cc.director.on(cc.Director.EVENT_COMPONENT_UPDATE, _callUpdate, this);
+    }
+
+    if (this.lateUpdate) {
+        cc.director.on(cc.Director.EVENT_COMPONENT_LATE_UPDATE, _callLateUpdate, this);
+    }
+};
 
 var _callStart = CC_EDITOR ? function () {
     callStartInTryCatch(this);
@@ -150,41 +171,55 @@ var _callLateUpdate = CC_EDITOR ? function (event) {
     this.lateUpdate(event.detail);
 };
 
-//var createInvoker = function (timerFunc, timerWithKeyFunc, errorInfo) {
-//    return function (functionOrMethodName, time) {
-//        var ms = (time || 0) * 1000;
-//        var self = this;
-//        if (typeof functionOrMethodName === "function") {
-//            return timerFunc(function () {
-//                if (self.isValid) {
-//                    functionOrMethodName.call(self);
-//                }
-//            }, ms);
-//        }
-//        else {
-//            var method = this[functionOrMethodName];
-//            if (typeof method === 'function') {
-//                var key = this.id + '.' + functionOrMethodName;
-//                timerWithKeyFunc(function () {
-//                    if (self.isValid) {
-//                        method.call(self);
-//                    }
-//                }, ms, key);
-//            }
-//            else {
-//                cc.error('Can not %s %s.%s because it is not a valid function.', errorInfo, JS.getClassName(this), functionOrMethodName);
-//            }
-//        }
-//    };
-//};
+function _callPreloadOnNode (node) {
+    // set _activeInHierarchy to true before invoking onLoad
+    // to allow preload triggered on nodes which created in parent's onLoad dynamically.
+    node._activeInHierarchy = true;
+
+    var comps = node._components;
+    var i = 0, len = comps.length;
+    for (; i < len; ++i) {
+        var component = comps[i];
+        if (!(component._objFlags & IsPreloadCalled) && typeof component.__preload === 'function') {
+            if (CC_EDITOR) {
+                callPreloadInTryCatch(component);
+            }
+            else {
+                component.__preload();
+            }
+            component._objFlags |= IsPreloadCalled;
+        }
+    }
+    var children = node._children;
+    for (i = 0, len = children.length; i < len; ++i) {
+        var child = children[i];
+        if (child._active) {
+            _callPreloadOnNode(child);
+        }
+    }
+}
+
+function _callPreloadOnComponent (component) {
+    if (CC_EDITOR) {
+        callPreloadInTryCatch(component);
+    }
+    else {
+        component.__preload();
+    }
+}
 
 var idGenerater = new IdGenerater('Comp');
 
 /**
- * Base class for everything attached to Node(Entity).
- *
+ * !#en
+ * Base class for everything attached to Node(Entity).<br/>
+ * <br/>
  * NOTE: Not allowed to use construction parameters for Component's subclasses,
  *       because Component is created by the engine.
+ * !#zh
+ * 所有附加到节点的基类。<br/>
+ * <br/>
+ * 注意：不允许使用组件的子类构造参数，因为组件是由引擎创建的。
  *
  * @class Component
  * @extends Object
@@ -211,9 +246,12 @@ var Component = cc.Class({
 
     properties: {
         /**
-         * The node this component is attached to. A component is always attached to a node.
+         * !#en The node this component is attached to. A component is always attached to a node.
+         * !#zh 该组件被附加到的节点。组件总会附加到一个节点。
          * @property node
          * @type {Node}
+         * @example
+         * cc.log(comp.node);
          */
         node: {
             default: null,
@@ -222,14 +260,15 @@ var Component = cc.Class({
 
         name: {
             get: function () {
-                return this._name || this.node.name;
-                //var className = cc.js.getClassName(this);
-                //var index = className.lastIndexOf('.');
-                //if (index >= 0) {
-                //    // strip prefix
-                //    className = className.slice(index + 1);
-                //}
-                //return this.node.name + '<' + className + '>';
+                if (this._name) {
+                    return this._name;
+                }
+                var className = cc.js.getClassName(this);
+                var trimLeft = className.lastIndexOf('.');
+                if (trimLeft >= 0) {
+                    className = className.slice(trimLeft + 1);
+                }
+                return this.node.name + '<' + className + '>';
             },
             set: function (value) {
                 this._name = value;
@@ -243,17 +282,20 @@ var Component = cc.Class({
         },
 
         /**
-         * The uuid for editor
+         * !#en The uuid for editor.
+         * !#zh 组件的 uuid，用于编辑器。
          * @property uuid
          * @type {String}
          * @readOnly
+         * @example
+         * cc.log(comp.uuid);
          */
         uuid: {
             get: function () {
                 var id = this._id;
                 if ( !id ) {
                     id = this._id = idGenerater.getNewId();
-                    if (CC_DEV) {
+                    if (CC_EDITOR || CC_TEST) {
                         cc.engine.attachedObjsForEditor[id] = this;
                     }
                 }
@@ -271,7 +313,7 @@ var Component = cc.Class({
                         var NewComp = cc.js._getClassById(classId);
                         if (cc.isChildClassOf(NewComp, cc.Component)) {
                             cc.warn('Sorry, replacing component script is not yet implemented.');
-                            //Editor.sendToWindows('reload:window-scripts', Editor._Sandbox.compiled);
+                            //Editor.Ipc.sendToWins('reload:window-scripts', Editor._Sandbox.compiled);
                         }
                         else {
                             cc.error('Can not find a component in the script which uuid is "%s".', value._uuid);
@@ -295,10 +337,14 @@ var Component = cc.Class({
         _enabled: true,
 
         /**
-         * indicates whether this component is enabled or not.
+         * !#en indicates whether this component is enabled or not.
+         * !#zh 表示该组件自身是否启用。
          * @property enabled
          * @type {Boolean}
          * @default true
+         * @example
+         * comp.enabled = true;
+         * cc.log(comp.enabled);
          */
         enabled: {
             get: function () {
@@ -316,22 +362,29 @@ var Component = cc.Class({
         },
 
         /**
-         * indicates whether this component is enabled and its node is also active in the hierarchy.
+         * !#en indicates whether this component is enabled and its node is also active in the hierarchy.
+         * !#zh 表示该组件是否被启用并且所在的节点也处于激活状态。。
          * @property enabledInHierarchy
          * @type {Boolean}
          * @readOnly
+         * @example
+         * cc.log(comp.enabledInHierarchy);
          */
         enabledInHierarchy: {
             get: function () {
-                return this._enabled && this.node._activeInHierarchy;
+                return this._objFlags & IsOnEnableCalled;
             },
             visible: false
         },
 
         /**
+         * !#en TODO
+         * !#zh onLoad 是否被调用。
          * @property _isOnLoadCalled
          * @type {Boolean}
          * @readOnly
+         * @example
+         * cc.log(_isOnLoadCalled);
          */
         _isOnLoadCalled: {
             get: function () {
@@ -358,43 +411,61 @@ var Component = cc.Class({
     // We provide Pre methods, which are called right before something happens, and Post methods which are called right after something happens.
 
     /**
-     * Update is called every frame, if the Component is enabled.
+     * !#en Update is called every frame, if the Component is enabled.
+     * !#zh 如果该组件启用，则每帧调用 update。
      * @method update
      */
     update: null,
 
     /**
-     * LateUpdate is called every frame, if the Component is enabled.
+     * !#en LateUpdate is called every frame, if the Component is enabled.
+     * !#zh 如果该组件启用，则每帧调用 LateUpdate。
      * @method lateUpdate
      */
     lateUpdate: null,
 
     /**
-     * When attaching to an active node or its node first activated
+     * `__preload` is called before every onLoad.
+     * It is used to initialize the builtin components internally,
+     * to avoid checking whether onLoad is called before every public method calls.
+     * This method should be removed if script priority is supported.
+     *
+     * @method __preload
+     * @private
+     */
+    __preload: null,
+
+    /**
+     * !#en When attaching to an active node or its node first activated.
+     * !#zh 当附加到一个激活的节点上或者其节点第一次激活时候调用。
      * @method onLoad
      */
     onLoad: null,
 
     /**
-     * Called before all scripts' update if the Component is enabled
+     * !#en Called before all scripts' update if the Component is enabled.
+     * !#zh 如果该组件启用，则在所有组件的 update 之前调用。
      * @method start
      */
     start: null,
 
     /**
-     * Called when this component becomes enabled and its node becomes active
+     * !#en Called when this component becomes enabled and its node is active.
+     * !#zh 当该组件被启用，并且它的节点也激活时。
      * @method onEnable
      */
     onEnable: null,
 
     /**
-     * Called when this component becomes disabled or its node becomes inactive
+     * !#en Called when this component becomes disabled or its node becomes inactive.
+     * !#zh 当该组件被禁用或节点变为无效时调用。
      * @method onDisable
      */
     onDisable: null,
 
     /**
-     * Called when this component will be destroyed.
+     * !#en Called when this component will be destroyed.
+     * !#zh 当该组件被销毁时调用
      * @method onDestroy
      */
     onDestroy: null,
@@ -411,136 +482,95 @@ var Component = cc.Class({
     // PUBLIC
 
     /**
-     * Adds a component class to the node. You can also add component to node by passing in the name of the
-     * script.
+     * !#en Adds a component class to the node. You can also add component to node by passing in the name of the script.
+     * !#zh 向节点添加一个组件类，你还可以通过传入脚本的名称来添加组件。
      *
      * @method addComponent
      * @param {Function|String} typeOrTypename - the constructor or the class name of the component to add
      * @return {Component} - the newly added component
+     * @example
+     * var sprite = node.addComponent(cc.Sprite);
+     * var test = node.addComponent("Test");
      */
     addComponent: function (typeOrTypename) {
         return this.node.addComponent(typeOrTypename);
     },
 
     /**
-     * Returns the component of supplied type if the node has one attached, null if it doesn't. You can also get
-     * component in the node by passing in the name of the script.
+     * !#en
+     * Returns the component of supplied type if the node has one attached, null if it doesn't.<br/>
+     * You can also get component in the node by passing in the name of the script.
+     * !#zh
+     * 获取节点上指定类型的组件，如果节点有附加指定类型的组件，则返回，如果没有则为空。<br/>
+     * 传入参数也可以是脚本的名称。
      *
      * @method getComponent
      * @param {Function|String} typeOrClassName
      * @return {Component}
+     * @example
+     * // get sprite component.
+     * var sprite = node.getComponent(cc.Sprite);
+     * // get custom test calss.
+     * var test = node.getComponent("Test");
      */
     getComponent: function (typeOrClassName) {
         return this.node.getComponent(typeOrClassName);
     },
 
     /**
-     * Returns all components of supplied Type in the node.
+     * !#en Returns all components of supplied Type in the node.
+     * !#zh 返回节点上指定类型的所有组件。
      *
      * @method getComponents
      * @param {Function|String} typeOrClassName
      * @return {Component[]}
+     * @example
+     * var sprites = node.getComponents(cc.Sprite);
+     * var tests = node.getComponents("Test");
      */
     getComponents: function (typeOrClassName) {
         return this.node.getComponents(typeOrClassName);
     },
 
     /**
-     * Returns the component of supplied type in any of its children using depth first search.
+     * !#en Returns the component of supplied type in any of its children using depth first search.
+     * !#zh 递归查找所有子节点中第一个匹配指定类型的组件。
      *
      * @method getComponentInChildren
      * @param {Function|String} typeOrClassName
      * @returns {Component}
+     * @example
+     * var sprite = node.getComponentInChildren(cc.Sprite);
+     * var Test = node.getComponentInChildren("Test");
      */
     getComponentInChildren: function (typeOrClassName) {
         return this.node.getComponentInChildren(typeOrClassName);
     },
 
     /**
-     * Returns the components of supplied type in any of its children using depth first search.
+     * !#en Returns the components of supplied type in any of its children using depth first search.
+     * !#zh 递归查找所有子节点中指定类型的组件。
      *
      * @method getComponentsInChildren
      * @param {Function|String} typeOrClassName
      * @returns {Component[]}
+     * @example
+     * var sprites = node.getComponentsInChildren(cc.Sprite);
+     * var tests = node.getComponentsInChildren("Test");
      */
     getComponentsInChildren: function (typeOrClassName) {
         return this.node.getComponentsInChildren(typeOrClassName);
     },
 
-    ///**
-    // * Invokes the method on this component after a specified delay.
-    // * The method will be invoked even if this component is disabled, but will not invoked if this component is
-    // * destroyed.
-    // *
-    // * @method invoke
-    // * @param {function|string} functionOrMethodName
-    // * @param {number} [delay=0] - The number of seconds that the function call should be delayed by. If omitted, it defaults to 0. The actual delay may be longer.
-    // * @return {number} - Will returns a new InvokeID if the functionOrMethodName is type function. InvokeID is the numerical ID of the invoke, which can be used later with cancelInvoke().
-    // * @example {@link examples/Fire/Component/invoke.js }
-    // */
-    //invoke: createInvoker(Timer.setTimeout, Timer.setTimeoutWithKey, 'invoke'),
-    //
-    ///**
-    // * Invokes the method on this component repeatedly, with a fixed time delay between each call.
-    // * The method will be invoked even if this component is disabled, but will not invoked if this component is
-    // * destroyed.
-    // *
-    // * @method repeat
-    // * @param {function|string} functionOrMethodName
-    // * @param {number} [delay=0] - The number of seconds that the function call should wait before each call to the method. If omitted, it defaults to 0. The actual delay may be longer.
-    // * @return {number} - Will returns a new RepeatID if the method is type function. RepeatID is the numerical ID of the repeat, which can be used later with cancelRepeat().
-    // * @example {@link examples/Fire/Component/repeat.js}
-    // */
-    //repeat: createInvoker(Timer.setInterval, Timer.setIntervalWithKey, 'repeat'),
-    //
-    ///**
-    // * Cancels previous invoke calls with methodName or InvokeID on this component.
-    // * When using methodName, all calls with the same methodName will be canceled.
-    // * InvokeID is the identifier of the invoke action you want to cancel, as returned by invoke().
-    // *
-    // * @method cancelInvoke
-    // * @param {string|number} methodNameOrInvokeId
-    // * @example {@link examples/Fire/Component/cancelInvoke.js}
-    // */
-    //cancelInvoke: function (methodNameOrInvokeId) {
-    //    if (typeof methodNameOrInvokeId === 'string') {
-    //        var key = this.id + '.' + methodNameOrInvokeId;
-    //        Timer.clearTimeoutByKey(key);
-    //    }
-    //    else {
-    //        Timer.clearTimeout(methodNameOrInvokeId);
-    //    }
-    //},
-    //
-    ///**
-    // * Cancels previous repeat calls with methodName or RepeatID on this component.
-    // * When using methodName, all calls with the same methodName will be canceled.
-    // * RepeatID is the identifier of the repeat action you want to cancel, as returned by repeat().
-    // *
-    // * @method cancelRepeat
-    // * @param {string|number} methodNameOrRepeatId
-    // * @example {@link examples/Fire/Component/cancelRepeat.js}
-    // */
-    //cancelRepeat: function (methodNameOrRepeatId) {
-    //    if (typeof methodNameOrRepeatId === 'string') {
-    //        var key = this.id + '.' + methodNameOrRepeatId;
-    //        Timer.clearIntervalByKey(key);
-    //    }
-    //    else {
-    //        Timer.clearInterval(methodNameOrRepeatId);
-    //    }
-    //},
-    //
-    //isInvoking: function (methodName) {
-    //    var key = this.id + '.' + methodName;
-    //    return Timer.hasTimeoutKey(key);
-    //},
-
     // VIRTUAL
 
     /**
+     * !#en
      * If the component's bounding box is different from the node's, you can implement this method to supply
      * a custom axis aligned bounding box (AABB), so the editor's scene view can perform hit test properly.
+     * !#zh
+     * 如果组件的包围盒与节点不同，您可以实现该方法以提供自定义的轴向对齐的包围盒（AABB），
+     * 以便编辑器的场景视图可以正确地执行点选测试。
      *
      * @method _getLocalBounds
      * @param {Rect} out_rect - the Rect to receive the bounding box
@@ -548,27 +578,44 @@ var Component = cc.Class({
     _getLocalBounds: null,
 
     /**
+     * !#en
      * onRestore is called after the user clicks the Reset item in the Inspector's context menu or performs
-     * an undo operation on this component.
-     *
-     * If the component contains the "internal state", short for "temporary member variables which not included
-     * in its CCClass properties", then you may need to implement this function.
-     *
-     * The editor will call the getset accessors of your component to record/restore the component's state
-     * for undo/redo operation. However, in extreme cases, it may not works well. Then you should implement
-     * this function to manually synchronize your component's "internal states" with its public properties.
-     * Once you implement this function, all the getset accessors of your component will not be called when
-     * the user performs an undo/redo operation. Which means that only the properties with default value
-     * will be recorded or restored by editor.
-     *
-     * Similarly, the editor may failed to reset your component correctly in extreme cases. Then if you need
-     * to support the reset menu, you should manually synchronize your component's "internal states" with its
-     * properties in this function. Once you implement this function, all the getset accessors of your component
-     * will not be called during reset operation. Which means that only the properties with default value
+     * an undo operation on this component.<br/>
+     * <br/>
+     * If the component contains the "internal state", short for "temporary member variables which not included<br/>
+     * in its CCClass properties", then you may need to implement this function.<br/>
+     * <br/>
+     * The editor will call the getset accessors of your component to record/restore the component's state<br/>
+     * for undo/redo operation. However, in extreme cases, it may not works well. Then you should implement<br/>
+     * this function to manually synchronize your component's "internal states" with its public properties.<br/>
+     * Once you implement this function, all the getset accessors of your component will not be called when<br/>
+     * the user performs an undo/redo operation. Which means that only the properties with default value<br/>
+     * will be recorded or restored by editor.<br/>
+     * <br/>
+     * Similarly, the editor may failed to reset your component correctly in extreme cases. Then if you need<br/>
+     * to support the reset menu, you should manually synchronize your component's "internal states" with its<br/>
+     * properties in this function. Once you implement this function, all the getset accessors of your component<br/>
+     * will not be called during reset operation. Which means that only the properties with default value<br/>
      * will be reset by editor.
      *
      * This function is only called in editor mode.
-     *
+     * !#zh
+     * onRestore 是用户在检查器菜单点击 Reset 时，对此组件执行撤消操作后调用的。<br/>
+     * <br/>
+     * 如果组件包含了“内部状态”（不在 CCClass 属性中定义的临时成员变量），那么你可能需要实现该方法。<br/>
+     * <br/>
+     * 编辑器执行撤销/重做操作时，将调用组件的 get set 来录制和还原组件的状态。
+     * 然而，在极端的情况下，它可能无法良好运作。<br/>
+     * 那么你就应该实现这个方法，手动根据组件的属性同步“内部状态”。
+     * 一旦你实现这个方法，当用户撤销或重做时，组件的所有 get set 都不会再被调用。
+     * 这意味着仅仅指定了默认值的属性将被编辑器记录和还原。<br/>
+     * <br/>
+     * 同样的，编辑可能无法在极端情况下正确地重置您的组件。<br/>
+     * 于是如果你需要支持组件重置菜单，你需要在该方法中手工同步组件属性到“内部状态”。<br/>
+     * 一旦你实现这个方法，组件的所有 get set 都不会在重置操作时被调用。
+     * 这意味着仅仅指定了默认值的属性将被编辑器重置。
+     * <br/>
+     * 此方法仅在编辑器下会被调用。
      * @method onRestore
      */
     onRestore: null,
@@ -591,7 +638,7 @@ var Component = cc.Class({
     },
 
     __onNodeActivated: CC_EDITOR ? function (active) {
-        if (!(this._objFlags & IsOnLoadStarted) &&
+        if (active && !(this._objFlags & IsOnLoadStarted) &&
             (cc.engine._isPlaying || this.constructor._executeInEditMode)) {
             this._objFlags |= IsOnLoadStarted;
 
@@ -614,20 +661,30 @@ var Component = cc.Class({
                 _Scene.AssetsWatcher.start(this);
             }
         }
-
         if (this._enabled) {
+            if (active) {
+                var deactivatedOnLoading = !this.node._activeInHierarchy;
+                if (deactivatedOnLoading) {
+                    return;
+                }
+            }
             callOnEnable(this, active);
         }
     } : function (active) {
-        if (!(this._objFlags & IsOnLoadStarted)) {
+        if (active && !(this._objFlags & IsOnLoadStarted)) {
             this._objFlags |= IsOnLoadStarted;
             if (this.onLoad) {
                 this.onLoad();
             }
             this._objFlags |= IsOnLoadCalled;
         }
-
         if (this._enabled) {
+            if (active) {
+                var deactivatedOnLoading = !this.node._activeInHierarchy;
+                if (deactivatedOnLoading) {
+                    return;
+                }
+            }
             callOnEnable(this, active);
         }
     },
@@ -667,7 +724,7 @@ var Component = cc.Class({
         // do remove component
         this.node._removeComponent(this);
 
-        if (CC_DEV) {
+        if (CC_EDITOR || CC_TEST) {
             delete cc.engine.attachedObjsForEditor[this._id];
         }
     },
@@ -685,13 +742,22 @@ var Component = cc.Class({
     },
 
     /**
-     * <p>Schedules a custom selector.         <br/>
-     * If the selector is already scheduled, then the interval parameter will be updated without scheduling it again.</p>
+     * !#en
+     * Schedules a custom selector.<br/>
+     * If the selector is already scheduled, then the interval parameter will be updated without scheduling it again.
+     * !#zh
+     * 调度一个自定义的回调函数。<br/>
+     * 如果回调函数已调度，那么将不会重复调度它，只会更新时间间隔参数。
      * @method schedule
      * @param {function} callback The callback function
      * @param {Number} [interval=0]  Tick interval in seconds. 0 means tick every frame. If interval = 0, it's recommended to use scheduleUpdate() instead.
      * @param {Number} [repeat=cc.macro.REPEAT_FOREVER]    The selector will be executed (repeat + 1) times, you can use kCCRepeatForever for tick infinitely.
      * @param {Number} [delay=0]     The amount of time that the first tick will wait before execution.
+     * @example
+     * var timeCallback = function (dt) {
+     *   cc.log("time: " + dt);
+     * }
+     * this.schedule(timeCallback, 1);
      */
     schedule: function (callback, interval, repeat, delay) {
         cc.assert(callback, cc._LogInfos.Node.schedule);
@@ -705,21 +771,30 @@ var Component = cc.Class({
     },
 
     /**
-     * Schedules a callback function that runs only once, with a delay of 0 or larger
+     * !#en Schedules a callback function that runs only once, with a delay of 0 or larger.
+     * !#zh 调度一个只运行一次的回调函数，可以指定 0 让回调函数在下一帧立即执行或者在一定的延时之后执行。
      * @method scheduleOnce
      * @see cc.Node#schedule
      * @param {function} callback  A function wrapped as a selector
      * @param {Number} [delay=0]  The amount of time that the first tick will wait before execution.
+     * @example
+     * var timeCallback = function (dt) {
+     *   cc.log("time: " + dt);
+     * }
+     * this.scheduleOnce(timeCallback, 2);
      */
     scheduleOnce: function (callback, delay) {
         this.schedule(callback, 0, 0, delay);
     },
 
     /**
-     * Unschedules a custom callback function.
+     * !#en Unschedules a custom callback function.
+     * !#zh 取消调度一个自定义的回调函数。
      * @method unschedule
      * @see cc.Node#schedule
      * @param {function} callback_fn  A function wrapped as a selector
+     * @example
+     * this.unschedule(_callback);
      */
     unschedule: function (callback_fn) {
         if (!callback_fn)
@@ -729,9 +804,13 @@ var Component = cc.Class({
     },
 
     /**
-     * <p>unschedule all scheduled callback functions: custom callback functions, and the 'update' callback function.<br/>
-     * Actions are not affected by this method.</p>
+     * !#en
+     * unschedule all scheduled callback functions: custom callback functions, and the 'update' callback function.<br/>
+     * Actions are not affected by this method.
+     * !#zh 取消调度所有已调度的回调函数：定制的回调函数以及 'update' 回调函数。动作不受此方法影响。
      * @method unscheduleAllCallbacks
+     * @example
+     * this.unscheduleAllCallbacks();
      */
     unscheduleAllCallbacks: function () {
         cc.director.getScheduler().unscheduleAllForTarget(this);
@@ -740,7 +819,7 @@ var Component = cc.Class({
 
 Component._requireComponent = null;
 
-if (CC_DEV) {
+if (CC_EDITOR || CC_TEST) {
 
     // INHERITABLE STATIC MEMBERS
 
@@ -774,7 +853,7 @@ Object.defineProperty(Component, '_registerEditorProps', {
         if (reqComp) {
             cls._requireComponent = reqComp;
         }
-        if (CC_DEV) {
+        if (CC_EDITOR || CC_TEST) {
             var name = cc.js.getClassName(cls);
             for (var key in props) {
                 var val = props[key];
@@ -826,6 +905,15 @@ Object.defineProperty(Component, '_registerEditorProps', {
                 }
             }
         }
+    }
+});
+
+Object.defineProperties(Component, {
+    _callPreloadOnNode: {
+        value: _callPreloadOnNode
+    },
+    _callPreloadOnComponent: {
+        value: _callPreloadOnComponent
     }
 });
 

@@ -24,10 +24,13 @@
  ****************************************************************************/
 
 /**
- * Audio Source.
+ * !#en Audio Source.
+ * !#zh 音频源组件，能对音频剪辑。
  * @class AudioSource
  * @extends Component
  */
+
+// todo jsb 中无法针对单独的音效对象进行设置（如音量大小等）
 
 var audioEngine = cc.audioEngine;
 
@@ -37,7 +40,7 @@ var AudioSource = cc.Class({
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.others/AudioSource',
-        help: 'app://docs/html/components/audiosource.html',
+        help: 'i18n:COMPONENT.help_url.audiosource',
     },
 
     ctor: function () {
@@ -54,7 +57,8 @@ var AudioSource = cc.Class({
         _loop: false,
 
         /**
-         * Is the audio source playing (Read Only)
+         * !#en Is the audio source playing (Read Only).
+         * !#zh 该音频剪辑是否正播放（只读）。
          * @property isPlaying
          * @type {Boolean}
          * @readOnly
@@ -68,7 +72,8 @@ var AudioSource = cc.Class({
         },
 
         /**
-         * The clip of the audio source.
+         * !#en The clip of the audio source.
+         * !#zh 默认要播放的音频剪辑。
          * @property clip
          * @type {AudioClip}
          * @default 1
@@ -86,7 +91,8 @@ var AudioSource = cc.Class({
         },
 
         /**
-         * The volume of the audio source.
+         * !#en The volume of the audio source.
+         * !#zh 音频源的音量（0.0 ~ 1.0）。
          * @property volume
          * @type {Number}
          * @default 1
@@ -110,7 +116,8 @@ var AudioSource = cc.Class({
         },
 
         /**
-         * Is the audio source mute?
+         * !#en Is the audio source mute?
+         * !#zh 是否静音音频源。Mute 是设置音量为 0，取消静音是恢复原来的音量。
          * @property mute
          * @type {Boolean}
          * @default false
@@ -123,18 +130,15 @@ var AudioSource = cc.Class({
                 this._mute = value;
                 if (this.audio) {
                     if (this._mute) {
-                        if (cc.sys.isNative) {
+                        if (CC_JSB) {
                             cc.audioEngine.setEffectsVolume(0);
-                        }
-                        else {
+                        } else {
                             this.audio.setVolume(0);
                         }
-                    }
-                    else {
-                        if (cc.sys.isNative) {
+                    } else {
+                        if (CC_JSB) {
                             cc.audioEngine.setEffectsVolume(this._volume);
-                        }
-                        else {
+                        } else {
                             this.audio.setVolume(this._volume);
                         }
                     }
@@ -145,7 +149,8 @@ var AudioSource = cc.Class({
         },
 
         /**
-         * Is the audio source looping?
+         * !#en Is the audio source looping?
+         * !#zh 音频源是否循环播放？
          * @property loop
          * @type {Boolean}
          * @default false
@@ -163,7 +168,8 @@ var AudioSource = cc.Class({
         },
 
         /**
-         * If set to true, the audio source will automatically start playing on onLoad.
+         * !#en If set to true, the audio source will automatically start playing on onLoad.
+         * !#zh 如果设置为true，音频源将在 onLoad 时自动播放。
          * @property playOnLoad
          * @type {Boolean}
          * @default true
@@ -172,12 +178,6 @@ var AudioSource = cc.Class({
             default: false,
             tooltip: 'i18n:COMPONENT.audio.play_on_load',
             animatable: false
-        }
-    },
-
-    onLoad: function () {
-        if ( this.isPlaying ) {
-            this.stop();
         }
     },
 
@@ -196,18 +196,24 @@ var AudioSource = cc.Class({
     },
 
     /**
-     * Plays the clip.
+     * !#en Plays the clip.
+     * !#zh 播放音频剪辑。
      * @method play
      */
     play: function () {
         if ( this._clip ) {
-            this.audio = audioEngine.playEffect(this._clip, this._loop);
-            // this.audio.play();
+            var volume = this._mute ? 0 : this._volume;
+            this.audio = audioEngine.playEffect(this._clip, this._loop, volume);
+
+            if (CC_JSB) {
+                cc.audioEngine.setEffectsVolume(volume);
+            }
         }
     },
 
     /**
-     * Stops the clip
+     * !#en Stops the clip.
+     * !#zh 停止当前音频剪辑。
      * @method stop
      */
     stop: function () {
@@ -215,7 +221,8 @@ var AudioSource = cc.Class({
     },
 
     /**
-     * Pause the clip.
+     * !#en Pause the clip.
+     * !#zh 暂停当前音频剪辑。
      * @method pause
      */
     pause: function () {
@@ -223,7 +230,8 @@ var AudioSource = cc.Class({
     },
 
     /**
-     * Resume the clip.
+     * !#en Resume the clip.
+     * !#zh 恢复播放。
      * @method resume
      */
     resume: function () {
@@ -231,7 +239,8 @@ var AudioSource = cc.Class({
     },
 
     /**
-     * Rewind playing music.
+     * !#en Rewind playing music.
+     * !#zh 从头开始播放。
      * @method rewind
      */
     rewind: function(){

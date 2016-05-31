@@ -142,7 +142,6 @@ test('remove multiple callbacks during invoking', function () {
     var cb1 = new Callback().enable();
     var cb2 = new Callback(function () {
         ci.remove('eve', cb1);
-        ci.remove('eve', cb3);
         ci.remove('eve', cb3, target);
     }).enable();
     var cb3 = new Callback(function () {
@@ -158,11 +157,10 @@ test('remove multiple callbacks during invoking', function () {
 
     cb1.expect(2, 'first callback should be invoked twice');
     cb2.expect(1, 'second callback should be invoked once');
-    cb3.expect(2, 'third callback should be invoked twice');
+    cb3.expect(1, 'third callback should be invoked once');
     strictEqual(ci.has('eve', cb1, target), true, 'first callback with target should not be removed');
     strictEqual(ci.has('eve', cb1), false, 'first callback should be removed');
     strictEqual(ci.has('eve', cb2, target), false, 'second callback with target should be removed');
-    strictEqual(ci.has('eve', cb3), false, 'third callback should be removed');
     strictEqual(ci.has('eve', cb3, target), false, 'third callback with target should be removed');
 });
 
@@ -187,6 +185,50 @@ test('remove all callbacks during invoking', function () {
     cb2.expect(1, 'second callback should be invoked once');
     cb3.expect(2, 'third callback should be invoked twice');
     strictEqual(ci.has('eve'), false, 'All callbacks should be removed');
+});
+
+test('remove and add again during invoking', function () {
+    var target = new Object();
+    var ci = new cc._Test.EventListeners();
+
+    var cb1 = function () {
+        ci.remove('eve', cb1, target);
+        ci.add('eve', cb1, target);
+    };
+
+    ci.add('eve', cb1, target);
+    ci.invoke(new cc.Event.EventCustom('eve'));
+
+    strictEqual(ci.has('eve', cb1, target), true, 'first callback should be added back');
+});
+
+test('remove twice and add again during invoking', function () {
+   var target = new Object();
+   var ci = new cc._Test.EventListeners();
+
+   var cb1 = function () {
+       ci.remove('eve', cb1, target);
+       ci.remove('eve', cb1, target);
+       ci.add('eve', cb1, target);
+   };
+
+   ci.add('eve', cb1, target);
+   ci.invoke(new cc.Event.EventCustom('eve'));
+
+   strictEqual(ci.has('eve', cb1, target), true, 'first callback should be added back');
+});
+
+test('remove and check has during invoking', function () {
+   var target = new Object();
+   var ci = new cc._Test.EventListeners();
+
+   var cb1 = function () {
+       ci.remove('eve', cb1, target);
+       strictEqual(ci.has('eve', cb1, target), false, 'first callback should be removed');
+   };
+
+   ci.add('eve', cb1, target);
+   ci.invoke(new cc.Event.EventCustom('eve'));
 });
 
 test('CallbacksInvoker support target', function () {

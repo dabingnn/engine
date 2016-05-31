@@ -115,7 +115,7 @@ var Button = cc.Class({
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.ui/Button',
-        help: 'app://docs/html/components/button.html',
+        help: 'i18n:COMPONENT.help_url.button',
         inspector: 'app://editor/page/inspector/button/button.html',
         executeInEditMode: true
     },
@@ -310,13 +310,21 @@ var Button = cc.Class({
         Transition: Transition,
     },
 
-    onLoad: function () {
+    __preload: function () {
         if (!this.target) {
             this.target = this.node;
         }
+    },
 
+    onEnable: function () {
         if (!CC_EDITOR) {
             this._registerEvent();
+        } else {
+            this.node.on('spriteframe-changed', function(event) {
+                if (this.transition === Transition.SPRITE) {
+                    this.normalSprite = event.detail.spriteFrame;
+                }
+            }.bind(this));
         }
     },
 
@@ -389,11 +397,11 @@ var Button = cc.Class({
         this._applyTransition(color, sprite);
     },
 
-    _onTouchEnded: function () {
+    _onTouchEnded: function (event) {
         if (!this.interactable || !this.enabledInHierarchy) return;
 
         if (this._pressed) {
-            cc.Component.EventHandler.emitEvents(this.clickEvents);
+            cc.Component.EventHandler.emitEvents(this.clickEvents, event);
         }
         this._pressed = false;
         this._updateState();
@@ -446,6 +454,18 @@ var Button = cc.Class({
     onDisable: function() {
         this._hovered = false;
         this._pressed = false;
+
+        if (!CC_EDITOR) {
+            this.node.off(cc.Node.EventType.TOUCH_START, this._onTouchBegan, this);
+            this.node.off(cc.Node.EventType.TOUCH_MOVE, this._onTouchMove, this);
+            this.node.off(cc.Node.EventType.TOUCH_END, this._onTouchEnded, this);
+            this.node.off(cc.Node.EventType.TOUCH_CANCEL, this._onTouchCancel, this);
+
+            this.node.off(cc.Node.EventType.MOUSE_ENTER, this._onMouseMoveIn, this);
+            this.node.off(cc.Node.EventType.MOUSE_LEAVE, this._onMouseMoveOut, this);
+        } else {
+            this.node.off('spriteframe-changed');
+        }
     },
 
     _applyTransition: function (color, sprite) {

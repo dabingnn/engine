@@ -45,70 +45,34 @@ function _copyprop(name, source, target) {
 
 /**
  * This module provides some JavaScript utilities.
- *
- * @module cc.js
+ * All members can be accessed with cc.js
+ * @module js
+ * @namespace cc.js
  */
 var js = {
 
     /**
-     * Check the obj whether is function or not
-     * @method isFunction
-     * @param {*} obj
-     * @returns {Boolean}
-     */
-    isFunction: function(obj) {
-        return typeof obj === 'function';
-    },
-
-    /**
      * Check the obj whether is number or not
+     * If a number is created by using 'new Number(10086)', the typeof it will be "object"...
+     * Then you can use this function if you care about this case.
      * @method isNumber
      * @param {*} obj
      * @returns {Boolean}
      */
     isNumber: function(obj) {
-        return typeof obj === 'number' || Object.prototype.toString.call(obj) === '[object Number]';
+        return typeof obj === 'number' || obj instanceof Number;
     },
 
     /**
-     * Check the obj whether is string or not
+     * Check the obj whether is string or not.
+     * If a string is created by using 'new String("blabla")', the typeof it will be "object"...
+     * Then you can use this function if you care about this case.
      * @method isString
      * @param {*} obj
      * @returns {Boolean}
      */
     isString: function(obj) {
-        return typeof obj === 'string' || Object.prototype.toString.call(obj) === '[object String]';
-    },
-
-    /**
-     * Check the obj whether is array or not
-     * @method isArray
-     * @param {*} obj
-     * @returns {Boolean}
-     */
-    isArray: function(obj) {
-        return Array.isArray(obj) ||
-            (typeof obj === 'object' && Object.prototype.toString.call(obj) === '[object Array]');
-    },
-
-    /**
-     * Check the obj whether is undefined or not
-     * @method isUndefined
-     * @param {*} obj
-     * @returns {Boolean}
-     */
-    isUndefined: function(obj) {
-        return typeof obj === 'undefined';
-    },
-
-    /**
-     * Check the obj whether is object or not
-     * @method isObject
-     * @param {*} obj
-     * @returns {Boolean}
-     */
-    isObject: function(obj) {
-        return typeof obj === "object" && Object.prototype.toString.call(obj) === '[object Object]';
+        return typeof obj === 'string' || obj instanceof String;
     },
 
     /**
@@ -259,8 +223,8 @@ function getTempCID () {
     return TCID_PREFIX + (id++);
 }
 
-js._isTempClassId = function (id) {
-    return CC_DEV && (typeof id !== 'string' || id.startsWith(TCID_PREFIX));
+var isTempClassId = CC_DEV && function (id) {
+    return typeof id !== 'string' || id.startsWith(TCID_PREFIX);
 };
 
 // id 注册
@@ -384,7 +348,7 @@ cc.js.unregisterClass to remove the id of unused class';
         var res;
         if (typeof obj === 'function' && obj.prototype.hasOwnProperty('__cid__')) {
             res = obj.prototype.__cid__;
-            if (!allowTempId && js._isTempClassId(res)) {
+            if (!allowTempId && CC_DEV && isTempClassId(res)) {
                 return '';
             }
             return res;
@@ -393,7 +357,7 @@ cc.js.unregisterClass to remove the id of unused class';
             var prototype = obj.constructor.prototype;
             if (prototype && prototype.hasOwnProperty('__cid__')) {
                 res = obj.__cid__;
-                if (!allowTempId && js._isTempClassId(res)) {
+                if (!allowTempId && CC_DEV && isTempClassId(res)) {
                     return '';
                 }
                 return res;
@@ -402,7 +366,7 @@ cc.js.unregisterClass to remove the id of unused class';
         return '';
     };
 
-    if (CC_EDITOR) {
+    if (CC_DEV) {
         Object.defineProperty(js, '_registeredClassIds', {
             get: function () {
                 var dump = {};
@@ -498,19 +462,25 @@ js.set = function (obj, prop, setter, enumerable) {
  */
 js.obsolete = function (obj, obsoleted, newPropName, writable) {
     var oldName = obsoleted.split('.').slice(-1);
-    js.get(obj, oldName, function () {
+    function get () {
         if (CC_DEV) {
             cc.warn('"%s" is deprecated, use "%s" instead please.', obsoleted, newPropName);
         }
-        return obj[newPropName];
-    });
+        return this[newPropName];
+    }
     if (writable) {
-        js.set(obj, oldName, function (value) {
-            if (CC_DEV) {
-                cc.warn('"%s" is deprecated, use "%s" instead please.', obsoleted, newPropName);
+        js.getset(obj, oldName,
+            get,
+            function (value) {
+                if (CC_DEV) {
+                    cc.warn('"%s" is deprecated, use "%s" instead please.', obsoleted, newPropName);
+                }
+                this[newPropName] = value;
             }
-            obj[newPropName] = value;
-        });
+        );
+    }
+    else {
+        js.get(obj, oldName, get);
     }
 };
 
@@ -532,43 +502,40 @@ js.obsoletes = function (obj, objName, props, writable) {
 /**
  * A string tool to construct a string with format string.
  * for example:
- *      cc.js.formatStr("a: %d, b: %b", a, b);
+ *      cc.js.formatStr("a: %s, b: %s", a, b);
  *      cc.js.formatStr(a, b, c);
  * @method formatStr
  * @returns {String}
  */
-js.formatStr = function formatStr() {
+js.formatStr = function () {
     var args = arguments;
     var l = args.length;
-    if(l < 1)
-        return '';
+    if (l < 1) return '';
+    var REGEXP_NUM_OR_STR = /(%d)|(%s)/;
 
+    var i = 1;
     var str = args[0];
-    var needToFormat = true;
-    if(typeof str === 'object'){
-        needToFormat = false;
+    var hasSubstitution = typeof str === 'string' && REGEXP_NUM_OR_STR.test(str);
+    if (hasSubstitution) {
+        var REGEXP_STR = /%s/;
+        for (; i < l; ++i) {
+            var arg = args[i];
+            var regExpToTest = typeof arg === 'number' ? REGEXP_NUM_OR_STR : REGEXP_STR;
+            if (regExpToTest.test(str))
+                str = str.replace(regExpToTest, arg);
+            else
+                str += ' ' + arg;
+        }
     }
-    for(var i = 1; i < l; ++i){
-        var arg = args[i];
-        if(needToFormat){
-            while(true){
-                var result = null;
-                if(typeof arg === 'number'){
-                    result = str.match(/(%d)|(%s)/);
-                    if(result){
-                        str = str.replace(/(%d)|(%s)/, arg);
-                        break;
-                    }
-                }
-                result = str.match(/%s/);
-                if(result)
-                    str = str.replace(/%s/, arg);
-                else
-                    str += '    ' + arg;
-                break;
+    else {
+        if (l > 1) {
+            for (; i < l; ++i) {
+                str += ' ' + args[i];
             }
-        }else
-            str += '    ' + arg;
+        }
+        else {
+            str = '' + str;
+        }
     }
     return str;
 };

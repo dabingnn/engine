@@ -29,7 +29,15 @@ require('../platform/deserialize');
 // temp deserialize info
 var _tdInfo = new cc.deserialize.Details();
 
-var SCENE_ID = 'cc.Scene';
+function isSceneObj (json) {
+    var SCENE_ID = 'cc.Scene';
+    var PREFAB_ID = 'cc.Prefab';
+    return json && (
+               (json[0] && json[0].__type__ === SCENE_ID) ||
+               (json[1] && json[1].__type__ === SCENE_ID) ||
+               (json[0] && json[0].__type__ === PREFAB_ID)
+           );
+}
 
 function loadDepends (pipeline, item, asset, tdInfo, callback) {
     var uuid = item.id,
@@ -126,11 +134,7 @@ function loadUuid (item, callback) {
         return;
     }
 
-    var isScene = json && (
-                              (json[0] && json[0].__type__ === SCENE_ID) ||
-                              (json[1] && json[1].__type__ === SCENE_ID)
-                          );
-    var classFinder = isScene ? cc._MissingScript.safeFindClass : function (id) {
+    var classFinder = isSceneObj(json) ? cc._MissingScript.safeFindClass : function (id) {
         var cls = JS._getClassById(id);
         if (cls) {
             return cls;
@@ -139,7 +143,7 @@ function loadUuid (item, callback) {
         return Object;
     };
 
-    var tdInfo = cc.sys.isNative ? new cc.deserialize.Details() : (item.deserializeInfo || _tdInfo);
+    var tdInfo = CC_JSB ? new cc.deserialize.Details() : (item.deserializeInfo || _tdInfo);
 
     var asset;
     try {
@@ -157,3 +161,4 @@ function loadUuid (item, callback) {
 }
 
 module.exports = loadUuid;
+loadUuid.isSceneObj = isSceneObj;

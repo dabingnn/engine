@@ -26,29 +26,16 @@
 
 var EventTarget = require("../event/event-target");
 
-
 /**
- * <p>
- *    A cc.SpriteFrame has:<br/>
- *      - texture: A cc.Texture2D that will be used by the _ccsg.Sprite<br/>
- *      - rectangle: A rectangle of the texture<br/>
- *    <br/>
- *    You can modify the frame of a _ccsg.Sprite by doing:<br/>
- * </p>
+ * A cc.SpriteFrame has:<br/>
+ *  - texture: A cc.Texture2D that will be used by the _ccsg.Sprite<br/>
+ *  - rectangle: A rectangle of the texture<br/>
+ * <br/>
+ * You can modify the frame of a _ccsg.Sprite by doing:<br/>
+ *
  * @class SpriteFrame
  * @extends Asset
  * @constructor
- */
-
- /**
- * Constructor of SpriteFrame class
- * @method SpriteFrame
- * @param {String|Texture2D} filename
- * @param {Rect} rect - If parameters' length equal 2, rect in points, else rect in pixels
- * @param {Boolean} [rotated] - Whether the frame is rotated in the texture
- * @param {Vec2} [offset] - The offset of the frame in the texture
- * @param {Size} [originalSize] - The size of the frame in the texture
- * @example {@link utils/api/engine/docs/cocos2d/core/sprites/SpriteFrame.js}
  */
 cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
     name: 'cc.SpriteFrame',
@@ -73,14 +60,21 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
 
                     var texture = cc.textureCache.addImage(url);
                     this._refreshTexture(texture);
-                    if (this._textureLoaded) {
-                        this._checkRect(texture);
-                    }
                 }
             }
         }
     },
 
+    /**
+     * Constructor of SpriteFrame class
+     * @method SpriteFrame
+     * @param {String|Texture2D} [filename]
+     * @param {Rect} [rect]
+     * @param {Boolean} [rotated] - Whether the frame is rotated in the texture
+     * @param {Vec2} [offset] - The offset of the frame in the texture
+     * @param {Size} [originalSize] - The size of the frame in the texture
+     * @example {@link utils/api/engine/docs/cocos2d/core/sprites/SpriteFrame.js}
+     */
     ctor: function () {
         var filename = arguments[0];
         var rect = arguments[1];
@@ -241,12 +235,12 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
      * @param {Texture2D} texture
      */
     _refreshTexture: function (texture) {
-        if (this._texture !== texture) {
+        var self = this;
+        if (self._texture !== texture) {
             var locLoaded = texture.isLoaded();
             this._textureLoaded = locLoaded;
             this._texture = texture;
-            var self = this;
-            var textureLoadedCallback = function () {
+            function textureLoadedCallback () {
                 self._textureLoaded = true;
                 if (self._rotated && cc._renderType === cc.game.RENDER_TYPE_CANVAS) {
                     var tempElement = texture.getHtmlElementObj();
@@ -260,25 +254,41 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
                     self.setRect(cc.rect(0, 0, rect.width, rect.height));
                 }
                 var w = texture.width, h = texture.height;
-                if (!self._rect) {
+
+                if (self._rect) {
+                    self._checkRect(texture);
+                }
+                else {
                     self.setRect(cc.rect(0, 0, w, h));
                 }
+
                 if (!self._originalSize) {
                     self.setOriginalSize(cc.size(w, h));
                 }
+
                 if (!self._offset) {
                     self.setOffset(cc.v2(0, 0));
                 }
+
                 //dispatch 'load' event of cc.SpriteFrame
                 self.emit("load");
-            };
+            }
 
-            if (!locLoaded) {
-                texture.once("load", textureLoadedCallback, this);
-            } else {
+            if (locLoaded) {
                 textureLoadedCallback();
             }
+            else {
+                texture.once("load", textureLoadedCallback);
+            }
         }
+        //if (texture && texture.url && texture.isLoaded()) {
+        //    if (self._rect) {
+        //        self._checkRect(texture);
+        //    }
+        //    else {
+        //        self.setRect(cc.rect(0, 0, texture.width, texture.height));
+        //    }
+        //}
     },
 
     /**
@@ -313,7 +323,7 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
      * Please pass parameters to the constructor to initialize the sprite, do not call this function yourself.
      * @method initWithTexture
      * @param {String|Texture2D} texture
-     * @param {Rect} rect - if parameters' length equal 2, rect in points, else rect in pixels
+     * @param {Rect} [rect=null]
      * @param {Boolean} [rotated=false]
      * @param {Vec2} [offset=cc.v2(0,0)]
      * @param {Size} [originalSize=rect.size]
@@ -357,10 +367,6 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
             //todo log error
         }
 
-        if (texture && texture.url && texture.isLoaded()) {
-            this._checkRect(texture);
-        }
-
         return true;
     },
 
@@ -399,7 +405,7 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
                 uuid = Editor.UuidCache.urlToUuid(url);
             }
         }
-        var capInsets = undefined;
+        var capInsets;
         if (this.insetLeft !== 0 ||
             this.insetTop !== 0 ||
             this.insetRight !== 0 ||
@@ -413,7 +419,7 @@ cc.SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
             rect: rect ? [rect.x, rect.y, rect.width, rect.height] : undefined,
             offset: offset ? [offset.x, offset.y] : undefined,
             originalSize: size ? [size.width, size.height] : undefined,
-            rotated: this._rotated ? 1 : 0,
+            rotated: this._rotated ? 1 : undefined,
             capInsets: capInsets
         };
     },

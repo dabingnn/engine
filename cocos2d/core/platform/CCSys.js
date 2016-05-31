@@ -460,7 +460,7 @@ sys.isNative = false;
  */
 sys.isBrowser = typeof window === 'object' && typeof document === 'object';
 
-if (typeof Editor !== 'undefined' && Editor.isCoreLevel) {
+if (typeof Editor !== 'undefined' && Editor.isMainProcess) {
     sys.isMobile = false;
     sys.platform = sys.EDITOR_CORE;
     sys.language = sys.LANGUAGE_UNKNOWN;
@@ -680,29 +680,43 @@ else {
 
     var _supportCanvas = !!_tmpCanvas1.getContext("2d");
     var _supportWebGL = false;
-    var tmpCanvas = document.createElement("CANVAS");
     if (win.WebGLRenderingContext) {
+        var tmpCanvas = document.createElement("CANVAS");
         try{
             var context = cc.create3DContext(tmpCanvas, {'stencil': true, 'preserveDrawingBuffer': true });
             if(context) {
                 _supportWebGL = true;
             }
 
-            // Accept only Android 5+ default browser and QQ Brwoser 6.2+
-            if (sys.os === sys.OS_ANDROID) {
-                _supportWebGL = false;
-                // QQ Brwoser 6.2+
-                var browserVer = parseFloat(sys.browserVersion);
-                if (sys.browserType === sys.BROWSER_TYPE_MOBILE_QQ && browserVer >= 6.2) {
-                    _supportWebGL = true;
-                }
-                // Android 5+ default browser
-                else if (sys.osMainVersion && sys.osMainVersion >= 5 && sys.browserType === sys.BROWSER_TYPE_ANDROID) {
-                    _supportWebGL = true;
+            if (_supportWebGL && sys.os === sys.OS_ANDROID) {
+                switch (sys.browserType) {
+                case sys.BROWSER_TYPE_MOBILE_QQ:
+                case sys.BROWSER_TYPE_BAIDU:
+                case sys.BROWSER_TYPE_BAIDU_APP:
+                    // QQ & Baidu Brwoser 6.2+ (using blink kernel)
+                    var browserVer = parseFloat(sys.browserVersion);
+                    if (browserVer >= 6.2) {
+                        _supportWebGL = true;
+                    }
+                    else {
+                        _supportWebGL = false;
+                    }
+                    break;
+                case sys.BROWSER_TYPE_ANDROID:
+                    // Android 5+ default browser
+                    if (sys.osMainVersion && sys.osMainVersion >= 5) {
+                        _supportWebGL = true;
+                    }
+                    break;
+                case sys.BROWSER_TYPE_UNKNOWN:
+                case sys.BROWSER_TYPE_360:
+                case sys.BROWSER_TYPE_MIUI:
+                    _supportWebGL = false;
                 }
             }
         }
         catch (e) {}
+        tmpCanvas = null;
     }
 
     /**
@@ -722,9 +736,6 @@ else {
     if (win.DeviceMotionEvent || win.DeviceOrientationEvent)
         capabilities["accelerometer"] = true;
 
-    delete _tmpCanvas1;
-    delete _tmpCanvas2;
-
     var __audioSupport;
 
     /**
@@ -736,7 +747,7 @@ else {
      * REPLAY_AFTER_TOUCH   : The first music will fail, must be replay after touchstart
      * USE_EMPTIED_EVENT    : Whether to use the emptied event to replace load callback
      * DELAY_CREATE_CTX     : delay created the context object - only webAudio
-     * NEED_MANUAL_LOOP     : WebAudio loop attribute failure, need to manually perform loop
+     * NEED_MANUAL_LOOP     : loop attribute failure, need to perform loop manually
      *
      * May be modifications for a few browser version
      */
@@ -750,72 +761,16 @@ else {
         // check Web Audio's context
         var supportWebAudio = !!(window.AudioContext || window.webkitAudioContext || window.mozAudioContext);
 
-        var supportTable = {
-            'common' : {MULTI_CHANNEL: true , WEB_AUDIO: supportWebAudio , AUTOPLAY: true }
-        };
+        __audioSupport = { ONLY_ONE: false, WEB_AUDIO: supportWebAudio, DELAY_CREATE_CTX: false };
 
-        supportTable[sys.BROWSER_TYPE_IE]  = {MULTI_CHANNEL: true , WEB_AUDIO: supportWebAudio , AUTOPLAY: true, USE_EMPTIED_EVENT: true};
-        //  ANDROID  //
-        supportTable[sys.BROWSER_TYPE_ANDROID]  = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false};
-        supportTable[sys.BROWSER_TYPE_CHROME]   = {MULTI_CHANNEL: true , WEB_AUDIO: true , AUTOPLAY: false};
-        supportTable[sys.BROWSER_TYPE_FIREFOX]  = {MULTI_CHANNEL: true , WEB_AUDIO: true , AUTOPLAY: true , DELAY_CREATE_CTX: true};
-        supportTable[sys.BROWSER_TYPE_UC]       = {MULTI_CHANNEL: true , WEB_AUDIO: false, AUTOPLAY: false};
-        supportTable[sys.BROWSER_TYPE_QQ]       = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: true };
-        supportTable[sys.BROWSER_TYPE_OUPENG]   = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false, REPLAY_AFTER_TOUCH: true , USE_EMPTIED_EVENT: true };
-        supportTable[sys.BROWSER_TYPE_WECHAT]   = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false, REPLAY_AFTER_TOUCH: true , USE_EMPTIED_EVENT: true };
-        supportTable[sys.BROWSER_TYPE_360]      = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: true };
-        supportTable[sys.BROWSER_TYPE_MIUI]     = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: true };
-        supportTable[sys.BROWSER_TYPE_LIEBAO]   = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false, REPLAY_AFTER_TOUCH: true , USE_EMPTIED_EVENT: true };
-        supportTable[sys.BROWSER_TYPE_SOUGOU]   = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false, REPLAY_AFTER_TOUCH: true , USE_EMPTIED_EVENT: true };
-        //'Baidu' browser can automatically play
-        //But because it may be play failed, so need to replay and auto
-        supportTable[sys.BROWSER_TYPE_BAIDU]    = {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false, REPLAY_AFTER_TOUCH: true , USE_EMPTIED_EVENT: true };
-        supportTable[sys.BROWSER_TYPE_BAIDU_APP]= {MULTI_CHANNEL: false, WEB_AUDIO: false, AUTOPLAY: false, REPLAY_AFTER_TOUCH: true , USE_EMPTIED_EVENT: true };
-
-        //  APPLE  //
-        supportTable[sys.BROWSER_TYPE_SAFARI]  = {MULTI_CHANNEL: true , WEB_AUDIO: true , AUTOPLAY: false, webAudioCallback: function(realUrl){
-            document.createElement('audio').src = realUrl;
-        }};
-
-        if(sys.isMobile){
-            if(sys.os !== sys.OS_IOS)
-                __audioSupport = supportTable[sys.browserType] || supportTable['common'];
-            else
-                __audioSupport = supportTable[sys.BROWSER_TYPE_SAFARI];
-        }else{
-            switch(sys.browserType){
-                case sys.BROWSER_TYPE_IE:
-                    __audioSupport = supportTable[sys.BROWSER_TYPE_IE];
-                    break;
-                case sys.BROWSER_TYPE_FIREFOX:
-                    __audioSupport = supportTable[sys.BROWSER_TYPE_FIREFOX];
-                    break;
-                default:
-                    __audioSupport = supportTable['common'];
-            }
+        if (sys.browserType === sys.BROWSER_TYPE_FIREFOX) {
+            __audioSupport.DELAY_CREATE_CTX = true;
+            __audioSupport.USE_LOADER_EVENT = 'canplay';
         }
 
-        ///////////////////////////
-        //  Browser compatibility//
-        ///////////////////////////
-        if(version){
-            switch(sys.browserType){
-                case sys.BROWSER_TYPE_CHROME:
-                    version = parseInt(version);
-                    if(version < 30){
-                        __audioSupport  = {MULTI_CHANNEL: false , WEB_AUDIO: true , AUTOPLAY: false};
-                    }else if(version === 42){
-                        __audioSupport.NEED_MANUAL_LOOP = true;
-                    }
-                    break;
-                case sys.BROWSER_TYPE_MIUI:
-                    if(sys.isMobile){
-                        version = version.match(/\d+/g);
-                        if(version[0] < 2 || (version[0] === 2 && version[1] === 0 && version[2] <= 1)){
-                            __audioSupport.AUTOPLAY = false;
-                        }
-                    }
-                    break;
+        if (sys.os === sys.OS_ANDROID) {
+            if (sys.browserType === sys.BROWSER_TYPE_UC) {
+                __audioSupport.ONE_SOURCE = true;
             }
         }
 

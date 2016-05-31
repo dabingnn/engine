@@ -24,8 +24,9 @@
  ****************************************************************************/
 
 /**
- * Class for scene handling.
- * @class Scene
+ * !#en Class for scene handling.
+ * !#zh 场景资源类。
+ * @class SceneAsset
  * @extends Asset
  * @constructor
  */

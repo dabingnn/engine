@@ -86,7 +86,8 @@ var Label = cc.Class({
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.renderers/Label',
-        help: 'app://docs/html/components/label.html',
+        help: 'i18n:COMPONENT.help_url.label',
+        inspector: 'app://editor/page/inspector/label.html',
     },
 
     properties: {
@@ -191,7 +192,7 @@ var Label = cc.Class({
         /**
          * !#en Overflow of label.
          * !#zh 文字显示超出范围时的处理方式。
-         * @property {Label.Overflow} overFlow
+         * @property {Label.Overflow} overflow
          */
         overflow: {
             default: Overflow.NONE,
@@ -229,20 +230,43 @@ var Label = cc.Class({
             tooltip: 'i18n:COMPONENT.label.wrap',
         },
 
+        // 这个保存了旧项目的 file 数据
+        _N$file: null,
+
         /**
-         * !#en The font URL of label.
-         * !#zh 文本字体的 url。
-         * @property {String} file
+         * !#en The font of label.
+         * !#zh 文本字体。
+         * @property {cc.Font} font
          */
-        file: {
-            default: "Arial",
-            url: cc.Font,
-            tooltip: 'i18n:COMPONENT.label.file',
-            notify: function () {
+        font: {
+            get: function () {
+                return this._N$file;
+            },
+            set: function (value) {
+                this._N$file = value;
+                this._bmFontOriginalSize = -1;
+                if (value && this._isSystemFontUsed)
+                    this.useSystemFont = false;
+
                 if (this._sgNode) {
-                    this._sgNode.setFontFileOrFamily(this.file);
+
+                    if ( typeof value === 'string' ) {
+                        cc.warn('Sorry, the cc.Font has been modified from Raw Asset to Asset.' +
+                            'Please load the font asset before using.');
+                    }
+
+                    var isAsset = value instanceof cc.Font;
+                    var fntRawUrl = isAsset ? value.rawUrl : '';
+                    var textureUrl = isAsset ? value.texture : '';
+                    this._sgNode.setFontFileOrFamily(fntRawUrl, textureUrl);
+                }
+
+                if (value instanceof cc.BitmapFont) {
+                    this._bmFontOriginalSize = value.fontSize;
                 }
             },
+            type: cc.Font,
+            tooltip: 'i18n:COMPONENT.label.font',
             animatable: false
         },
 
@@ -255,23 +279,29 @@ var Label = cc.Class({
          */
         useSystemFont: {
             get: function(){
-                if (this._sgNode) {
-                    this._isSystemFontUsed = this._sgNode.isSystemFontUsed();
-                }
                 return this._isSystemFontUsed;
             },
             set: function(value){
-                this._isSystemFontUsed = value;
+                this._isSystemFontUsed = !!value;
                 if (value) {
-                    this.file = "";
+                    this.font = null;
                     if (this._sgNode) {
-                        this._sgNode.setSystemFontUsed(value);
+                        this._sgNode.setFontFileOrFamily('Arial');
                     }
                 }
 
             },
             animatable: false,
             tooltip: 'i18n:COMPONENT.label.system_font',
+        },
+
+        _bmFontOriginalSize: {
+            displayName: 'BMFont Original Size',
+            default: -1,
+            serializable: false,
+            readonly: true,
+            visible: true,
+            animatable: false
         }
 
         // TODO
@@ -290,10 +320,8 @@ var Label = cc.Class({
         Overflow: Overflow,
     },
 
-    onLoad: function () {
+    __preload: function () {
         this._super();
-
-        this.node.on('size-changed', this._resized, this);
 
         var sgSizeInitialized = this._sgNode._isUseSystemFont;
         if (sgSizeInitialized) {
@@ -305,14 +333,20 @@ var Label = cc.Class({
         }
 
         // node should be resize whenever font changed, needed only on web
-        if (!cc.sys.isNative) {
+        if (!CC_JSB) {
             this._sgNode.on('load', this._updateNodeSize, this);
         }
+
     },
 
-    onDestroy: function () {
+    onEnable: function() {
         this._super();
-        this.node.off('size-changed', this._resized, this);
+        cc.director.on(cc.Director.EVENT_BEFORE_VISIT, this._updateNodeSize, this);
+    },
+
+    onDisable: function() {
+        this._super();
+        cc.director.off(cc.Director.EVENT_BEFORE_VISIT, this._updateNodeSize, this);
     },
 
     _createSgNode: function () {
@@ -320,9 +354,25 @@ var Label = cc.Class({
     },
 
     _initSgNode: function () {
-        this._sgNode = new _ccsg.Label(this.string, this.file);
-        this._sgNode.retain();
-        var sgNode = this._sgNode;
+
+        if ( typeof this.font === 'string' ) {
+            cc.warn('Sorry, the cc.Font has been modified from Raw Asset to Asset.' +
+                'Please load the font asset before using.');
+        }
+
+        var isAsset = this.font instanceof cc.Font;
+        var fntRawUrl = isAsset ? this.font.rawUrl : '';
+        var textureUrl = isAsset ? this.font.texture : '';
+        if (this.font instanceof cc.BitmapFont) {
+            this._bmFontOriginalSize = this.font.fontSize;
+        }
+
+        var sgNode = this._sgNode = new _ccsg.Label(this.string, fntRawUrl, textureUrl);
+        sgNode.setVisible(false);
+
+        if (CC_JSB) {
+            sgNode.retain();
+        }
 
         // TODO
         // sgNode.enableRichText = this.enableRichText;
@@ -334,17 +384,13 @@ var Label = cc.Class({
         sgNode.enableWrapText( this._enableWrapText );
         sgNode.setLineHeight(this._lineHeight);
         sgNode.setString(this.string);
-        sgNode.setFontFileOrFamily(this.file);
-        if(!this._useOriginalSize){
-            if(this.overflow !== Overflow.NONE) {
-                sgNode.setContentSize(this.node.getContentSize());
-            }
+        if (CC_EDITOR && this._useOriginalSize) {
+            this.node.setContentSize(sgNode.getContentSize());
+            this._useOriginalSize = false;
+        } else {
+            sgNode.setContentSize(this.node.getContentSize());
         }
         sgNode.setColor(this.node.color);
-    },
-
-    _resized: function () {
-        this._useOriginalSize = false;
     },
 
     // update node size (this will also invoke the size-changed event)
@@ -354,8 +400,8 @@ var Label = cc.Class({
             if (this.overflow === Overflow.NONE) {
                 this.node.setContentSize(this._sgNode.getContentSize());
             }
-            if ( !this.node._sizeProvider ) {
-                this.node._sizeProvider = this._sgNode;
+            if (this.node._sizeProvider !== this._sgNode) {
+                this._registSizeProvider();
             }
         }
     }

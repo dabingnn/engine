@@ -33,7 +33,8 @@ function visitWrapper (wrapper, visitor) {
 }
 
 /**
- * Class for prefab handling.
+ * !#en Class for prefab handling.
+ * !#zh 预制资源类。
  * @class Prefab
  * @extends Asset
  * @constructor
@@ -57,7 +58,7 @@ var Prefab = cc.Class({
         // instantiate
         var node = cc.instantiate(this.data);
 
-        if (CC_DEV) {
+        if (CC_EDITOR || CC_TEST) {
             _Scene.PrefabUtils.linkPrefab(this, node);
         }
 
