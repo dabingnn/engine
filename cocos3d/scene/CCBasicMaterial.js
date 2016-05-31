@@ -391,9 +391,10 @@ cc3d.extend( DepthMaterial.prototype, {
             pixelSrc += '{\n';
             pixelSrc += '    return dot( rgba, vec4(1.0, 1.0/255.0, 1.0/65025.0, 1.0/16581375.0) );\n';
             pixelSrc += '}\n';
+            pixelSrc += cc3d.ShaderChunks.linearShadowDepth;
             pixelSrc += 'void main() {\n';
             pixelSrc += '//vec3 depth = gl_FragCoord.zzz/1000.0;\n' +
-                'float depth = v_position_clip.z / v_position_clip.w * 0.5 + 0.5;\n' +
+                'float depth = toLinearShadowDepth(v_position_clip.z / v_position_clip.w);\n' +
                 'gl_FragColor.w = depth;\n'+
                 'gl_FragColor.z = fract(depth * (256.0 - 1.0));\n'+
                 'gl_FragColor.y = fract(depth * (256.0 * 256.0 - 1.0));\n'+

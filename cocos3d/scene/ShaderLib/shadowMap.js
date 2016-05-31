@@ -11,9 +11,11 @@ module.exports = packingsource +
     '*/\n' +
     'float shadowSampling(mat4 shadowMatrix, vec3 position, sampler2D shadowMap) {\n' +
     'vec4 shadowCoord = shadowMatrix * vec4(position, 1.0);\n' +
+    'shadowCoord  = shadowCoord / shadowCoord.w;\n' +
+    'shadowCoord.xy = shadowCoord.xy * 0.5 + 0.5;\n' +
     'float visible = 1.0;\n' +
     'float depth = unpackFloat(texture2D(shadowMap, shadowCoord.xy));' +
-    'if(depth < shadowCoord.z) visible = 0.0;\n' +
+    'if(depth < (toLinearShadowDepth(shadowCoord.z) - 1.0 / (65536.0 * 10.0))) visible = 0.0;\n' +
     'return visible;' +
     '' +
     '}\n';

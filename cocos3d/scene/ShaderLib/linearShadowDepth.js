@@ -1,0 +1,10 @@
+var source = '';
+source += 'uniform vec2 shadow_nearfar;\n';
+source += 'float toLinearShadowDepth(float depth) {\n';
+source += ' float n = shadow_nearfar.x; float f = shadow_nearfar.y;\n';
+source += ' float result = 2.0 * n * f / (f + n - depth * (f - n));\n';
+source += ' result = (result -n) / (f - n);\n';
+//source += ' return depth * 0.5 + 0.5;\n';
+source += ' return result;\n';
+source += '}\n';
+module.exports = source;

@@ -96,12 +96,15 @@ ForwardRenderer.prototype = {
         //update shadow camera, hard coded
         //todo: add shadow camera calculation here
         var shadowCam = light.shadowMapCamera;
-        shadowCam._node.setPosition(light._node.getPosition());
+        var position = light._node.getPosition().clone();
+        var forward = light._node.forward;
+        position.add(forward.scale(-100));
+        shadowCam._node.setPosition(position);
         shadowCam._node.setRotation(light._node.getRotation());
 
         shadowCam.setProjection(cc3d.SceneEnums.PROJECTION_ORTHOGRAPHIC);
-        shadowCam.setNearClip(-100);
-        shadowCam.setFarClip(100);
+        shadowCam.setNearClip(0.1);
+        shadowCam.setFarClip(200);
         shadowCam.setAspectRatio(1.0);
         shadowCam.setOrthoHeight(80);
         var material = this.depthMaterial;
@@ -117,6 +120,10 @@ ForwardRenderer.prototype = {
         var vp_matrix = view_matrix.clone();
         vp_matrix.mul2(projection_matrix, view_matrix);
         device.setUniformValue('matrix_viewprojection', vp_matrix.data);
+        var nf = new cc3d.math.Vec2();
+        nf.x = shadowCam.getNearClip();
+        nf.y = shadowCam.getFarClip();
+        device.setUniformValue('shadow_nearfar', nf.data);
         var shadowMatrix= vp_matrix.clone();
         // Global shadowmap resources
         var scaleShift = new cc3d.math.Mat4().mul2(
@@ -124,7 +131,7 @@ ForwardRenderer.prototype = {
             new cc3d.math.Mat4().setScale(0.5, 0.5, 0.5)
         );
 
-        shadowMatrix.mul2(scaleShift, shadowMatrix);
+        //shadowMatrix.mul2(scaleShift, shadowMatrix);
         light.shadowMatrix = shadowMatrix;
         device.setBlending(false);
         var meshes = scene.getMeshInstance();

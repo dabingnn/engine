@@ -721,7 +721,7 @@ function initScene() {
     var material = new cc3d.BasicMaterial();
     material.texture = texture2;
     material.alphaTest = 0.1;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
     material.blend = true;
     material.blendSrc = cc3dEnums.BLENDMODE_SRC_ALPHA;
@@ -735,7 +735,7 @@ function initScene() {
     var material = new cc3d.BasicPhongMaterial();
     material.texture = texture;
     material.useLambertLighting = true;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
     node = initObjectNode();
     node.translate(6.5, 2, -3);
@@ -751,7 +751,7 @@ function initScene() {
     material.blendDst = cc3dEnums.BLENDMODE_ONE_MINUS_SRC_ALPHA;
     material.opacity = 0.5;
 
-    scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
     {
         node = initObjectNode();
@@ -763,7 +763,7 @@ function initScene() {
         material._generateRenderKey();
         //material
         //material.texture = texture;
-        scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+        //scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
     }
 
 
@@ -775,7 +775,7 @@ function initScene() {
     //material.texture = texture;
     material.color = new cc3d.math.Vec3(1,0,1);
     material.useLambertLighting = true;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
 
 
     node = initObjectNode();
@@ -785,7 +785,7 @@ function initScene() {
     material.texture = texture2;
     material.alphaTest = 0.1;
     material.useLambertLighting = true;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
     //init platform
     node = initObjectNode();
@@ -807,7 +807,7 @@ function initScene() {
     //material.texture = texture2;
     material.alphaTest = 0.1;
     material.useLambertLighting = true;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
     //init left wall
     node = initObjectNode();
@@ -840,7 +840,7 @@ function initScene() {
     light._node = node;
     //light._direction = new cc3d.math.Vec3(0, -1, 0);
     light.setColor(new cc3d.math.Vec3(0.6,0.6,0.6));
-    //light.setCastShadows(true);
+    light.setCastShadows(true);
     scene.addLight(light);
     var generalRange = 10;
     initPointLight(scene, new cc3d.math.Vec3(-10,4,0), new cc3d.math.Vec3(1.0,0.0,0.0), generalRange);
