@@ -540,7 +540,7 @@ function initGLProgram() {
     vertSrc += cc3d.ShaderChunks.commonUniforms;
     vertSrc += cc3d.ShaderChunks.commonVaryings;
     vertSrc += 'void main() {' +
-        'gl_Position = matrix_worldviewprojection * vec4(a_position,1.0);' +
+        'gl_Position = matrix_viewprojection * matrix_world * vec4(a_position,1.0);' +
         'v_uv = a_uv;' +
         'v_normal = (matrix_normal * vec4(a_normal,0.0)).xyz;' +
         'v_normal = normalize(v_normal);' +

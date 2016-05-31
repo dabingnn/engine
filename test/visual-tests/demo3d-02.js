@@ -355,7 +355,7 @@ function shaderDebugUV() {
         v_normal = normalize(normal.xyz);
         v_uv = a_uv;
 
-        gl_Position = matrix_worldviewprojection * tranformedPos;
+        gl_Position = matrix_viewprojection * matrix_world * tranformedPos;
       }
     `
 

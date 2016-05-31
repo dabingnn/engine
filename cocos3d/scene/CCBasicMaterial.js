@@ -29,10 +29,11 @@ cc3d.extend( BasicMaterial.prototype, {
             vertSrc = '' +
                 'attribute vec4 a_position;' +
                 'attribute vec2 a_uv;' +
-                'uniform mat4 matrix_worldviewprojection;' +
+                'uniform mat4 matrix_world;' +
+                'uniform mat4 matrix_viewprojection;' +
                 'varying vec2 v_uv;' +
                 'void main() {' +
-                'gl_Position = matrix_worldviewprojection * a_position;' +
+                'gl_Position = matrix_viewprojection * matrix_world * a_position;' +
                 'v_uv = a_uv;' +
                 '}';
             pixelSrc = 'precision mediump float;' +
@@ -140,7 +141,7 @@ cc3d.extend( BasicPhongMaterial.prototype, {
         } else {
             vertSrc += 'vec4 tranformedPos = vec4(a_position, 1.0);\n';
         }
-        vertSrc += 'gl_Position = matrix_worldviewprojection * tranformedPos;\n' +
+        vertSrc += 'gl_Position = matrix_viewprojection * matrix_world * tranformedPos;\n' +
             'v_position = (matrix_world * tranformedPos).xyz;\n' +
             'vec4 normal = matrix_normal * vec4(a_normal,0.0);\n' +
             'v_normal = normalize(normal.xyz);\n' +
@@ -314,9 +315,10 @@ cc3d.extend( ColorMaterial.prototype, {
             var vertSrc, pixelSrc;
             vertSrc = '' +
                 'attribute vec4 a_position;' +
-                'uniform mat4 matrix_worldviewprojection;' +
+                'uniform mat4 matrix_viewprojection;' +
+                'uniform mat4 matrix_world;' +
                 'void main() {' +
-                'gl_Position = matrix_worldviewprojection * a_position;' +
+                'gl_Position = matrix_viewprojection * matrix_world * a_position;' +
                 '}';
             pixelSrc = 'precision mediump float;' +
                 'uniform vec3 color;' +
@@ -372,10 +374,11 @@ cc3d.extend( DepthMaterial.prototype, {
             var vertSrc, pixelSrc;
             vertSrc = '' +
                 'attribute vec4 a_position;\n' +
-                'uniform mat4 matrix_worldviewprojection;\n' +
+                'uniform mat4 matrix_world;' +
+                'uniform mat4 matrix_viewprojection;\n' +
                 'varying vec4 v_position_clip;\n' +
                 'void main() {\n' +
-                ' v_position_clip = matrix_worldviewprojection * a_position;\n' +
+                ' v_position_clip = matrix_viewprojection * matrix_world * a_position;\n' +
                 ' gl_Position = v_position_clip;\n' +
                 '}\n';
             pixelSrc = 'precision mediump float;\n';

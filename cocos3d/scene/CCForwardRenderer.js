@@ -146,7 +146,7 @@ ForwardRenderer.prototype = {
 
 
             device.setUniformValue('matrix_world', world_matrix.data);
-            device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
+            //device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
             device.setUniformValue('matrix_normal', normal_matrix.data);
             material.updateShader(device, scene);
             material.update();
@@ -208,7 +208,7 @@ ForwardRenderer.prototype = {
             wvp_matrix.mul2(vp_matrix,wvp_matrix);
 
             device.setUniformValue('matrix_world', world_matrix.data);
-            device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
+            //device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
             device.setUniformValue('matrix_normal', normal_matrix.data);
             this.dispatchLights(scene);
             var material = meshInstance.material;
