@@ -165,7 +165,9 @@ var run2d = function () {
 
         "src/SpritePolygonTest/SpritePolygonTest.js",
 
-        "src/NodeEventTest/NodeEventTest.js"
+        "src/NodeEventTest/NodeEventTest.js",
+
+        "src/MotionStreakTest/MotionStreakTest.js"
     ]
 }, function(){
     cc.view.enableRetina(false);

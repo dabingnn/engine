@@ -42,14 +42,12 @@ cc.defineGetterSetter(_p, 'delegate', null, _p.setDelegate);
 cc.defineGetterSetter(_p, 'inputMode', null, _p.setInputMode);
 cc.defineGetterSetter(_p, 'returnType', null, _p.setReturnType);
 
+_p._setMaxLength = _p.setMaxLength;
+_p.setMaxLength = function(maxLength) {
+    if (maxLength == -1) {
+        maxLength = Number.MAX_VALUE;
+    }
+    this._setMaxLength(maxLength);
+};
 
-_p.editBoxEditingDidBegin = function (sender) {
-    this.editBoxEditingDidBegan(sender);
-}
-_p.editBoxEditingDidEnd = function (sender) {
-    this.editBoxEditingDidEnded(sender);
-}
-
-_p.setLineHeight = function () {}
-
-_p = null;
+_p.setLineHeight = function () {};

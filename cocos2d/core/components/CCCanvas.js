@@ -54,14 +54,15 @@ var Canvas = cc.Class({
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.ui/Canvas',
-        help: 'app://docs/html/components/canvas.html',
+        help: 'i18n:COMPONENT.help_url.canvas',
         executeInEditMode: true,
         disallowMultiple: true,
     },
 
     statics: {
         /**
-         * Current active canvas, the scene should only have one active canvas at the same time.
+         * !#en Current active canvas, the scene should only have one active canvas at the same time.
+         * !#zh 当前激活的画布组件，场景同一时间只能有一个激活的画布。
          * @property {Canvas} instance
          * @static
          */
@@ -71,7 +72,8 @@ var Canvas = cc.Class({
     properties: {
 
         /**
-         * The desigin resolution for current scene.
+         * !#en The desigin resolution for current scene.
+         * !#zh 当前场景设计分辨率。
          * @property {cc.Size} designResolution
          * @default new cc.Size(960, 640)
          */
@@ -92,8 +94,8 @@ var Canvas = cc.Class({
         _fitHeight: true,
 
         /**
-         * !#zh: 是否优先将设计分辨率高度撑满视图高度
-         *
+         * !#en TODO
+         * !#zh: 是否优先将设计分辨率高度撑满视图高度。
          * @property {Boolean} fitHeight
          * @default false
          */
@@ -111,8 +113,8 @@ var Canvas = cc.Class({
         },
 
         /**
-         * !#zh: 是否优先将设计分辨率宽度撑满视图宽度
-         *
+         * !#en TODO
+         * !#zh: 是否优先将设计分辨率宽度撑满视图宽度。
          * @property {Boolean} fitWidth
          * @default false
          */
@@ -134,7 +136,7 @@ var Canvas = cc.Class({
         this._thisOnResized = this.onResized.bind(this);
     },
 
-    onLoad: function () {
+    __preload: function () {
         var Flags = cc.Object.Flags;
         this._objFlags |= (Flags.IsPositionLocked | Flags.IsAnchorLocked | Flags.IsSizeLocked);
 
@@ -147,8 +149,15 @@ var Canvas = cc.Class({
         if ( !this.node._sizeProvider ) {
             this.node._sizeProvider = designResolutionWrapper;
         }
-        else {
-            cc.error('CCCanvas: Node can only have one size.');
+        else if (CC_DEV) {
+            var renderer = this.node.getComponent(cc._RendererUnderSG);
+            if (renderer) {
+                cc.error('Should not add Canvas to a node which already contains a renderer component (%s).',
+                    cc.js.getClassName(renderer));
+            }
+            else {
+                cc.error('Should not add Canvas to a node which size is already used by its other component.');
+            }
         }
 
         cc.director.on(cc.Director.EVENT_BEFORE_VISIT, this.alignWithScreen, this);
@@ -156,7 +165,7 @@ var Canvas = cc.Class({
         if (CC_EDITOR) {
             cc.engine.on('design-resolution-changed', this._thisOnResized);
         }
-        else if (!cc.sys.isNative) {
+        else if (!CC_JSB) {
             if (cc.sys.isMobile) {
                 window.addEventListener('resize', this._thisOnResized);
             }
@@ -179,7 +188,7 @@ var Canvas = cc.Class({
         if (CC_EDITOR) {
             cc.engine.off('design-resolution-changed', this._thisOnResized);
         }
-        else if (!cc.sys.isNative) {
+        else if (!CC_JSB) {
             if (cc.sys.isMobile) {
                 window.removeEventListener('resize', this._thisOnResized);
             }

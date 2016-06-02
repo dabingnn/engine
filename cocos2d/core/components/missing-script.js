@@ -54,7 +54,7 @@ var MissingScript = cc.Class({
         //            var classId = Editor.UuidUtils.compressUuid(value);
         //            if (cc.js._getClassById(classId)) {
         //                this._$erialized.__type__ = classId;
-        //                Editor.sendToWindows('reload:window-scripts', sandbox.compiled);
+        //                Editor.Ipc.sendToWins('reload:window-scripts', sandbox.compiled);
         //            }
         //            else {
         //                cc.error('Can not find a component in the script which uuid is "%s".', value);
@@ -96,7 +96,7 @@ var MissingScript = cc.Class({
         }
     },
     onLoad: function () {
-        cc.warn('The referenced script on "%s" is missing!', this.name);
+        cc.warn('The referenced component script on node "%s" is missing!', this.node.name);
     }
 });
 

@@ -30,6 +30,7 @@ var JS = cc.js;
 var Flags = cc.Object.Flags;
 var Destroying = Flags.Destroying;
 var DontDestroy = Flags.DontDestroy;
+var Activating = Flags.Activating;
 //var RegisteredInEditor = Flags.RegisteredInEditor;
 
 /**
@@ -312,10 +313,13 @@ function findChildComponents (children, constructor, components) {
 }
 
 /**
- * Class of all entities in Cocos Creator scenes.
+ * !#en
+ * Class of all entities in Cocos Creator scenes.<br/>
  * Node also inherits from {{#crossLink "EventTarget"}}Event Target{{/crossLink}}, it permits Node to dispatch events.
  * For events supported by Node, please refer to {{#crossLink "Node.EventType"}}{{/crossLink}}
- *
+ * !#zh
+ * Cocos Creator 场景中的所有节点类。节点也继承了 {{#crossLink "EventTarget"}}EventTarget{{/crossLink}}，它允许节点发送事件。<br/>
+ * 支持的节点事件，请参阅 {{#crossLink "Node.EventType"}}{{/crossLink}}。
  * @class Node
  * @extends _BaseNode
  */
@@ -326,10 +330,19 @@ var Node = cc.Class({
 
     properties: {
         /**
-         * The local active state of this node.
+         * !#en
+         * The local active state of this node.<br/>
+         * Note that a Node may be inactive because a parent is not active, even if this returns true.<br/>
+         * Use {{#crossLink "Node/activeInHierarchy:property"}}{{/crossLink}} if you want to check if the Node is actually treated as active in the scene.
+         * !#zh
+         * 当前节点的自身激活状态。<br/>
+         * 值得注意的是，一个节点的父节点如果不被激活，那么即使它自身设为激活，它仍然无法激活。<br/>
+         * 如果你想检查节点在场景中实际的激活状态可以使用 {{#crossLink "Node/activeInHierarchy:property"}}{{/crossLink}}。
          * @property active
          * @type {Boolean}
          * @default true
+         * @example
+         * node.active = false;
          */
         active: {
             get: function () {
@@ -339,8 +352,8 @@ var Node = cc.Class({
                 value = !!value;
                 if (this._active !== value) {
                     this._active = value;
-                    var canActiveInHierarchy = (this._parent && this._parent._activeInHierarchy);
-                    if (canActiveInHierarchy) {
+                    var couldActiveInHierarchy = (this._parent && this._parent._activeInHierarchy);
+                    if (couldActiveInHierarchy) {
                         this._onActivatedInHierarchy(value);
                         this.emit('active-in-hierarchy-changed', this);
                     }
@@ -349,9 +362,12 @@ var Node = cc.Class({
         },
 
         /**
-         * Indicates whether this node is active in the scene.
+         * !#en Indicates whether this node is active in the scene.
+         * !#zh 表示此节点是否在场景中激活。
          * @property activeInHierarchy
          * @type {Boolean}
+         * @example
+         * cc.log("activeInHierarchy: " + node.activeInHierarchy);
          */
         activeInHierarchy: {
             get: function () {
@@ -403,6 +419,42 @@ var Node = cc.Class({
                     this._objFlags &= ~DontDestroy;
                 }
             }
+        },
+
+        /**
+         * !#en
+         * Group index of node.<br/>
+         * Which Group this node belongs to will resolve that this node's collision components can collide with which other collision componentns.<br/>
+         * !#zh
+         * 节点的分组索引。<br/>
+         * 节点的分组将关系到节点的碰撞组件可以与哪些碰撞组件相碰撞。<br/>
+         * @property groupIndex
+         * @type {Integer}
+         * @default 0
+         */
+        groupIndex: {
+            default: 0,
+            type: cc.Integer
+        },
+
+        /**
+         * !#en
+         * Group of node.<br/>
+         * Which Group this node belongs to will resolve that this node's collision components can collide with which other collision componentns.<br/>
+         * !#zh
+         * 节点的分组。<br/>
+         * 节点的分组将关系到节点的碰撞组件可以与哪些碰撞组件相碰撞。<br/>
+         * @property group
+         * @type {String}
+         */
+        group: {
+            get: function () {
+                return cc.game.groupList[this.groupIndex] || '';
+            },
+
+            set: function (value) {
+                this.groupIndex = cc.game.groupList.indexOf(value);
+            }
         }
     },
 
@@ -433,7 +485,7 @@ var Node = cc.Class({
         this.__eventTargets = [];
 
         // Retained actions for JSB
-        if (cc.sys.isNative) {
+        if (CC_JSB) {
             this._retainedActions = [];
         }
     },
@@ -463,7 +515,7 @@ var Node = cc.Class({
         var parent = this._parent;
         var destroyByParent = parent && (parent._objFlags & Destroying);
         if ( !destroyByParent ) {
-            if (CC_DEV) {
+            if (CC_EDITOR || CC_TEST) {
                 this._registerIfAttached(false);
             }
         }
@@ -487,6 +539,14 @@ var Node = cc.Class({
         this._releaseAllActions();
 
         // Remove all listeners
+        if (CC_JSB && this._touchListener) {
+            this._touchListener.release();
+            this._touchListener = null;
+        }
+        if (CC_JSB && this._mouseListener) {
+            this._mouseListener.release();
+            this._mouseListener = null;
+        }
         cc.eventManager.removeListeners(this);
         for (i = 0, len = this.__eventTargets.length; i < len; ++i) {
             var target = this.__eventTargets[i];
@@ -515,20 +575,29 @@ var Node = cc.Class({
                 this._parent = null;
             }
         }
-        else {
+        else if (CC_JSB) {
             this._sgNode.release();
+            this._sgNode = null;
         }
     },
 
     // COMPONENT
 
     /**
-     * Returns the component of supplied type if the node has one attached, null if it doesn't.
+     * !#en
+     * Returns the component of supplied type if the node has one attached, null if it doesn't.<br/>
      * You can also get component in the node by passing in the name of the script.
-     *
+     * !#zh
+     * 获取节点上指定类型的组件，如果节点有附加指定类型的组件，则返回，如果没有则为空。<br/>
+     * 传入参数也可以是脚本的名称。
      * @method getComponent
      * @param {Function|String} typeOrClassName
-     * @returns {Component}
+     * @return {Component}
+     * @example
+     * // get sprite component.
+     * var sprite = node.getComponent(cc.Sprite);
+     * // get custom test calss.
+     * var test = node.getComponent("Test");
      */
     getComponent: function (typeOrClassName) {
         var constructor = getConstructor(typeOrClassName);
@@ -539,11 +608,14 @@ var Node = cc.Class({
     },
 
     /**
-     * Returns all components of supplied Type in the node.
-     *
+     * !#en Returns all components of supplied type in the node.
+     * !#zh 返回节点上指定类型的所有组件。
      * @method getComponents
      * @param {Function|String} typeOrClassName
-     * @returns {Component[]}
+     * @return {Component[]}
+     * @example
+     * var sprites = node.getComponents(cc.Sprite);
+     * var tests = node.getComponents("Test");
      */
     getComponents: function (typeOrClassName) {
         var constructor = getConstructor(typeOrClassName), components = [];
@@ -555,11 +627,14 @@ var Node = cc.Class({
     },
 
     /**
-     * Returns the component of supplied type in any of its children using depth first search.
-     *
+     * !#en Returns the component of supplied type in any of its children using depth first search.
+     * !#zh 递归查找所有子节点中第一个匹配指定类型的组件。
      * @method getComponentInChildren
      * @param {Function|String} typeOrClassName
-     * @returns {Component}
+     * @return {Component}
+     * @example
+     * var sprite = node.getComponentInChildren(cc.Sprite);
+     * var Test = node.getComponentInChildren("Test");
      */
     getComponentInChildren: function (typeOrClassName) {
         var constructor = getConstructor(typeOrClassName);
@@ -571,11 +646,14 @@ var Node = cc.Class({
     },
 
     /**
-     * Returns the components of supplied type in any of its children using depth first search.
-     *
+     * !#en Returns all components of supplied type in any of its children.
+     * !#zh 递归查找所有子节点中指定类型的组件。
      * @method getComponentsInChildren
      * @param {Function|String} typeOrClassName
-     * @returns {Component[]}
+     * @return {Component[]}
+     * @example
+     * var sprites = node.getComponentsInChildren(cc.Sprite);
+     * var tests = node.getComponentsInChildren("Test");
      */
     getComponentsInChildren: function (typeOrClassName) {
         var constructor = getConstructor(typeOrClassName), components = [];
@@ -603,15 +681,18 @@ var Node = cc.Class({
     },
 
     /**
-     * Adds a component class to the node. You can also add component to node by passing in the name of the script.
-     *
+     * !#en Adds a component class to the node. You can also add component to node by passing in the name of the script.
+     * !#zh 向节点添加一个指定类型的组件类，你还可以通过传入脚本的名称来添加组件。
      * @method addComponent
      * @param {Function|String} typeOrClassName - The constructor or the class name of the component to add
-     * @returns {Component} - The newly added component
+     * @return {Component} - The newly added component
+     * @example
+     * var sprite = node.addComponent(cc.Sprite);
+     * var test = node.addComponent("Test");
      */
     addComponent: function (typeOrClassName) {
 
-        if ((this._objFlags & Destroying) && CC_EDITOR) {
+        if (CC_EDITOR && (this._objFlags & Destroying)) {
             cc.error('isDestroying');
             return null;
         }
@@ -648,7 +729,7 @@ var Node = cc.Class({
             return null;
         }
 
-        if (constructor._disallowMultiple && CC_EDITOR) {
+        if (CC_EDITOR && constructor._disallowMultiple) {
             if (!this._checkMultipleComp(constructor)) {
                 return null;
             }
@@ -678,6 +759,9 @@ var Node = cc.Class({
         this._components.push(component);
 
         if (this._activeInHierarchy) {
+            if (typeof component.__preload === 'function') {
+                cc.Component._callPreloadOnComponent(component);
+            }
             // call onLoad/onEnable
             component.__onNodeActivated(true);
         }
@@ -722,17 +806,28 @@ var Node = cc.Class({
         this._components.splice(index, 0, comp);
 
         if (this._activeInHierarchy) {
+            if (typeof comp.__preload === 'function') {
+                cc.Component._callPreloadOnComponent(comp);
+            }
             // call onLoad/onEnable
             comp.__onNodeActivated(true);
         }
     },
 
     /**
+     * !#en
      * Removes a component identified by the given name or removes the component object given.
      * You can also use component.destroy() if you already have the reference.
+     * !#zh
+     * 删除节点上的指定组件，传入参数可以是一个组件构造函数或组件名，也可以是已经获得的组件引用。
+     * 如果你已经获得组件引用，你也可以直接调用 component.destroy()
      * @method removeComponent
      * @param {String|Function|Component} component - The need remove component.
      * @deprecated please destroy the component to remove it.
+     * @example
+     * node.removeComponent(cc.Sprite);
+     * var Test = require("Test");
+     * node.removeComponent(Test);
      */
     removeComponent: function (component) {
         if ( !component ) {
@@ -786,7 +881,7 @@ var Node = cc.Class({
 
     // INTERNAL
 
-    _registerIfAttached: CC_DEV && function (register) {
+    _registerIfAttached: (CC_EDITOR || CC_TEST) && function (register) {
         if (register) {
             cc.engine.attachedObjsForEditor[this.uuid] = this;
             cc.engine.emit('node-attach-to-scene', {target: this});
@@ -803,7 +898,21 @@ var Node = cc.Class({
         }
     },
 
-    _onActivatedInHierarchy: function (newActive) {
+    _activeRecursively: function (newActive) {
+        var cancelActivation = false;
+        if (this._objFlags & Activating) {
+            if (newActive) {
+                cc.error('Node "%s" is already activating', this.name);
+                return;
+            }
+            else {
+                cancelActivation = true;
+            }
+        }
+        else if (newActive) {
+            this._objFlags |= Activating;
+        }
+
         this._activeInHierarchy = newActive;
 
         // component maybe added during onEnable, and the onEnable of new component is already called
@@ -811,42 +920,70 @@ var Node = cc.Class({
         var originCount = this._components.length;
         for (var c = 0; c < originCount; ++c) {
             var component = this._components[c];
-            if ( !(component instanceof cc.Component) ) {
+            if (component instanceof cc.Component) {
+                component.__onNodeActivated(newActive);
+                if (newActive && !this._activeInHierarchy) {
+                    // deactivated during activating
+                    this._objFlags &= ~Activating;
+                    return;
+                }
+            }
+            else {
                 if (CC_EDITOR) {
-                    cc.error('Sorry, the component of "%s" which with an index of %s is corrupted! It has been removed.', this.name, c);
+                    cc.error('Sorry, the component of "%s" which with an index of %s is corrupted! It has been removed.',
+                             this.name, c);
                     console.log('Corrupted component value:', component);
                 }
                 if (component) {
                     this._removeComponent(component);
                 }
                 else {
-                    this._components.splice(c, 1);
+                    JS.array.removeAt(this._components, c);
                 }
                 --c;
                 --originCount;
             }
-            else {
-                component.__onNodeActivated(newActive);
-            }
         }
+
         // activate children recursively
-        for (var i = 0, len = this.childrenCount; i < len; ++i) {
+        for (var i = 0, len = this._children.length; i < len; ++i) {
             var child = this._children[i];
             if (child._active) {
-                child._onActivatedInHierarchy(newActive);
+                child._activeRecursively(newActive);
+                if (newActive && !this._activeInHierarchy) {
+                    // deactivated during activating
+                    this._objFlags &= ~Activating;
+                    return;
+                }
             }
         }
-        // activate or desactivate ActionManager, EventManager
-        // Activate
+
+        if (cancelActivation) {
+            this._objFlags &= ~Activating;
+            return;
+        }
+
+        // ActionManager, EventManager
         if (newActive) {
+            // activate
             cc.director.getActionManager().resumeTarget(this);
             cc.eventManager.resumeTarget(this);
         }
-        // Desactivate
         else {
+            // deactivate
             cc.director.getActionManager().pauseTarget(this);
             cc.eventManager.pauseTarget(this);
         }
+
+        //
+        this._objFlags &= ~Activating;
+    },
+
+    _onActivatedInHierarchy: function (newActive) {
+        if (newActive) {
+            cc.Component._callPreloadOnNode(this);
+        }
+        this._activeRecursively(newActive);
     },
 
     _onHierarchyChanged: function (oldParent) {
@@ -862,7 +999,8 @@ var Node = cc.Class({
         if (activeInHierarchyBefore !== shouldActiveNow) {
             this._onActivatedInHierarchy(shouldActiveNow);
         }
-        if (CC_DEV) {
+        cc._widgetManager._nodesOrderDirty = true;
+        if (CC_EDITOR || CC_TEST) {
             var scene = cc.director.getScene();
             var inCurrentSceneBefore = oldParent && oldParent.isChildOf(scene);
             var inCurrentSceneNow = newParent && newParent.isChildOf(scene);
@@ -899,7 +1037,7 @@ var Node = cc.Class({
     },
 
     _deactivateChildComponents: function () {
-        // 和 _onActivatedInHierarchy 类似但不修改 this._activeInHierarchy
+        // 和 _activeRecursively 类似但不修改 this._activeInHierarchy
         var originCount = this._components.length;
         for (var c = 0; c < originCount; ++c) {
             var component = this._components[c];
@@ -927,58 +1065,18 @@ var Node = cc.Class({
         return clone;
     },
 
-    _onColorChanged: function () {
-        // update components if also in scene graph
-        for (var c = 0; c < this._components.length; ++c) {
-            var comp = this._components[c];
-            if (comp instanceof cc._SGComponent && comp.isValid && comp._sgNode) {
-                comp._sgNode.setColor(this._color);
-                if ( !this._cascadeOpacityEnabled ) {
-                    comp._sgNode.setOpacity(this._opacity);
-                }
-            }
-        }
-    },
-
-    _onCascadeChanged: function () {
-        // update components which also in scene graph
-        var opacity = this._cascadeOpacityEnabled ? 255 : this._opacity;
-        for (var c = 0; c < this._components.length; ++c) {
-            var comp = this._components[c];
-            if (comp instanceof cc._SGComponent && comp.isValid && comp._sgNode) {
-                comp._sgNode.setOpacity(opacity);
-            }
-        }
-    },
-
-    _onAnchorChanged: function () {
-        // update components if also in scene graph
-        for (var c = 0; c < this._components.length; ++c) {
-            var comp = this._components[c];
-            if (comp instanceof cc._SGComponent && comp.isValid && comp._sgNode) {
-                comp._sgNode.setAnchorPoint(this._anchorPoint);
-                comp._sgNode.ignoreAnchorPointForPosition(this.__ignoreAnchor);
-            }
-        }
-    },
-
-    _onOpacityModifyRGBChanged: function () {
-        for (var c = 0; c < this._components.length; ++c) {
-            var comp = this._components[c];
-            if (comp instanceof cc._SGComponent && comp.isValid && comp._sgNode) {
-                comp._sgNode.setOpacityModifyRGB(this._opacityModifyRGB);
-            }
-        }
-    },
-
 // EVENTS
     /**
-     * Register an callback of a specific event type on Node.
+     * !#en
+     * Register a callback of a specific event type on Node.<br/>
      * Use this method to register touch or mouse event permit propagation based on scene graph,
-     * you can propagate the event to the parents or swallow it by calling stopPropagation on the event.
-     * It's the recommended way to register touch/mouse event for Node, 
+     * you can propagate the event to the parents or swallow it by calling stopPropagation on the event.<br/>
+     * It's the recommended way to register touch/mouse event for Node,
      * please do not use cc.eventManager directly for Node.
-     *
+     * !#zh
+     * 在节点上注册指定类型的回调函数，也可以设置 target 用于绑定响应函数的调用者。<br/>
+     * 同时您可以将事件派发到父节点或者通过调用 stopPropagation 拦截它。<br/>
+     * 推荐使用这种方式来监听节点上的触摸或鼠标事件，请不要在节点上直接使用 cc.eventManager。
      * @method on
      * @param {String} type - A string representing the event type to listen for.
      * @param {Function} callback - The callback that will be invoked when the event is dispatched.
@@ -986,6 +1084,12 @@ var Node = cc.Class({
      * @param {Event} callback.param event
      * @param {Object} [target] - The target to invoke the callback, can be null
      * @return {Function} - Just returns the incoming callback so you can save the anonymous function easier.
+     * @example
+     * // add Node Touch Event
+     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_MOVE, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_END, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_CANCEL, callback, this.node);
      */
     on: function (type, callback, target) {
         if (_touchEvents.indexOf(type) !== -1) {
@@ -999,7 +1103,9 @@ var Node = cc.Class({
                     onTouchMoved: _touchMoveHandler,
                     onTouchEnded: _touchEndHandler
                 });
-                this._touchListener.retain();
+                if (CC_JSB) {
+                    this._touchListener.retain();
+                }
                 cc.eventManager.addListener(this._touchListener, this);
             }
         }
@@ -1015,7 +1121,9 @@ var Node = cc.Class({
                     onMouseUp: _mouseUpHandler,
                     onMouseScroll: _mouseWheelHandler,
                 });
-                this._mouseListener.retain();
+                if (CC_JSB) {
+                    this._mouseListener.retain();
+                }
                 cc.eventManager.addListener(this._mouseListener, this);
             }
         }
@@ -1023,13 +1131,18 @@ var Node = cc.Class({
     },
 
     /**
+     * !#en
      * Removes the callback previously registered with the same type, callback, target and or useCapture.
      * This method is merely an alias to removeEventListener.
-     *
+     * !#zh 删除之前与同类型，回调，目标或 useCapture 注册的回调。
      * @method off
      * @param {String} type - A string representing the event type being removed.
      * @param {Function} callback - The callback to remove.
      * @param {Object} [target] - The target to invoke the callback, if it's not given, only callback without target will be removed
+     * @example
+     * // remove Node TOUCH_START Event.
+     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * node.off(cc.Node.EventType.TOUCH_START, callback, this.node);
      */
     off: function (type, callback, target) {
         EventTarget.prototype.off.call(this, type, callback, target);
@@ -1043,10 +1156,12 @@ var Node = cc.Class({
     },
 
     /**
-     * Removes all callbacks previously registered with the same target.
-     *
+     * !#en Removes all callbacks previously registered with the same target.
+     * !#zh 移除目标上的所有注册事件。
      * @method targetOff
      * @param {Object} target - The target to be searched for all related callbacks
+     * @example
+     * node.targetOff(target);
      */
     targetOff: function (target) {
         EventTarget.prototype.targetOff.call(this, target);
@@ -1131,19 +1246,26 @@ var Node = cc.Class({
 
 // ACTIONS
     /**
+     * !#en
      * Executes an action, and returns the action that is executed.<br/>
-     * The node becomes the action's target. Refer to cc.Action's getTarget()
-     * Calling runAction while the node is not active won't have any effect
+     * The node becomes the action's target. Refer to cc.Action's getTarget()<br/>
+     * Calling runAction while the node is not active won't have any effect.
+     * !#zh
+     * 执行并返回该执行的动作。该节点将会变成动作的目标。<br/>
+     * 调用 runAction 时，节点自身处于不激活状态将不会有任何效果。
      * @method runAction
      * @param {Action} action
      * @return {Action} An Action pointer
+     * @example
+     * var action = cc.scaleTo(0.2, 1, 0.6);
+     * node.runAction(action);
      */
     runAction: function (action) {
-        if (!this.active) 
+        if (!this.active)
             return;
         cc.assert(action, cc._LogInfos.Node.runAction);
 
-        if (cc.sys.isNative) {
+        if (CC_JSB) {
             this._retainAction(action);
             this._sgNode._owner = this;
         }
@@ -1152,26 +1274,36 @@ var Node = cc.Class({
     },
 
     /**
-     * Stops and removes all actions from the running action list .
+     * !#en Stops and removes all actions from the running action list .
+     * !#zh 停止并且移除所有正在运行的动作列表。
      * @method stopAllActions
+     * @example
+     * node.stopAllActions();
      */
     stopAllActions: function () {
         cc.director.getActionManager().removeAllActionsFromTarget(this);
     },
 
     /**
-     * Stops and removes an action from the running action list.
+     * !#en Stops and removes an action from the running action list.
+     * !#zh 停止并移除指定的动作。
      * @method stopAction
      * @param {Action} action An action object to be removed.
+     * @example
+     * var action = cc.scaleTo(0.2, 1, 0.6);
+     * node.stopAction(action);
      */
     stopAction: function (action) {
         cc.director.getActionManager().removeAction(action);
     },
 
     /**
-     * Removes an action from the running action list by its tag.
+     * !#en Removes an action from the running action list by its tag.
+     * !#zh 停止并且移除指定标签的动作。
      * @method stopActionByTag
      * @param {Number} tag A tag that indicates the action to be removed.
+     * @example
+     * node.stopAction(1);
      */
     stopActionByTag: function (tag) {
         if (tag === cc.Action.TAG_INVALID) {
@@ -1182,11 +1314,14 @@ var Node = cc.Class({
     },
 
     /**
-     * Returns an action from the running action list by its tag.
+     * !#en Returns an action from the running action list by its tag.
+     * !#zh 通过标签获取指定动作。
      * @method getActionByTag
      * @see cc.Action#getTag and cc.Action#setTag
      * @param {Number} tag
      * @return {Action} The action object with the given tag.
+     * @example
+     * var action = node.getActionByTag(1);
      */
     getActionByTag: function (tag) {
         if (tag === cc.Action.TAG_INVALID) {
@@ -1196,26 +1331,37 @@ var Node = cc.Class({
         cc.director.getActionManager().getActionByTag(tag, this);
     },
 
-    /** <p>Returns the numbers of actions that are running plus the ones that are schedule to run (actions in actionsToAdd and actions arrays).<br/>
+    /**
+     * !#en
+     * Returns the numbers of actions that are running plus the ones that are schedule to run (actions in actionsToAdd and actions arrays).<br/>
      *    Composable actions are counted as 1 action. Example:<br/>
      *    If you are running 1 Sequence of 7 actions, it will return 1. <br/>
      *    If you are running 7 Sequences of 2 actions, it will return 7.</p>
+     * !#zh
+     * 获取运行着的动作加上正在调度运行的动作的总数。<br/>
+     * 例如：<br/>
+     * - 如果你正在运行 7 个动作中的 1 个 Sequence，它将返回 1。<br/>
+     * - 如果你正在运行 2 个动作中的 7 个 Sequence，它将返回 7。<br/>
+     *
      * @method getNumberOfRunningActions
      * @return {Number} The number of actions that are running plus the ones that are schedule to run
+     * @example
+     * var count = node.getNumberOfRunningActions();
+     * cc.log("Running Action Count: " + count);
      */
     getNumberOfRunningActions: function () {
         cc.director.getActionManager().numberOfRunningActionsInTarget(this);
     },
 
     _retainAction: function (action) {
-        if (cc.sys.isNative && action instanceof cc.Action && this._retainedActions.indexOf(action) === -1) {
+        if (CC_JSB && action instanceof cc.Action && this._retainedActions.indexOf(action) === -1) {
             this._retainedActions.push(action);
             action.retain();
         }
     },
 
     _releaseAllActions: function () {
-        if (cc.sys.isNative) {
+        if (CC_JSB) {
             for (var i = 0; i < this._retainedActions.length; ++i) {
                 this._retainedActions[i].release();
             }
@@ -1227,7 +1373,7 @@ var Node = cc.Class({
 
 // In JSB, when inner sg node being replaced, the system event listeners will be cleared.
 // We need a mechanisme to guarentee the persistence of system event listeners.
-if (cc.sys.isNative) {
+if (CC_JSB) {
     cc.js.getset(Node.prototype, '_sgNode',
         function () {
             return this.__sgNode;
@@ -1252,20 +1398,12 @@ if (cc.sys.isNative) {
 }
 
 /**
+ *
  * @event position-changed
  * @param {Event} event
  * @param {Vec2} event.detail - old position
  */
 /**
- * @event rotation-changed
- * @param {Event} event
- * @param {Number} event.detail - old rotation x
- */
-/**
- * @event scale-changed
- * @param {Event} event
- * @param {Vec2} event.detail - old scale
- */
 /**
  * @event size-changed
  * @param {Event} event
@@ -1275,16 +1413,6 @@ if (cc.sys.isNative) {
  * @event anchor-changed
  * @param {Event} event
  * @param {Vec2} event.detail - old anchor
- */
-/**
- * @event color-changed
- * @param {Event} event
- * @param {Color} event.detail - old color
- */
-/**
- * @event opacity-changed
- * @param {Event} event
- * @param {Number} event.detail - old opacity
  */
 /**
  * @event child-added
@@ -1301,8 +1429,11 @@ if (cc.sys.isNative) {
  * @param {Event} event
  */
 /**
+ * !#en
  * Note: This event is only emitted from the top most node whose active value did changed,
  * not including its child nodes.
+ * !#zh
+ * 注意：此节点激活时，此事件仅从最顶部的节点发出。
  * @event active-in-hierarchy-changed
  * @param {Event} event
  */

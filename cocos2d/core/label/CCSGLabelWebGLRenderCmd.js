@@ -50,13 +50,17 @@ _ccsg.Label.WebGLRenderCmd = function(renderableObject){
     this._quadDirty = true;
     this._splitedStrings = null;
     this._drawFontsize = 0;
-    this._realRenderingSize = cc.size(-10, -10);
 };
 
 var proto = _ccsg.Label.WebGLRenderCmd.prototype = Object.create(_ccsg.Node.WebGLRenderCmd.prototype);
 cc.js.mixin(proto, _ccsg.Label.TTFLabelBaker.prototype);
 
 proto.constructor = _ccsg.Label.WebGLRenderCmd;
+
+proto._updateDisplayOpacity = function (parentOpacity) {
+    _ccsg.Node.WebGLRenderCmd.prototype._updateDisplayOpacity.call(this, parentOpacity);
+    this._rebuildLabelSkin();
+};
 
 proto.rendering = function (ctx) {
     var node = this._node;

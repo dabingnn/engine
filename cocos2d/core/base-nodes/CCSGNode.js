@@ -867,6 +867,7 @@ _ccsg.Node = cc.Class({
      */
     setParent: function (parent) {
         this._parent = parent;
+        this._renderCmd.setDirtyFlag(_ccsg.Node._dirtyFlags.transformDirty);
     },
 
     /**
@@ -1124,7 +1125,7 @@ _ccsg.Node = cc.Class({
     addChild: function (child, localZOrder, tag) {
         localZOrder = localZOrder === undefined ? child._localZOrder : localZOrder;
         var name, setTag = false;
-        if(cc.js.isUndefined(tag)){
+        if(typeof tag === 'undefined'){
             tag = undefined;
             name = child._name;
         } else if(cc.js.isString(tag)){
@@ -1774,12 +1775,12 @@ _ccsg.Node = cc.Class({
      * @return {cc.AffineTransform}
      */
     getNodeToWorldTransform: function () {
-        //TODO renderCmd has a WorldTransform
         var t;
         if (this._renderCmd && cc._renderType === cc.game.RENDER_TYPE_CANVAS) {
             t = this._renderCmd._worldTransform;
         }
         else {
+            //TODO renderCmd has a WorldTransform
             t = this.getNodeToParentTransform();
             for (var p = this._parent; p !== null; p = p.parent) {
                 t = cc.affineTransformConcat(t, p.getNodeToParentTransform());
@@ -1830,7 +1831,6 @@ _ccsg.Node = cc.Class({
      * @return {cc.Vec2}
      */
     convertToWorldSpace: function (nodePoint) {
-        nodePoint = nodePoint || cc.p(0,0);
         return cc.pointApplyAffineTransform(nodePoint, this.getNodeToWorldTransform());
     },
 
@@ -1853,7 +1853,6 @@ _ccsg.Node = cc.Class({
      * @return {cc.Vec2}
      */
     convertToWorldSpaceAR: function (nodePoint) {
-        nodePoint = nodePoint || cc.p(0,0);
         var pt = cc.pAdd(nodePoint, this._renderCmd.getAnchorPointInPoints());
         return this.convertToWorldSpace(pt);
     },
@@ -2238,6 +2237,6 @@ _ccsg.Node.prototype.ctor = _ccsg.Node;
 
 _ccsg.Node._stateCallbackType = {onEnter: 1, onExit: 2, cleanup: 3, onEnterTransitionDidFinish: 4, updateTransform: 5, onExitTransitionDidStart: 6, sortAllChildren: 7};
 
-cc.assert(cc.js.isFunction(cc._tmp.PrototypeCCNode), cc._LogInfos.MissingFile, "BaseNodesPropertyDefine.js");
+cc.assert(typeof cc._tmp.PrototypeCCNode === 'function', cc._LogInfos.MissingFile, "BaseNodesPropertyDefine.js");
 cc._tmp.PrototypeCCNode();
 delete cc._tmp.PrototypeCCNode;

@@ -27,14 +27,26 @@
  * @module cc
  */
 /**
- * Class for BitmapFont handling.
+ * !#en Class for BitmapFont handling.
+ * !#zh 位图字体资源类。
  * @class BitmapFont
  * @extends RawAsset
  * @constructor
  */
 var BitmapFont = cc.Class({
     name: 'cc.BitmapFont',
-    extends: cc.Font
+    extends: cc.Font,
+
+    properties: {
+        texture: {
+            default: '',
+            url: cc.Texture2D
+        },
+
+        fontSize: {
+            default: -1
+        }
+    }
 });
 
 cc.BitmapFont = BitmapFont;

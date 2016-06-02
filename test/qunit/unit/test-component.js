@@ -52,6 +52,79 @@ test('should not cause an infinite loops if re-activated in onLoad', function ()
     ok('done');
 });
 
+// Since the modification event-listeners.js will lead to test ‘remove and add again during invoking’ infinite loop
+//test('start of the component which created during another start', function () {
+//    var TestComp = cc.Class({
+//        extends: cc.Component,
+//        start: function () {
+//            strictEqual(this.inited, true, 'should be called after another start finished');
+//        }
+//    });
+//
+//    var node = new cc.Node();
+//    cc.director.getScene().addChild(node);
+//    var comp = node.addComponent(cc.Component);
+//    comp.start = function () {
+//        var test = new cc.Node();
+//        var testComp = test.addComponent(TestComp);
+//        this.node.addChild(test);
+//        testComp.inited = true;
+//    };
+//});
+
+test('start', function () {
+    var TestComp = cc.Class({
+        extends: cc.Component,
+        start: function () {
+            this.inited = true;
+        },
+        update: function (dt) {
+            strictEqual(this.inited, true, 'should always invoke before update');
+            this.enable = false;
+        }
+    });
+
+    var node = new cc.Node();
+    var comp = node.addComponent(cc.Component);
+    comp.start = function () {
+        var test = new cc.Node();
+        test.addComponent(TestComp);
+        this.node.addChild(test);
+    };
+    cc.director.getScene().addChild(node);
+    // run comp
+    cc.game.step();
+    // run TestComp
+    cc.game.step();
+});
+
+test('lateUpdate', function () {
+    var TestComp = cc.Class({
+        extends: cc.Component,
+        update: function () {
+            this.updated = true;
+        },
+        lateUpdate: function (dt) {
+            strictEqual(this.updated, true, 'should always invoke before update');
+            this.enable = false;
+        }
+    });
+
+    var node = new cc.Node();
+    var comp = node.addComponent(cc.Component);
+    comp.update = function () {
+        var test = new cc.Node();
+        test.addComponent(TestComp);
+        this.node.addChild(test);
+        this.enabled = false;
+    };
+    cc.director.getScene().addChild(node);
+    // run comp
+    cc.game.step();
+    // run TestComp
+    cc.game.step();
+});
+
 //test('should not call lifecycle methods if not executeInEditMode', function () {
 //    var Comp = cc.Class({
 //        extends: CallbackTester,
@@ -65,158 +138,4 @@ test('should not cause an infinite loops if re-activated in onLoad', function ()
 //    cc.director.getScene().addChild(parent);
 //    var comp = parent.addComponent(Comp);
 //    comp.stopTest();
-//});
-
-//asyncTest('invoke using name', function () {
-//    var cb = new Callback().setDisabledMessage('method should not invokes in this frame');
-//    var cb2 = new Callback().disable('method should not being called after destroyed');
-//
-//    var MyComp = Fire.Class({
-//        extends: Component,
-//        onLoad: function () {
-//            this.invoke('myCallback', 0.001);
-//        },
-//        myCallback: cb,
-//        callback2: cb2
-//    });
-//    cc.executeInEditMode(MyComp);
-//
-//    var ent = new cc.Node();
-//    var comp = ent.addComponent(MyComp);
-//
-//    cb.enable();
-//    setTimeout(function () {
-//        cb.once('method should being invoked');
-//
-//        comp.invoke('callback2', 0);
-//        comp.destroy();
-//        FO._deferredDestroy();
-//
-//        setTimeout(function () {
-//            start();
-//        }, 1);
-//    }, 0.001 * 1000);
-//});
-//
-//asyncTest('cancel invoke using name', 0, function () {
-//    var cb1 = new Callback().disable('method 1 should not invoked if canceled');
-//
-//    var MyComp = Fire.Class({
-//        extends: Component,
-//        myCallback1: cb1,
-//    });
-//    cc.executeInEditMode(MyComp);
-//    var ent = new cc.Node();
-//    var comp = ent.addComponent(MyComp);
-//
-//    comp.invoke('myCallback1', 0.001);
-//    comp.invoke('myCallback1', 0.001);
-//
-//    comp.cancelInvoke('myCallback1');
-//
-//    setTimeout(start, 0.001 * 1000);
-//});
-//
-//asyncTest('invoke using function', function () {
-//    var cb = new Callback().setDisabledMessage('method should not invokes in this frame');
-//    var cb2 = new Callback().disable('method should not being called after destroyed');
-//
-//    var MyComp = Fire.Class({
-//        extends: Component,
-//        onLoad: function () {
-//            this.invoke(this.myCallback, 0.001);
-//        },
-//        myCallback: cb,
-//        callback2: cb2
-//    });
-//    cc.executeInEditMode(MyComp);
-//
-//    var ent = new cc.Node();
-//    var comp = ent.addComponent(MyComp);
-//
-//    cb.enable();
-//    setTimeout(function () {
-//        cb.once('method should being invoked');
-//
-//        comp.invoke(comp.callback2, 0);
-//        comp.destroy();
-//        FO._deferredDestroy();
-//
-//        setTimeout(function () {
-//            start();
-//        }, 1);
-//    }, 0.001 * 1000);
-//});
-//
-//asyncTest('cancel invoke using id', 0, function () {
-//    var cb1 = new Callback().disable('method 1 should not invoked if canceled');
-//
-//    var MyComp = Fire.Class({
-//        extends: Component,
-//        myCallback1: cb1,
-//    });
-//    cc.executeInEditMode(MyComp);
-//    var ent = new cc.Node();
-//    var comp = ent.addComponent(MyComp);
-//
-//    var id1 = comp.invoke(comp.myCallback1, 0.001);
-//    comp.cancelInvoke(id1);
-//
-//    setTimeout(start, 0.001 * 1000);
-//});
-//
-//asyncTest('repeat using name', function () {
-//    var cb = new Callback(function () {
-//        if (cb.calledCount > 1) {
-//            ok(true, 'method should being invoked repeatedly');
-//            cb.disable();
-//            comp.cancelRepeat('myCallback');
-//            clearTimeout(stopId);
-//            start();
-//        }
-//    }).enable();
-//
-//    var MyComp = Fire.Class({
-//        extends: Component,
-//        myCallback: cb,
-//    });
-//    cc.executeInEditMode(MyComp);
-//
-//    var ent = new cc.Node();
-//    var comp = ent.addComponent(MyComp);
-//
-//    comp.repeat('myCallback', 0);
-//
-//    var stopId = setTimeout(function () {
-//        ok(false, 'Timeout: method should being invoked repeatedly');
-//        start();
-//    }, 100);
-//});
-//
-//asyncTest('repeat using function', function () {
-//    var cb = new Callback(function () {
-//        if (cb.calledCount > 1) {
-//            ok(true, 'method should being invoked repeatedly');
-//            cb.disable();
-//            comp.cancelRepeat(repeatId);
-//            clearTimeout(stopId);
-//            start();
-//        }
-//    }).enable();
-//
-//    var MyComp = Fire.Class({
-//        extends: Component,
-//        myCallback: cb,
-//    });
-//    cc.executeInEditMode(MyComp);
-//
-//    var ent = new cc.Node();
-//    var comp = ent.addComponent(MyComp);
-//
-//    var repeatId = comp.repeat(cb, 0);
-//
-//    var stopId = setTimeout(function () {
-//        ok(false, 'Timeout: method should being invoked repeatedly');
-//        start();
-//    }, 100);
 //});

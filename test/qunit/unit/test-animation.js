@@ -497,69 +497,11 @@ test('Animation Component', function () {
     animation.sample();
     strictEqual(entity.x, 100, 'target property should equals value in frame 10s');
 
-    animation.removeClip(clip);
+    animation.removeClip(clip, true);
     strictEqual(animation.getClips().length, 0, 'should remove clip');
     strictEqual(animation.getAnimationState('test'), null, 'should remove state');
 });
 
-
-test('CCAnimation._updateClip', function () {
-    var entity = new cc.Node();
-    var animation = entity.addComponent(cc.Animation);
-
-    entity.x = 400;
-
-    var clip = new cc.AnimationClip();
-    clip._name = 'test';
-    clip._duration = 1;
-    clip.curveData = {
-        props: {
-            x: [
-                {frame: 0, value: 0},
-                {frame: 1, value: 100}
-            ]
-        }
-    };
-
-    animation.addClip(clip);
-    animation._init();
-
-    animation.play('test');
-    animation.setCurrentTime(0.5, 'test');
-    animation.sample();
-
-    strictEqual(entity.x, 50, 'entity x should be 50');
-
-    var newClip = new cc.AnimationClip();
-    newClip._name = 'test';
-    newClip._duration = 1;
-    newClip.curveData = {
-        props: {
-            x: [
-                {frame: 0.5, value: 0},
-                {frame: 1, value: 100}
-            ]
-        }
-    };
-
-    animation._updateClip(newClip);
-    animation.sample();
-
-    var clips = animation.getClips();
-
-    strictEqual(clips.length, 1, 'animation clips length should be 1 after update clip');
-    strictEqual(clips[0], newClip, 'animation clips should only include new clip');
-    strictEqual(animation.getAnimationState(newClip.name).clip, newClip, 'new animation state\'s clip should be new clip');
-
-    strictEqual(entity.x, 0, 'entity x should be 0');
-
-    clip = new cc.AnimationClip();
-    clip._name = 'test2';
-    animation.addClip(clip);
-
-    animation._updateClip(newClip);
-    strictEqual(clips.indexOf(newClip), 0, 'clip index should be 0');
-});
 
 test('sampleMotionPaths', function () {
     var sampleMotionPaths = cc._Test.sampleMotionPaths;
@@ -1236,5 +1178,51 @@ test('animation enabled/disabled', function () {
     strictEqual(animation._animator.isPaused, false, 'move animation should be resumed');
 
     entity.parent = null;
+});
+
+test('animation removeClip', function () {
+    var entity = new cc.Node();
+    var animation = entity.addComponent(cc.Animation);
+
+    var clip1 = new cc.AnimationClip();
+    clip1._name = 'clip1';
+    clip1._duration = 1;
+    clip1.curveData = {
+        props: {
+            x: [
+                {frame: 0, value: 0},
+                {frame: 1, value: 100}
+            ]
+        }
+    };
+    animation.addClip(clip1);
+    animation._defaultClip = clip1;
+
+    var clip2 = new cc.AnimationClip();
+    clip2._name = 'clip2';
+    clip2._duration = 1;
+    clip2.curveData = {
+        props: {
+            y: [
+                {frame: 0, value: 0},
+                {frame: 1, value: 100}
+            ]
+        }
+    };
+    animation.addClip(clip2);
+
+    animation.removeClip(clip1);
+    strictEqual(animation._clips.indexOf(clip1), 0, 'clip1 will not be removed since clip1 is defaultClip');
+    
+    animation.removeClip(clip1, true);
+    strictEqual(animation._clips.indexOf(clip1), -1, 'clip1 will be removed even it\'t defaultClip if force is true');
+    strictEqual(animation.defaultClip, null, 'defaultClip will be reset to null');
+
+    animation.play('clip2');
+    animation.removeClip(clip2);
+    strictEqual(animation._clips.indexOf(clip2), 0, 'clip2 will not be removed since clip2 is playing');
+
+    animation.removeClip(clip2, true);
+    strictEqual(animation._clips.indexOf(clip2), -1, 'clip2 will be removed even clip2 is playing if force is true');
 });
 

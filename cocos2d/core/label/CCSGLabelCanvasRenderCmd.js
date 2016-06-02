@@ -52,6 +52,7 @@
         }
     };
 
+
     proto._syncStatus = function (parentCmd) {
         var flags = _ccsg.Node._dirtyFlags, locFlag = this._dirtyFlag;
         var parentNode = parentCmd ? parentCmd._node : null;
@@ -75,12 +76,13 @@
         if (opacityDirty)
             this._syncDisplayOpacity();
 
-        if(colorDirty || opacityDirty || (locFlag & flags.textDirty)){
+        if(colorDirty || opacityDirty || (this._dirtyFlag & flags.textDirty)){
             this._rebuildLabelSkin();
         }
 
-        if (locFlag & flags.transformDirty)                 //update the transform
+        if (this._dirtyFlag & flags.transformDirty) {
             this.transform(parentCmd);
+        }
     };
 
     proto._getLineHeight = function () {
@@ -429,6 +431,14 @@
 
         //do real rendering
         for (var i = 0; i < this._splitedStrings.length; ++i) {
+            if(this._node.isOutlined())
+            {
+                var strokeColor = this._node.getOutlineColor() || cc.color(255,255,255,255);
+                this._labelContext.globalCompositeOperation = 'source-over';
+                this._labelContext.strokeStyle = 'rgb(' + strokeColor.r + ',' + strokeColor.g + ',' + strokeColor.b + ')';
+                this._labelContext.lineWidth = this._node.getOutlineWidth() * 2;
+                this._labelContext.strokeText(this._splitedStrings[i], startPosition.x, startPosition.y + i * lineHeight);
+            }
             this._labelContext.fillText(this._splitedStrings[i], startPosition.x, startPosition.y + i * lineHeight);
         }
 
@@ -439,8 +449,6 @@
     proto._rebuildLabelSkin = function () {
         this._dirtyFlag = this._dirtyFlag & _ccsg.Node._dirtyFlags.textDirty ^ this._dirtyFlag;
         var node = this._node;
-        this._realRenderingSize = _ccsg.Node.prototype.getContentSize.call(node);
-
         node._updateLabel();
     };
 })();
@@ -458,7 +466,6 @@
         this._quad = new cc.V3F_C4B_T2F_Quad();
         this._quadDirty = true;
         this._splitedStrings = null;
-        this._realRenderingSize = cc.size(-10, -10);
     };
 
     var proto = _ccsg.Label.CanvasRenderCmd.prototype = Object.create(_ccsg.Node.CanvasRenderCmd.prototype);

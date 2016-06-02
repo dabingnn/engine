@@ -117,7 +117,7 @@ var Sprite = cc.Class({
 
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.renderers/Sprite',
-        help: 'app://docs/html/components/sprite.html',
+        help: 'i18n:COMPONENT.help_url.sprite',
         inspector: 'app://editor/page/inspector/sprite.html',
     },
 
@@ -131,9 +131,7 @@ var Sprite = cc.Class({
             type: cc.SpriteFrame
         },
         _type: SpriteType.SIMPLE,
-        //FIXME:_useOriginalSize is deprecated, since v0.8, it need to be deleted
-        _useOriginalSize: true,
-        _sizeMode: -1,
+        _sizeMode: SizeMode.TRIMMED,
         _fillType: 0,
         _fillCenter: cc.v2(0,0),
         _fillStart: 0,
@@ -163,12 +161,15 @@ var Sprite = cc.Class({
                 return this._spriteFrame;
             },
             set: function (value, force) {
+                if (this._spriteFrame === value) {
+                    return;
+                }
                 var lastSprite = this._spriteFrame;
                 this._spriteFrame = value;
                 this._applySpriteFrame(lastSprite);
-                // color cleared after reset texture, should re-apply color
-                this._sgNode.setColor(this.node._color);
-                this._sgNode.setOpacity(this.node._opacity);
+                if (CC_EDITOR) {
+                    this.node.emit('spriteframe-changed', this);
+                }
             },
             type: cc.SpriteFrame,
         },
@@ -214,7 +215,8 @@ var Sprite = cc.Class({
                 this._fillType = value;
                 this._sgNode && this._sgNode.setFillType(value);
             },
-            type: FillType
+            type: FillType,
+            tooltip: 'i18n:COMPONENT.sprite.fill_type'
         },
 
         /**
@@ -235,6 +237,7 @@ var Sprite = cc.Class({
                 this._fillCenter = cc.v2(value);
                 this._sgNode && this._sgNode.setFillCenter(this._fillCenter);
             },
+            tooltip: 'i18n:COMPONENT.sprite.fill_center',
         },
 
         /**
@@ -256,6 +259,7 @@ var Sprite = cc.Class({
                 this._fillStart = cc.clampf(value, -1, 1);
                 this._sgNode && this._sgNode.setFillStart(value);
             },
+            tooltip: 'i18n:COMPONENT.sprite.fill_start'
         },
 
         /**
@@ -277,6 +281,7 @@ var Sprite = cc.Class({
                 this._fillRange = cc.clampf(value, -1, 1);
                 this._sgNode && this._sgNode.setFillRange(value);
             },
+            tooltip: 'i18n:COMPONENT.sprite.fill_range'
         },
         /**
          * !#en specify the frame is trimmed or not.
@@ -296,7 +301,8 @@ var Sprite = cc.Class({
                     this._sgNode.enableTrimmedContentSize(value);
                 }
             },
-            animatable: false
+            animatable: false,
+            tooltip: 'i18n:COMPONENT.sprite.trim'
         },
 
         /**
@@ -317,7 +323,8 @@ var Sprite = cc.Class({
                 this._sgNode.setBlendFunc(this._blendFunc);
             },
             animatable: false,
-            type:BlendFactor
+            type:BlendFactor,
+            tooltip: 'i18n:COMPONENT.sprite.src_blend_factor'
         },
 
         /**
@@ -338,23 +345,10 @@ var Sprite = cc.Class({
                 this._sgNode.setBlendFunc(this._blendFunc);
             },
             animatable: false,
-            type: BlendFactor
+            type: BlendFactor,
+            tooltip: 'i18n:COMPONENT.sprite.dst_blend_factor'
         },
 
-        //FIXME:_useOriginalSize is deprecated, since v0.8, it need to be deleted
-        useOriginalSize: {
-            get: function () {
-                return this._useOriginalSize;
-            },
-            set: function (value) {
-                this._useOriginalSize = value;
-                if (value) {
-                    this._applySpriteSize();
-                }
-            },
-            animatable: false,
-            tooltip: 'i18n:COMPONENT.sprite.original_size',
-        },
         /**
          * !#en specify the size tracing mode.
          * !#zh 精灵尺寸调整模式
@@ -374,7 +368,8 @@ var Sprite = cc.Class({
                 }
             },
             animatable: false,
-            type: SizeMode
+            type: SizeMode,
+            tooltip: 'i18n:COMPONENT.sprite.size_mode'
         }
     },
 
@@ -510,7 +505,7 @@ var Sprite = cc.Class({
         return this._sgNode.getInsetBottom();
     },
 
-    onLoad: function () {
+    __preload: CC_EDITOR && function () {
         this._super();
         this.node.on('size-changed', this._resized, this);
     },
@@ -523,22 +518,9 @@ var Sprite = cc.Class({
         }
     },
 
-    onDestroy: function () {
+    onDestroy: CC_EDITOR && function () {
         this._super();
         this.node.off('size-changed', this._resized, this);
-    },
-
-    _validateSizeMode: function() {
-        //do processing
-        if (-1 === this._sizeMode) {
-            //FIXME:_useOriginalSize is deprecated, since v0.8, it need to be deleted
-            if (this._useOriginalSize) {
-                this._sizeMode = SizeMode.TRIMMED;
-            } else {
-                this._sizeMode = SizeMode.CUSTOM;
-            }
-            this._isTrimmedMode = true;
-        }
     },
 
     _applyAtlas: CC_EDITOR && function (spriteFrame) {
@@ -617,10 +599,8 @@ var Sprite = cc.Class({
     },
 
     _initSgNode: function () {
-        var sgNode = this._sgNode;
-        
-        this._validateSizeMode();
         this._applySpriteFrame(null);
+        var sgNode = this._sgNode;
 
         // should keep the size of the sg node the same as entity,
         // otherwise setContentSize may not take effect
@@ -638,7 +618,7 @@ var Sprite = cc.Class({
         sgNode.setBlendFunc(this._blendFunc);
     },
 
-    _resized: function () {
+    _resized: CC_EDITOR && function () {
         if (this._spriteFrame) {
             var actualSize = this.node.getContentSize();
             var expectedW = actualSize.width;

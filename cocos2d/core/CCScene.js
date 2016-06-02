@@ -25,9 +25,12 @@
 var NIL = function () {};
 
 /**
- * <p>cc.Scene is a subclass of ccsg.Node that is used only as an abstract concept.</p>
- * <p>cc.Scene and ccsg.Node are almost identical with the difference that users can not modify cc.Scene manually. </p>
- *
+ * !#en
+ * cc.Scene is a subclass of cc.Node that is used only as an abstract concept.<br/>
+ * cc.Scene and cc.Node are almost identical with the difference that users can not modify cc.Scene manually.
+ * !#zh
+ * cc.Scene 是 cc.Node 的子类，仅作为一个抽象的概念。<br/>
+ * cc.Scene 和 cc.Node 有点不同，用户不应直接修改 cc.Scene。
  * @class Scene
  * @extends _BaseNode
  */
@@ -37,7 +40,9 @@ cc.Scene = cc.Class({
 
     ctor: function () {
         var sgNode = this._sgNode = new _ccsg.Scene();
-        sgNode.retain();
+        if (CC_JSB) {
+            sgNode.retain();
+        }
         sgNode.setAnchorPoint(0.0, 0.0);
         this._anchorPoint.x = 0.0;
         this._anchorPoint.y = 0.0;
@@ -64,10 +69,6 @@ cc.Scene = cc.Class({
     },
 
     _onHierarchyChanged: NIL,
-    _onColorChanged: NIL,
-    _onAnchorChanged: NIL,
-    _onOpacityModifyRGBChanged: NIL,
-    _onCascadeChanged: NIL,
 
     _load: function () {
         if ( ! this._inited) {
@@ -80,7 +81,7 @@ cc.Scene = cc.Class({
         active = (active !== false);
         var i, child, children = this._children, len = children.length;
 
-        if (CC_DEV) {
+        if (CC_EDITOR || CC_TEST) {
             // register all nodes to editor
             for (i = 0; i < len; ++i) {
                 child = children[i];

@@ -250,9 +250,8 @@ EditBoxImpl.prototype = {
     },
 
     _updateLabelPosition: function (editBoxSize) {
-        var textLabelSize = this._textLabel.getContentSize();
-        this._placeholderLabel.setLineHeight(editBoxSize.height);
         this._textLabel.setContentSize(editBoxSize);
+        this._placeholderLabel.setLineHeight(editBoxSize.height);
         var placeholderLabelSize = this._placeholderLabel.getContentSize();
 
         if (this._editBox._editBoxInputMode === InputMode.ANY){
@@ -264,7 +263,7 @@ EditBoxImpl.prototype = {
         }
         else {
             this._textLabel.enableWrapText(false);
-            this._textLabel.setPosition(cc.p(0, (editBoxSize.height + textLabelSize.height) / 2));
+            this._textLabel.setPosition(cc.p(0, editBoxSize.height));
             this._placeholderLabel.setPosition(cc.p(0, (editBoxSize.height + placeholderLabelSize.height) / 2));
             this._placeholderLabel.setVerticalAlign(cc.VerticalTextAlignment.CENTER);
             this._textLabel.setVerticalAlign(cc.VerticalTextAlignment.CENTER);
@@ -699,21 +698,10 @@ _ccsg.EditBox = _ccsg.Node.extend({
         this.setContentSize = this._updateEditBoxSize;
 
         this.initWithSizeAndBackgroundSprite(size, normal9SpriteBg);
-        this._registerTouchEvent();
 
         this.scheduleOnce(function () {
             editBoxImpl.registerClickEvent();
         }, 0.01);
-    },
-
-    _registerTouchEvent: function() {
-        var touchListener = cc.EventListener.create({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            onTouchBegan: this._onTouchBegan.bind(this),
-            onTouchEnded: this._onTouchEnded.bind(this),
-        });
-        cc.eventManager.addListener(touchListener, this);
     },
 
     _onTouchBegan: function (touch, event) {

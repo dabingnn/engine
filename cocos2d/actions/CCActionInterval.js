@@ -81,7 +81,7 @@ cc.ActionInterval = cc.FiniteTimeAction.extend({
      * @return {Boolean}
      */
     initWithDuration:function (d) {
-        this._duration = (d === 0) ? cc.FLT_EPSILON : d;
+        this._duration = (d === 0) ? cc.macro.FLT_EPSILON : d;
         // prevent division by 0
         // This comparison could be in step:, but it might decrease the performance
         // by 3% in heavy based action games.
@@ -126,7 +126,6 @@ cc.ActionInterval = cc.FiniteTimeAction.extend({
      * @param {Object} easeObj
      * @returns {ActionInterval}
      * @example
-     * //example
      * action.easeing(cc.easeIn(3.0));
      */
     easing: function (easeObj) {
@@ -156,7 +155,7 @@ cc.ActionInterval = cc.FiniteTimeAction.extend({
             this._elapsed += dt;
 
         //this.update((1 > (this._elapsed / this._duration)) ? this._elapsed / this._duration : 1);
-        //this.update(Math.max(0, Math.min(1, this._elapsed / Math.max(this._duration, cc.FLT_EPSILON))));
+        //this.update(Math.max(0, Math.min(1, this._elapsed / Math.max(this._duration, cc.macro.FLT_EPSILON))));
         var t = this._elapsed / (this._duration > 0.0000001192092896 ? this._duration : 0.0000001192092896);
         t = (1 > t ? t : 1);
         this.update(t > 0 ? t : 0);
@@ -440,8 +439,8 @@ cc.Sequence = cc.ActionInterval.extend({
  *
  * // create sequence with array
  * var seq = cc.sequence(actArray);
- * todo: It should be use new
  */
+// todo: It should be use new
 cc.sequence = function (/*Multiple Arguments*/tempArray) {
     var paramArray = (tempArray instanceof Array) ? tempArray : arguments;
     if ((paramArray.length > 0) && (paramArray[paramArray.length - 1] == null))
@@ -2230,7 +2229,13 @@ cc.TintTo = cc.ActionInterval.extend({
         this._to = cc.color(0, 0, 0);
         this._from = cc.color(0, 0, 0);
 
-		blue !== undefined && this.initWithDuration(duration, red, green, blue);
+        if (red instanceof cc.Color) {
+            blue = red.b;
+            green = red.g;
+            red = red.r;
+        }
+
+        blue !== undefined && this.initWithDuration(duration, red, green, blue);
     },
 
     /*

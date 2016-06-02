@@ -70,6 +70,8 @@ var srcs = [
     './cocos2d/core/editbox/CCSGEditBox.js',
     './cocos2d/core/editBox/CCdomNode.js',
 
+    './cocos2d/core/videoplayer/CCSGVideoPlayer.js',
+
     './cocos2d/render-texture/CCRenderTexture.js',
     './cocos2d/render-texture/CCRenderTextureCanvasRenderCmd.js',
     './cocos2d/render-texture/CCRenderTextureWebGLRenderCmd.js',
@@ -102,7 +104,11 @@ var srcs = [
 
     './cocos2d/physics/CCPhysicsDebugNode.js',
     './cocos2d/physics/CCPhysicsDebugNodeCanvasRenderCmd.js',
-    './cocos2d/physics/CCPhysicsDebugNodeWebGLRenderCmd.js'
+    './cocos2d/physics/CCPhysicsDebugNodeWebGLRenderCmd.js',
+
+    './cocos2d/motion-streak/CCSGMotionStreak.js',
+    './cocos2d/motion-streak/CCSGMotionStreakWebGLRenderCmd.js'
+
 ];
 
 var header = new Buffer('(function (cc, ccui, ccs, cp) {\n');

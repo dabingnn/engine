@@ -25,7 +25,8 @@
  ****************************************************************************/
 
 /**
- * the device accelerometer reports values for each axis in units of g-force.
+ * !#en the device accelerometer reports values for each axis in units of g-force.
+ * !#zh 设备重力传感器传递的各个轴的数据。
  * @class Acceleration
  * @constructor
  */
@@ -45,7 +46,8 @@ cc.Acceleration = function (x, y, z, timestamp) {
 };
 
 /**
- * Blend Function used for textures.
+ * !#en Blend Function used for textures.
+ * !#zh 图像的混合方式。
  * @class BlendFunc
  * @Constructor
  */
@@ -168,26 +170,43 @@ cc.js.get(cc.BlendFunc, "ADDITIVE", cc.BlendFunc._additive);
  */
 cc.blendFuncDisable = cc.BlendFunc._disable;
 
-/**
- * Common usage:
+/*
+ * !#en
+ * Common usage:</br>
  *
- * var fontDef = new cc.FontDefinition();
- * fontDef.fontName = "Arial";
- * fontDef.fontSize = 12;
- * ...
+ * var fontDef = new cc.FontDefinition();</br>
+ * fontDef.fontName = "Arial";</br>
+ * fontDef.fontSize = 12;</br>
+ * ...</br>
  *
- * OR using inline definition usefull for constructor injection
+ * OR using inline definition usefull for constructor injection</br>
  *
- * var fontDef = new cc.FontDefinition({
- *  fontName: "Arial",
- *  fontSize: 12
+ * var fontDef = new cc.FontDefinition({ </br>
+ *  fontName: "Arial", </br>
+ *  fontSize: 12 </br>
+ * });</br>
+ *
+ * !#zh
+ * 常见用法：</br>
+ * var fontDef = new cc.FontDefinition();</br>
+ * fontDef.fontName = "Arial"; </br>
+ * fontDef.fontSize = 12; </br>
+ * ... </br>
+ *
+ * 或使用定义构造函数：</br>
+ *
+ * var fontDef = new cc.FontDefinition({ </br>
+ *  fontName: "Arial", </br>
+ *  fontSize: 12 </br>
  * });
  *
  * @class FontDefinition
  * @constructor
  */
-/**
- * @method FontDefinition 
+/*
+ * !#en TODO
+ * !#zh 定义字体基本属性的结构体。
+ * @method FontDefinition
  * @param {Object} properties - (OPTIONAL) Allow inline FontDefinition
  * @return {FontDefinition}
  */
