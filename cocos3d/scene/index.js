@@ -193,6 +193,8 @@ require('./CCMesh');
 require('./CCScene');
 require('./CCMaterial');
 require('./CCBasicMaterial');
+require('./CCPhongMaterial');
+require('./CCDepthMaterial');
 require('./CCLight');
 require('./CCForwardRenderer');
 require('./CCSkeletalAnimation');

@@ -106,7 +106,7 @@ ForwardRenderer.prototype = {
         shadowCam.setNearClip(0.1);
         shadowCam.setFarClip(200);
         shadowCam.setAspectRatio(1.0);
-        shadowCam.setOrthoHeight(80);
+        shadowCam.setOrthoHeight(20);
         var material = this.depthMaterial;
         if(!this.depthMaterial) {
             material = this.depthMaterial = new cc3d.DepthMaterial();
@@ -148,7 +148,20 @@ ForwardRenderer.prototype = {
             device.setUniformValue('matrix_world', world_matrix.data);
             //device.setUniformValue('matrix_worldviewprojection', wvp_matrix.data);
             device.setUniformValue('matrix_normal', normal_matrix.data);
-            material.updateShader(device, scene);
+            var objDefs = {};
+            objDefs.skinned = meshInstance.isSkinned();
+            material.updateShader(device, scene,objDefs);
+            if(objDefs.skinned) {
+                //update skinned
+                var matrix_palette = new Float32Array(50 * 16);
+                var bone_matrix = meshInstance.skinInstance.poseMatrix;
+                meshInstance.skinInstance.updatePose();
+                for(var matrix_index = 0; matrix_index < 50 && matrix_index < bone_matrix.length; ++matrix_index) {
+                    var bone = bone_matrix[matrix_index];
+                    matrix_palette.set(bone.data, matrix_index * 16);
+                }
+                device.setUniformValue('matrix_skin[0]', matrix_palette);
+            }
             material.update();
 
             device.setShader(material.getShader());

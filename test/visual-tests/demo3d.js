@@ -116,7 +116,7 @@ function initJasonModel() {
         //load material
         var materials = jason.materials;
         for(var index = materials.length - 1; index >= 0; --index) {
-            var material = jsonMaterials[materials[index].id] = new cc3d.BasicPhongMaterial();
+            var material = jsonMaterials[materials[index].id] = new cc3d.PhongMaterial();
             var texture = initTexture('./res3d/'+ materials[index].textures[0].filename);
             material.texture = texture;
             material.useLambertLighting = true;
@@ -732,7 +732,7 @@ function initScene() {
     node.translate(3.5, 2, -3);
     //node.setLocalScale(3,3,3);
     objectNodes.push(node);
-    var material = new cc3d.BasicPhongMaterial();
+    var material = new cc3d.PhongMaterial();
     material.texture = texture;
     material.useLambertLighting = true;
     //scene.addMeshInstance(new cc3d.MeshInstance(node, sphereMesh, material));
@@ -741,7 +741,7 @@ function initScene() {
     node.translate(6.5, 2, -3);
     //node.setLocalScale(3,3,3);
     objectNodes.push(node);
-    var material = new cc3d.BasicPhongMaterial();
+    var material = new cc3d.PhongMaterial();
     material.texture = texture;
     material.color = new cc3d.math.Vec3(1,1,1);
     material.shininess = 20;
@@ -771,7 +771,7 @@ function initScene() {
     node.translate(-3.5, 2, -3);
     //node.setLocalScale(3,3,3);
     objectNodes.push(node);
-    material = new cc3d.BasicPhongMaterial();
+    material = new cc3d.PhongMaterial();
     //material.texture = texture;
     material.color = new cc3d.math.Vec3(1,0,1);
     material.useLambertLighting = true;
@@ -781,7 +781,7 @@ function initScene() {
     node = initObjectNode();
     node.translate(-9.5, 2, -3);
     objectNodes.push(node);
-    material = new cc3d.BasicPhongMaterial();
+    material = new cc3d.PhongMaterial();
     material.texture = texture2;
     material.alphaTest = 0.1;
     material.useLambertLighting = true;
@@ -792,7 +792,7 @@ function initScene() {
     node.translate(0,0,0);
     node.setLocalScale(10,0.1,10);
     //objectNodes.push(node);
-    material = new cc3d.BasicPhongMaterial();
+    material = new cc3d.PhongMaterial();
     //material.texture = texture2;
     material.alphaTest = 0.1;
     material.useLambertLighting = true;
@@ -803,7 +803,7 @@ function initScene() {
     node.translate(10,0,0);
     node.setLocalScale(0.1,10,10);
     //objectNodes.push(node);
-    material = new cc3d.BasicPhongMaterial();
+    material = new cc3d.PhongMaterial();
     //material.texture = texture2;
     material.alphaTest = 0.1;
     material.useLambertLighting = true;
@@ -817,11 +817,11 @@ function initScene() {
     rotate.setFromAxisAngle(new cc3d.math.Vec3(0,1,0),45);
     node.setRotation(rotate);
     //objectNodes.push(node);
-    material = new cc3d.BasicPhongMaterial();
+    material = new cc3d.PhongMaterial();
     //material.texture = texture2;
     material.color = new cc3d.math.Vec3(0.2,0.8,0.3);
     material.useLambertLighting = true;
-    scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
+    //scene.addMeshInstance(new cc3d.MeshInstance(node, boxMesh, material));
 
     renderer = new cc3d.ForwardRenderer(device);
 
