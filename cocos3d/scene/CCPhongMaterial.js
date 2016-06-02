@@ -70,7 +70,6 @@ cc3d.extend( PhongMaterial.prototype, {
         pixelSrc += '#define DIRECTIONAL_LIGHT_COUNT ' + scene._directionalLights.length + '\n';
         pixelSrc += '#define POINT_LIGHT_COUNT ' + scene._pointLights.length + '\n';
         pixelSrc += '#define SPOT_LIGHT_COUNT ' + scene._spotLights.length + '\n';
-        pixelSrc += '#define LIGHTING_PHONG\n';
         pixelSrc += '#define LIGHTING_SHADOW\n';
         pixelSrc += cc3d.ShaderChunks.commonVaryings;
         pixelSrc += cc3d.ShaderChunks.lighting;
