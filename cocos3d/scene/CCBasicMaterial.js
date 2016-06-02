@@ -8,17 +8,22 @@ var BasicMaterial = function() {
 BasicMaterial = cc3d.inherits(BasicMaterial, cc3d.Material);
 
 cc3d.extend( BasicMaterial.prototype, {
-    _generateShaderKey: function (device, scene) {
+    _generateShaderKey: function (device, scene, objDefs) {
+        var skinned = (objDefs && objDefs.skinned) || false;
         var key = 'BasicMaterialShader';
         if(this.hasAlphaTest()) {
             key += '_alphaTest';
+        }
+        if(skinned) {
+            key += '_skinned';
         }
         return key;
     },
 
     updateShader: function (device, scene, objDefs) {
-        var key = this._generateShaderKey(device, scene);
+        var key = this._generateShaderKey(device, scene, objDefs);
         if(key === this.shaderKey) return;
+        var skinned = (objDefs && objDefs.skinned) || false;
         this.shaderKey = key;
         var shader = cc3d.ShaderLibs.getShaderByKey(key);
         if(shader) {
@@ -27,15 +32,16 @@ cc3d.extend( BasicMaterial.prototype, {
 
             var vertSrc, pixelSrc;
             vertSrc = '' +
-                'attribute vec4 a_position;' +
-                'attribute vec2 a_uv;' +
-                'uniform mat4 matrix_world;' +
-                'uniform mat4 matrix_viewprojection;' +
-                'varying vec2 v_uv;' +
-                'void main() {' +
-                'gl_Position = matrix_viewprojection * matrix_world * a_position;' +
-                'v_uv = a_uv;' +
-                '}';
+                'attribute vec3 a_position;\n' +
+                'attribute vec2 a_uv;\n' +
+                'uniform mat4 matrix_world;\n' +
+                'uniform mat4 matrix_viewprojection;\n' +
+                (skinned ? cc3d.ShaderChunks.transformSkinned : cc3d.ShaderChunks.transform) +
+                'varying vec2 v_uv;\n' +
+                'void main() {\n' +
+                'gl_Position = matrix_viewprojection * matrix_world * getTransformedPos(vec4(a_position, 1.0));\n' +
+                'v_uv = a_uv;\n' +
+                '}\n';
             pixelSrc = 'precision mediump float;' +
                 'varying vec2 v_uv;' +
                 'uniform sampler2D texture;' +
@@ -56,6 +62,10 @@ cc3d.extend( BasicMaterial.prototype, {
                 a_uv: cc3dEnums.SEMANTIC_TEXCOORD0
                 //a_normal: cc3dEnums.SEMANTIC_NORMAL
             };
+            if(skinned) {
+                attribs['a_skinIndex'] = cc3dEnums.SEMANTIC_BLENDINDICES;
+                attribs['a_skinWeight'] = cc3dEnums.SEMANTIC_BLENDWEIGHT;
+            }
             var definition = {
                 vshader: vertSrc,
                 fshader: pixelSrc,
@@ -79,6 +89,7 @@ cc3d.extend( BasicMaterial.prototype, {
 
 });
 
+//for testing
 var ColorMaterial = function() {
     this.color = new cc3d.math.Vec3(1,1,1);
 };
@@ -86,13 +97,21 @@ var ColorMaterial = function() {
 ColorMaterial = cc3d.inherits(ColorMaterial, cc3d.Material);
 
 cc3d.extend( ColorMaterial.prototype, {
-    _generateShaderKey: function (device, scene) {
-        return 'ColorMaterialShader';
+    _generateShaderKey: function (device, scene,objDefs) {
+        var key =  'ColorMaterialShader';
+        var skinned = (objDefs && objDefs.skinned) || false;
+        if(skinned) {
+            key += '_skinnned';
+        }
+
+        return key;
+
     },
 
     updateShader: function (device, scene, objDefs) {
         var key = this._generateShaderKey(device, scene);
         if(key === this.shaderKey) return;
+        var skinned = (objDefs && objDefs.skinned) || false;
         this.shaderKey = key;
         var shader = cc3d.ShaderLibs.getShaderByKey(key);
         if(shader) {
@@ -101,22 +120,27 @@ cc3d.extend( ColorMaterial.prototype, {
 
             var vertSrc, pixelSrc;
             vertSrc = '' +
-                'attribute vec4 a_position;' +
-                'uniform mat4 matrix_viewprojection;' +
-                'uniform mat4 matrix_world;' +
-                'void main() {' +
-                'gl_Position = matrix_viewprojection * matrix_world * a_position;' +
-                '}';
-            pixelSrc = 'precision mediump float;' +
-                'uniform vec3 color;' +
-                'void main() {' +
-                'gl_FragColor.rgb = color;' +
-                'gl_FragColor.a = 1.0;' +
+                'attribute vec3 a_position;\n' +
+                'uniform mat4 matrix_viewprojection;\n' +
+                'uniform mat4 matrix_world;\n' +
+                (skinned ? cc3d.ShaderChunks.transformSkinned : cc3d.ShaderChunks.transform) +
+                'void main() {\n' +
+                'gl_Position = matrix_viewprojection * matrix_world * getTransformedPos(vec4(a_position,1.0));\n' +
+                '}\n';
+            pixelSrc = 'precision mediump float;\n' +
+                'uniform vec3 color;\n' +
+                'void main() {\n' +
+                'gl_FragColor.rgb = color;\n' +
+                'gl_FragColor.a = 1.0;\n' +
                 '}';
             var attribs = {
                 a_position: cc3dEnums.SEMANTIC_POSITION,
                 //a_normal: cc3dEnums.SEMANTIC_NORMAL
             };
+            if(skinned) {
+                attribs['a_skinIndex'] = cc3dEnums.SEMANTIC_BLENDINDICES;
+                attribs['a_skinWeight'] = cc3dEnums.SEMANTIC_BLENDWEIGHT;
+            }
             var definition = {
                 vshader: vertSrc,
                 fshader: pixelSrc,
