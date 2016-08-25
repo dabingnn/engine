@@ -5,11 +5,11 @@
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated engine source code (the "Software"), a limited,
-  worldwide, royalty-free, non-assignable, revocable and  non-exclusive license
+ worldwide, royalty-free, non-assignable, revocable and  non-exclusive license
  to use Cocos Creator solely to develop games on your target platforms. You shall
-  not use Cocos Creator software for developing other software or tools that's
-  used for developing games. You are not granted to publish, distribute,
-  sublicense, and/or sell copies of Cocos Creator.
+ not use Cocos Creator software for developing other software or tools that's
+ used for developing games. You are not granted to publish, distribute,
+ sublicense, and/or sell copies of Cocos Creator.
 
  The software or tools in this License Agreement are licensed, not sold.
  Chukong Aipu reserves all rights not expressly granted to you.
@@ -23,10 +23,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var EventTarget = require('./event/event-target');
+var EventTarget = require('../core/event/event-target');
 var View;
 if (!(CC_EDITOR && Editor.isMainProcess)) {
-    View = require('./platform/CCView');
+    View = require('./CCView3D');
 }
 
 var _isMusicPlaying = false;
@@ -243,7 +243,7 @@ var game = {
     },
 
     /**
-     * !#en Pause the game main loop. This will pause: 
+     * !#en Pause the game main loop. This will pause:
      * game logic execution, rendering process, event manager, background music and all audio effects.
      * This is different with cc.director.pause which only pause the game logic execution.
      * !#zh 暂停游戏主循环。包含：游戏逻辑，渲染，事件处理，背景音乐和所有音效。这点和只暂停游戏逻辑的 cc.director.pause 不同。
@@ -265,7 +265,7 @@ var game = {
     },
 
     /**
-     * !#en Resume the game from pause. This will resume: 
+     * !#en Resume the game from pause. This will resume:
      * game logic execution, rendering process, event manager, background music and all audio effects.
      * !#zh 恢复游戏主循环。包含：游戏逻辑，渲染，事件处理，背景音乐和所有音效。
      * @method resume
@@ -358,7 +358,8 @@ var game = {
              * @property director
              * @type {Director}
              */
-            cc.director = cc.Director._getInstance();
+
+            cc.director = cc.Director3D._getInstance();
             if (cc.director.setOpenGLView)
                 cc.director.setOpenGLView(cc.view);
             /**
@@ -441,29 +442,7 @@ var game = {
      * @param {Node} node - The node to be made persistent
      */
     addPersistRootNode: function (node) {
-        if (!(node instanceof cc.Node) || !node.uuid) {
-            cc.warn('The target can not be made persist because it\'s not a cc.Node or it doesn\'t have _id property.');
-            return;
-        }
-        var id = node.uuid;
-        if (!this._persistRootNodes[id]) {
-            var scene = cc.director._scene;
-            if (cc.isValid(scene)) {
-                if (!node.parent) {
-                    node.parent = scene;
-                }
-                else if ( !(node.parent instanceof cc.Scene) ) {
-                    cc.warn('The node can not be made persist because it\'s not under root node.');
-                    return;
-                }
-                else if (node.parent !== scene) {
-                    cc.warn('The node can not be made persist because it\'s not in current scene.');
-                    return;
-                }
-                this._persistRootNodes[id] = node;
-                node._persistNode = true;
-            }
-        }
+        cc.warn('addPersistRootNode not implemented in director3D');
     },
 
     /**
@@ -473,13 +452,7 @@ var game = {
      * @param {Node} node - The node to be removed from persistent node list
      */
     removePersistRootNode: function (node) {
-        if (node !== this._ignoreRemovePersistNode) {
-            var id = node.uuid || '';
-            if (node === this._persistRootNodes[id]) {
-                delete this._persistRootNodes[id];
-                node._persistNode = false;
-            }
-        }
+        cc.warn('removePersistRootNode not implemented in director3D');
     },
 
     /**
@@ -490,7 +463,8 @@ var game = {
      * @return {Boolean}
      */
     isPersistRootNode: function (node) {
-        return node._persistNode;
+        cc.warn('isPersistRootNode not implemented in director3D');
+        return false;
     },
 
 //@Private Methods
@@ -505,22 +479,22 @@ var game = {
         }
         else {
             window.requestAnimFrame = window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            this._stTime;
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                this._stTime;
             window.cancelAnimationFrame = window.cancelAnimationFrame ||
-            window.cancelRequestAnimationFrame ||
-            window.msCancelRequestAnimationFrame ||
-            window.mozCancelRequestAnimationFrame ||
-            window.oCancelRequestAnimationFrame ||
-            window.webkitCancelRequestAnimationFrame ||
-            window.msCancelAnimationFrame ||
-            window.mozCancelAnimationFrame ||
-            window.webkitCancelAnimationFrame ||
-            window.oCancelAnimationFrame ||
-            this._ctTime;
+                window.cancelRequestAnimationFrame ||
+                window.msCancelRequestAnimationFrame ||
+                window.mozCancelRequestAnimationFrame ||
+                window.oCancelRequestAnimationFrame ||
+                window.webkitCancelRequestAnimationFrame ||
+                window.msCancelAnimationFrame ||
+                window.mozCancelAnimationFrame ||
+                window.webkitCancelAnimationFrame ||
+                window.oCancelAnimationFrame ||
+                this._ctTime;
         }
     },
     _stTime: function(callback){
@@ -676,30 +650,12 @@ var game = {
         localCanvas.setAttribute("tabindex", 99);
 
         if (cc._renderType === game.RENDER_TYPE_WEBGL) {
+            //TODO: add graphic initiallization here
             this._renderContext = cc._renderContext = cc.webglContext
-             = cc.create3DContext(localCanvas, {
-                'stencil': true,
-                'antialias': !cc.sys.isMobile,
-                'alpha': true
-            });
-        }
-        // WebGL context created successfully
-        if (this._renderContext) {
-            cc.renderer = cc.rendererWebGL;
-            win.gl = this._renderContext; // global variable declared in CCMacro.js
-            cc.renderer.init();
-            cc.shaderCache._init();
-            cc._drawingUtil = new cc.DrawingPrimitiveWebGL(this._renderContext);
-            cc.textureCache._initializingRenderer();
-            cc.glExt = {};
-            cc.glExt.instanced_arrays = win.gl.getExtension("ANGLE_instanced_arrays");
-            cc.glExt.element_uint = win.gl.getExtension("OES_element_index_uint");
+                = new pc.GraphicsDevice(localCanvas);
+            cc.renderer = new pc.ForwardRenderer(this._renderContext);
         } else {
-            cc._renderType = game.RENDER_TYPE_CANVAS;
-            cc.renderer = cc.rendererCanvas;
-            cc.renderer.init();
-            this._renderContext = cc._renderContext = new cc.CanvasContextWrapper(localCanvas.getContext("2d"));
-            cc._drawingUtil = cc.DrawingPrimitiveCanvas ? new cc.DrawingPrimitiveCanvas(this._renderContext) : null;
+            cc.error('does not support canvas rendering for 3D');
         }
 
         cc._gameDiv = localContainer;
@@ -774,9 +730,9 @@ cc.js.addon(game, EventTarget.prototype);
 /**
  * @module cc
  */
-var game3D = require('../wrapper3d/CCGame3D');
+
 /**
  * @property game
  * @type Game
  */
-cc.game = module.exports = game3D || game;
+module.exports = game;
