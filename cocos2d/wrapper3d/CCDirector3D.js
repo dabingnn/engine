@@ -131,28 +131,26 @@ var Director3D = Class.extend(/** @lends Director3D# */{
 
     _scheduler: null,
     _actionManager: null,
-    _3dScene: null,
-    _3dRootNode: null,
 
     ctor: function () {
         var self = this;
 
         EventTarget.call(self);
         self._lastUpdate = Date.now();
-        cc.game.on(cc.game.EVENT_SHOW, function () {
+        cc.game3D.on(cc.game3D.EVENT_SHOW, function () {
             self._lastUpdate = Date.now();
         });
     },
 
     //todo: this is just a hack test for 3d
     _init3D: function() {
-        this._3dRootNode = new pc.GraphNode();
-        this._3dScene = new pc.Scene();
-        var node = new pc.GraphNode();
-        var camera = new pc.Camera();
-        camera._node = node;
-        this._3dScene.addCamera(camera);
-        this._3dRootNode.addChild(node);
+        //this._3dRootNode = new pc.GraphNode();
+        //this._3dScene = new pc.Scene();
+        //var node = new pc.GraphNode();
+        //var camera = new pc.Camera();
+        //camera._node = node;
+        //this._3dScene.addCamera(camera);
+        //this._3dRootNode.addChild(node);
 
     },
 
@@ -234,7 +232,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //    this._nextDeltaTimeZero = false;
         //} else {
         //    this._deltaTime = (now - this._lastUpdate) / 1000;
-        //    if ((cc.game.config[cc.game.CONFIG_KEY.debugMode] > 0) && (this._deltaTime > 1))
+        //    if ((cc.game3D.config[cc.game3D.CONFIG_KEY.debugMode] > 0) && (this._deltaTime > 1))
         //        this._deltaTime = 1 / 60.0;
         //}
         //
@@ -440,68 +438,69 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //this._scenesStack.push(scene);
         //this._nextScene = scene;
     },
+    runSceneImmediate: function (){},
+    runScene: function () {},
+    runSceneImmediate3D: function (scene, onBeforeLoadScene, onLaunched) {
+        var id, node, game = cc.game3D;
+        var persistNodes = game._persistRootNodes;
 
-    runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
-        //var id, node, game = cc.game;
-        //var persistNodes = game._persistRootNodes;
-        //
-        //if (scene instanceof cc.Scene) {
-        //    scene._load();  // ensure scene initialized
-        //}
-        //
-        //// detach persist nodes
-        //for (id in persistNodes) {
-        //    node = persistNodes[id];
-        //    game._ignoreRemovePersistNode = node;
-        //    node.parent = null;
-        //    game._ignoreRemovePersistNode = null;
-        //}
-        //
-        //var oldScene = this._scene;
-        //
-        //// auto release assets
-        //var autoReleaseAssets = oldScene && oldScene.autoReleaseAssets && oldScene.dependAssets;
-        //AutoReleaseUtils.autoRelease(cc.loader, autoReleaseAssets, scene.dependAssets);
-        //
-        //// unload scene
-        //if (cc.isValid(oldScene)) {
-        //    oldScene.destroy();
-        //}
-        //
-        //this._scene = null;
-        //
-        //// purge destroyed nodes belongs to old scene
-        //cc.Object._deferredDestroy();
-        //
-        //if (onBeforeLoadScene) {
-        //    onBeforeLoadScene();
-        //}
-        //this.emit(Director3D.EVENT_BEFORE_SCENE_LAUNCH, scene);
-        //
+        if (scene instanceof cc.Scene3D) {
+            scene._load();  // ensure scene initialized
+        }
+
+        // detach persist nodes
+        for (id in persistNodes) {
+            node = persistNodes[id];
+            game._ignoreRemovePersistNode = node;
+            node.parent = null;
+            game._ignoreRemovePersistNode = null;
+        }
+
+        var oldScene = this._scene;
+
+        // auto release assets
+        var autoReleaseAssets = oldScene && oldScene.autoReleaseAssets && oldScene.dependAssets;
+        AutoReleaseUtils.autoRelease(cc.loader, autoReleaseAssets, scene.dependAssets);
+
+        // unload scene
+        if (cc.isValid(oldScene)) {
+            oldScene.destroy();
+        }
+
+        this._scene = null;
+
+        // purge destroyed nodes belongs to old scene
+        cc.Object._deferredDestroy();
+
+        if (onBeforeLoadScene) {
+            onBeforeLoadScene();
+        }
+        this.emit(Director3D.EVENT_BEFORE_SCENE_LAUNCH, scene);
+
         //var sgScene = scene;
-        //
-        //// Run an Entity Scene
-        //if (scene instanceof cc.Scene) {
-        //    this._scene = scene;
-        //    sgScene = scene._sgNode;
-        //
-        //    // Re-attach or replace persist nodes
-        //    for (id in persistNodes) {
-        //        node = persistNodes[id];
-        //        var existNode = scene.getChildByUuid(id);
-        //        if (existNode) {
-        //            // scene also contains the persist node, select the old one
-        //            var index = existNode.getSiblingIndex();
-        //            existNode._destroyImmediate();
-        //            node.parent = scene;
-        //            node.setSiblingIndex(index);
-        //        }
-        //        else {
-        //            node.parent = scene;
-        //        }
-        //    }
-        //    scene._activate();
-        //}
+
+        // Run an Entity Scene
+        if (scene instanceof cc.Scene3D) {
+            this._scene = scene;
+            //sgScene = scene._sgNode;
+
+            // Re-attach or replace persist nodes
+            for (id in persistNodes) {
+                node = persistNodes[id];
+                var existNode = scene.getChildByUuid(id);
+                if (existNode) {
+                    // scene also contains the persist node, select the old one
+                    var index = existNode.getSiblingIndex();
+                    existNode._destroyImmediate();
+                    node.parent = scene;
+                    node.setSiblingIndex(index);
+                }
+                else {
+                    node.parent = scene;
+                }
+            }
+            scene._activate();
+        }
         //
         //// Run or replace rendering scene
         //if ( !this._runningScene ) {
@@ -521,28 +520,28 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //    this.setNextScene();
         //}
         //
-        //if (onLaunched) {
-        //    onLaunched(null, scene);
-        //}
-        ////cc.renderer.clear();
-        //this.emit(Director3D.EVENT_AFTER_SCENE_LAUNCH, scene);
+        if (onLaunched) {
+            onLaunched(null, scene);
+        }
+        //cc.renderer.clear();
+        this.emit(Director3D.EVENT_AFTER_SCENE_LAUNCH, scene);
     },
 
-    runScene: function (scene, onBeforeLoadScene, onLaunched) {
+    runScene3D: function (scene, onBeforeLoadScene, onLaunched) {
         //cc.assert(scene, cc._LogInfos.Director.pushScene);
-        //if (scene instanceof cc.Scene) {
-        //    // ensure scene initialized
-        //    scene._load();
-        //}
-        //
-        //// Delay run / replace scene to the end of the frame
-        //this.once(Director3D.EVENT_AFTER_UPDATE, function () {
-        //    this.runSceneImmediate(scene, onBeforeLoadScene, onLaunched);
-        //});
+        if (scene instanceof cc.Scene3D) {
+            // ensure scene initialized
+            scene._load();
+        }
+
+        // Delay run / replace scene to the end of the frame
+        this.once(Director3D.EVENT_AFTER_UPDATE, function () {
+            this.runSceneImmediate(scene, onBeforeLoadScene, onLaunched);
+        });
     },
 
     _getSceneUuid: function (key) {
-        //var scenes = cc.game._sceneInfos;
+        //var scenes = cc.game3D._sceneInfos;
         //if (typeof key === 'string') {
         //    if (!key.endsWith('.fire')) {
         //        key += '.fire';
@@ -916,9 +915,10 @@ cc.DisplayLinkDirector = Director3D.extend(/** @lends Director3D# */{
 
         // Render
         cc.g_NumberOfDraws = 0;
-        this._3dRootNode.syncHierarchy();
-        var scene = this._3dScene;
-        var cameras = scene.getCameras();
+        var scene = this._scene && this._scene._sgScene;
+        var rootNode = this._scene && this._scene._sgNode;
+        rootNode && rootNode.syncHierarchy();
+        var cameras = (scene && scene.getCameras()) || [];
         for(var index = 0; index < cameras.length; ++index) {
             cc.renderer.render(scene, cameras[index]);
         }
@@ -964,9 +964,10 @@ cc.DisplayLinkDirector = Director3D.extend(/** @lends Director3D# */{
             // Render
             cc.g_NumberOfDraws = 0;
 
-            this._3dRootNode.syncHierarchy();
-            var scene = this._3dScene;
-            var cameras = scene.getCameras();
+            var scene = this._scene && this._scene._sgScene;
+            var rootNode = this._scene && this._scene._sgNode;
+            rootNode && rootNode.syncHierarchy();
+            var cameras = (scene && scene.getCameras()) || [];
             for(var index = 0; index < cameras.length; ++index) {
                 cc.renderer.render(scene, cameras[index]);
             }

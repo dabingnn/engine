@@ -44,7 +44,7 @@ var game = {
      * @property EVENT_HIDE
      * @type {String}
      * @example
-     * cc.game.on(cc.game.EVENT_HIDE, function () {
+     * cc.game3D.on(cc.game3D.EVENT_HIDE, function () {
      *     cc.audioEngine.pauseMusic();
      *     cc.audioEngine.pauseAllEffects();
      * });
@@ -402,8 +402,8 @@ var game = {
     },
 
     /**
-     * !#en cc.game is the singleton object for game related functions.
-     * !#zh cc.game 是 Game 的实例，用来驱动整个游戏。
+     * !#en cc.game3D is the singleton object for game related functions.
+     * !#zh cc.game3D 是 Game 的实例，用来驱动整个游戏。
      * @class Game
      */
 

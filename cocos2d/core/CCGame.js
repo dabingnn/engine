@@ -780,3 +780,4 @@ var game3D = require('../wrapper3d/CCGame3D');
  * @type Game
  */
 cc.game = module.exports = game3D || game;
+cc.game3D = module.exports = game3D;
