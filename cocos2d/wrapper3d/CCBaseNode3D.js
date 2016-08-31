@@ -854,6 +854,8 @@ var BaseNode3D = cc.Class(/** @lends cc.Node# */{
 //    //anchorX: ['_getAnchorX', '_setAnchorX'],
 //    //anchorY: ['_getAnchorY', '_setAnchorY'],
 //};
-//Misc.propertyDefine(BaseNode3D, SameNameGetSets, DiffNameGetSets);
+
+var SameNameGetSets = ['name','position','rotation','parent','tag'];
+Misc.propertyDefine(BaseNode3D, SameNameGetSets, []);
 
 cc._BaseNode3D = module.exports = BaseNode3D;

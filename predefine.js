@@ -73,6 +73,7 @@ if (!CC_JSB) {
 
     require('./cocos2d/wrapper3d/features3D');
     require('./cocos2d/wrapper3d/CCScene3D');
+    require('./cocos2d/wrapper3d/CCNode3D');
     require('./cocos2d/wrapper3d/CCDirector3D');
     require('./cocos2d/wrapper3d/CCDirector3DWebGL');
 

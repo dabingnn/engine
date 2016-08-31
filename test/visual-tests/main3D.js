@@ -200,39 +200,48 @@ function initSphereMesh( device, radius, widthSegments, heightSegments, phiStart
     return mesh;
 
 };
-function initScene3D(rootNode, scene) {
-    var lightNode1 = new pc.GraphNode();
-    rootNode.addChild(lightNode1);
-    lightNode1.setLocalRotation(new pc.Quat(1,1,0,0).normalize());
+function initScene3D(sgRootNode, sgScene, scene) {
+    var lightNode1 = new cc.Node3D();
+    scene.addChild(lightNode1);
+    lightNode1.rotationX = lightNode1.rotationY = 0;
+    lightNode1.rotationZ = -30;
+    //lightNode1.setLocalEulerAngles(0,0,-30);
+    //lightNode1.setLocalRotation(new pc.Quat(1,1,0,0).normalize());
     var light = new pc.Light();
     light.setColor(0.8,0.0,0.6);
     light.setEnabled(true);
-    scene.addLight(light);
-    light._node = lightNode1;
+    sgScene.addLight(light);
+    light._node = lightNode1._sgNode;
 
-    var lightNode2 = new pc.GraphNode();
-    rootNode.addChild(lightNode2);
-    lightNode2.setLocalRotation(new pc.Quat(1,-1,0,0).normalize());
+    var lightNode2 = new cc.Node3D();
+    scene.addChild(lightNode2);
+    lightNode1.rotationX = lightNode1.rotationY = 0;
+    lightNode2.rotationZ = 140;
+    //lightNode2.setLocalEulerAngles(0,0,90);
+    //lightNode2.setLocalRotation(new pc.Quat(1,-1,0,0).normalize());
     var light2 = new pc.Light();
     light2.setColor(0.0,1.0,0.0);
     light2.setEnabled(true);
-    scene.addLight(light2);
-    light2._node = lightNode2;
+    sgScene.addLight(light2);
+    light2._node = lightNode2._sgNode;
 
-    var modelNode = new pc.GraphNode();
-    modelNode.setLocalScale(1,2,1);
-    modelNode.setLocalPosition(0,0,0);
+    var modelNode = new cc.Node3D();
+    modelNode.scale = {x:1,y:2,z:1};
+    modelNode.position = {x:0,y:0,z:0};
+    modelNode.rotation = {x:0,y:0,z:90};
+    //modelNode.setLocalScale(1,2,1);
+    //modelNode.setLocalPosition(0,0,0);
     var mesh = initSphereMesh(cc._renderContext,10,32,32);
     var model = new pc.Model();
     var material = new pc.StandardMaterial();
     material.diffuse = new pc.Color(1.0,1,1);
     material.update();
-    model.graph = modelNode;
-    model.meshInstances.push(new pc.MeshInstance(modelNode,mesh, material));
+    model.graph = modelNode._sgNode;
+    model.meshInstances.push(new pc.MeshInstance(modelNode._sgNode,mesh, material));
     model.getGraph().syncHierarchy();
-    scene.addModel(model);
+    sgScene.addModel(model);
 
-    rootNode.addChild(modelNode);
+    scene.addChild(modelNode);
 }
 
 cc.game3D.run({
@@ -249,6 +258,6 @@ cc.game3D.run({
     var cameraNode = camera._node;
     cameraNode.setPosition(new pc.Vec3(0, 0, 50));
     camera._clearOptions.color[0] = 1.0;
-    initScene3D(scene._sgNode, scene._sgScene);
+    initScene3D(scene._sgNode, scene._sgScene, scene);
     cc.director.runSceneImmediate3D(scene);
 });

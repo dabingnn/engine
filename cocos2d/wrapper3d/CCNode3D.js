@@ -24,7 +24,7 @@
 
 'use strict';
 
-var EventTarget = require('./event/event-target');
+var EventTarget = require('../core/event/event-target');
 
 var JS = cc.js;
 var Flags = cc.Object.Flags;

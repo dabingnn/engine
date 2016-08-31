@@ -142,18 +142,6 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         });
     },
 
-    //todo: this is just a hack test for 3d
-    _init3D: function() {
-        //this._3dRootNode = new pc.GraphNode();
-        //this._3dScene = new pc.Scene();
-        //var node = new pc.GraphNode();
-        //var camera = new pc.Camera();
-        //camera._node = node;
-        //this._3dScene.addCamera(camera);
-        //this._3dRootNode.addChild(node);
-
-    },
-
     init: function () {
         // scenes
         this._oldAnimationInterval = this._animationInterval = 1.0 / cc.defaultFPS;
@@ -184,8 +172,6 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         }else{
             this._actionManager = null;
         }
-
-        this._init3D();
 
         this.sharedInit();
 
@@ -225,18 +211,18 @@ var Director3D = Class.extend(/** @lends Director3D# */{
      * calculates delta time since last time it was called
      */
     calculateDeltaTime: function () {
-        //var now = Date.now();
-        //
-        //if (this._nextDeltaTimeZero) {
-        //    this._deltaTime = 0;
-        //    this._nextDeltaTimeZero = false;
-        //} else {
-        //    this._deltaTime = (now - this._lastUpdate) / 1000;
-        //    if ((cc.game3D.config[cc.game3D.CONFIG_KEY.debugMode] > 0) && (this._deltaTime > 1))
-        //        this._deltaTime = 1 / 60.0;
-        //}
-        //
-        //this._lastUpdate = now;
+        var now = Date.now();
+
+        if (this._nextDeltaTimeZero) {
+            this._deltaTime = 0;
+            this._nextDeltaTimeZero = false;
+        } else {
+            this._deltaTime = (now - this._lastUpdate) / 1000;
+            if ((cc.game3D.config[cc.game3D.CONFIG_KEY.debugMode] > 0) && (this._deltaTime > 1))
+                this._deltaTime = 1 / 60.0;
+        }
+
+        this._lastUpdate = now;
     },
 
     /*
@@ -265,7 +251,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
 
     engineUpdate: function (deltaTime) {
         //tick before glClear: issue #533
-        //this._scheduler.update(deltaTime);
+        this._scheduler.update(deltaTime);
     },
 
     _visitScene: function () {
@@ -344,13 +330,13 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     getZEye: null,
 
     pause: function () {
-        //if (this._paused)
-        //    return;
-        //
-        //this._oldAnimationInterval = this._animationInterval;
-        //// when paused, don't consume CPU
-        //this.setAnimationInterval(1 / 4.0);
-        //this._paused = true;
+        if (this._paused)
+            return;
+
+        this._oldAnimationInterval = this._animationInterval;
+        // when paused, don't consume CPU
+        this.setAnimationInterval(1 / 4.0);
+        this._paused = true;
     },
 
     popScene: function () {
@@ -374,13 +360,13 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     purgeDirector: function () {
-        ////cleanup scheduler
-        //this.getScheduler().unscheduleAll();
-        //
-        //// Disable event dispatching
-        //if (cc.eventManager)
-        //    cc.eventManager.setEnabled(false);
-        //
+        //cleanup scheduler
+        this.getScheduler().unscheduleAll();
+
+        // Disable event dispatching
+        if (cc.eventManager)
+            cc.eventManager.setEnabled(false);
+
         //// don't release the event handlers
         //// They are needed in case the director is run again
         //
@@ -397,36 +383,36 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //// runScene might be executed after 'end'.
         //this._scenesStack.length = 0;
         //
-        //this.stopAnimation();
+        this.stopAnimation();
+
+        // Clear all caches
+        this.purgeCachedData();
         //
-        //// Clear all caches
-        //this.purgeCachedData();
-        //
-        //cc.checkGLErrorDebug();
+        cc.checkGLErrorDebug();
     },
 
     reset: function () {
-        //this.purgeDirector();
+        this.purgeDirector();
         //
-        //if (cc.eventManager)
-        //    cc.eventManager.setEnabled(true);
-        //
-        //// Action manager
-        //if(this._actionManager){
-        //    this._scheduler.scheduleUpdate(this._actionManager, cc.Scheduler.PRIORITY_SYSTEM, false);
-        //}
-        //
-        //// Animation manager
-        //if (this._animationManager) {
-        //    this._scheduler.scheduleUpdate(this._animationManager, cc.Scheduler.PRIORITY_SYSTEM, false);
-        //}
-        //
-        //// Collider manager
-        //if (this._collisionManager) {
-        //    this._scheduler.scheduleUpdate(this._collisionManager, cc.Scheduler.PRIORITY_SYSTEM, false);
-        //}
-        //
-        //this.startAnimation();
+        if (cc.eventManager)
+            cc.eventManager.setEnabled(true);
+
+        // Action manager
+        if(this._actionManager){
+            this._scheduler.scheduleUpdate(this._actionManager, cc.Scheduler.PRIORITY_SYSTEM, false);
+        }
+
+        // Animation manager
+        if (this._animationManager) {
+            this._scheduler.scheduleUpdate(this._animationManager, cc.Scheduler.PRIORITY_SYSTEM, false);
+        }
+
+        // Collider manager
+        if (this._collisionManager) {
+            this._scheduler.scheduleUpdate(this._collisionManager, cc.Scheduler.PRIORITY_SYSTEM, false);
+        }
+
+        this.startAnimation();
     },
 
     pushScene: function (scene) {
@@ -663,18 +649,18 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     resume: function () {
-        //if (!this._paused) {
-        //    return;
-        //}
-        //
-        //this.setAnimationInterval(this._oldAnimationInterval);
-        //this._lastUpdate = Date.now();
-        //if (!this._lastUpdate) {
-        //    cc.log(cc._LogInfos.Director.resume);
-        //}
-        //
-        //this._paused = false;
-        //this._deltaTime = 0;
+        if (!this._paused) {
+            return;
+        }
+
+        this.setAnimationInterval(this._oldAnimationInterval);
+        this._lastUpdate = Date.now();
+        if (!this._lastUpdate) {
+            cc.log(cc._LogInfos.Director.resume);
+        }
+
+        this._paused = false;
+        this._deltaTime = 0;
     },
 
     setContentScaleFactor: function (scaleFactor) {
@@ -692,7 +678,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     setNextDeltaTimeZero: function (nextDeltaTimeZero) {
-        //this._nextDeltaTimeZero = nextDeltaTimeZero;
+        this._nextDeltaTimeZero = nextDeltaTimeZero;
     },
 
     setNextScene: function () {
@@ -753,37 +739,37 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     getScene: function () {
-        //return this._scene;
+        return this._scene;
     },
 
     getAnimationInterval: function () {
-        //return this._animationInterval;
+        return this._animationInterval;
     },
 
     isDisplayStats: function () {
-        //return cc.profiler ? cc.profiler.isShowingStats() : false;
+        return cc.profiler ? cc.profiler.isShowingStats() : false;
     },
 
     setDisplayStats: function (displayStats) {
-        //if (cc.profiler) {
-        //    displayStats ? cc.profiler.showStats() : cc.profiler.hideStats();
-        //}
+        if (cc.profiler) {
+            displayStats ? cc.profiler.showStats() : cc.profiler.hideStats();
+        }
     },
 
     getSecondsPerFrame: function () {
-        //return this._secondsPerFrame;
+        return this._secondsPerFrame;
     },
 
     isNextDeltaTimeZero: function () {
-        //return this._nextDeltaTimeZero;
+        return this._nextDeltaTimeZero;
     },
 
     isPaused: function () {
-        //return this._paused;
+        return this._paused;
     },
 
     getTotalFrames: function () {
-        //return this._totalFrames;
+        return this._totalFrames;
     },
 
     popToRootScene: function () {
@@ -819,40 +805,40 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     getScheduler: function () {
-        //return this._scheduler;
+        return this._scheduler;
     },
 
     setScheduler: function (scheduler) {
-        //if (this._scheduler !== scheduler) {
-        //    this._scheduler = scheduler;
-        //}
+        if (this._scheduler !== scheduler) {
+            this._scheduler = scheduler;
+        }
     },
 
     getActionManager: function () {
-        //return this._actionManager;
+        return this._actionManager;
     },
 
     setActionManager: function (actionManager) {
-        //if (this._actionManager !== actionManager) {
-        //    this._actionManager = actionManager;
-        //}
+        if (this._actionManager !== actionManager) {
+            this._actionManager = actionManager;
+        }
     },
 
     getAnimationManager: function () {
-        //return this._animationManager;
+        return this._animationManager;
     },
 
     getCollisionManager: function () {
-        //return this._collisionManager;
+        return this._collisionManager;
     },
 
     getDeltaTime: function () {
-        //return this._deltaTime;
+        return this._deltaTime;
     },
 
     _calculateMPF: function () {
-        //var now = Date.now();
-        //this._secondsPerFrame = (now - this._lastUpdate) / 1000;
+        var now = Date.now();
+        this._secondsPerFrame = (now - this._lastUpdate) / 1000;
     }
 });
 
@@ -891,8 +877,8 @@ cc.DisplayLinkDirector = Director3D.extend(/** @lends Director3D# */{
      * Starts Animation
      */
     startAnimation: function () {
-        //this._nextDeltaTimeZero = true;
-        //this.invalid = false;
+        this._nextDeltaTimeZero = true;
+        this.invalid = false;
     },
 
     /**
@@ -981,15 +967,15 @@ cc.DisplayLinkDirector = Director3D.extend(/** @lends Director3D# */{
     },
 
     stopAnimation: function () {
-        //this.invalid = true;
+        this.invalid = true;
     },
 
     setAnimationInterval: function (value) {
-        //this._animationInterval = value;
-        //if (!this.invalid) {
-        //    this.stopAnimation();
-        //    this.startAnimation();
-        //}
+        this._animationInterval = value;
+        if (!this.invalid) {
+            this.stopAnimation();
+            this.startAnimation();
+        }
     }
 });
 
