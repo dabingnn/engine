@@ -228,19 +228,19 @@ function initScene3D(sgRootNode, sgScene, scene) {
     var modelNode = new cc.Node3D();
     modelNode.scale = {x:1,y:2,z:1};
     modelNode.position = {x:0,y:0,z:0};
-    modelNode.rotation = {x:0,y:0,z:90};
+    modelNode.rotation = {x:0,y:0,z:0};
     //modelNode.setLocalScale(1,2,1);
     //modelNode.setLocalPosition(0,0,0);
-    var mesh = initSphereMesh(cc._renderContext,10,32,32);
-    var model = new pc.Model();
-    var material = new pc.StandardMaterial();
-    material.diffuse = new pc.Color(1.0,1,1);
-    material.update();
-    model.graph = modelNode._sgNode;
-    model.meshInstances.push(new pc.MeshInstance(modelNode._sgNode,mesh, material));
-    model.getGraph().syncHierarchy();
-    sgScene.addModel(model);
-
+    //var mesh = initSphereMesh(cc._renderContext,10,32,32);
+//    var model = new pc.Model();
+    //var material = new pc.StandardMaterial();
+    //material.diffuse = new pc.Color(1.0,1,1);
+    //material.update();
+    //model.graph = modelNode._sgNode;
+    //model.meshInstances.push(new pc.MeshInstance(modelNode._sgNode,mesh, material));
+    //model.getGraph().syncHierarchy();
+    //sgScene.addModel(model);
+    modelNode.addComponent(cc.Model);
     scene.addChild(modelNode);
 }
 
