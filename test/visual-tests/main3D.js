@@ -105,6 +105,13 @@ function initScene3D(sgRootNode, sgScene, scene) {
     modelNode.rotation = {x:0,y:0,z:0};
     modelNode.addComponent(cc.Model);
     scene.addChild(modelNode);
+
+    var cameraNode = new cc.Node3D();
+    cameraNode.setPosition(new pc.Vec3(0, 0, 50));
+    cameraNode.addComponent(cc.Camera);
+
+    scene.addChild(cameraNode);
+
 }
 
 cc.game3D.run({
@@ -117,10 +124,6 @@ cc.game3D.run({
     "jsList"        : []
 }, function(){
     var scene = new cc.Scene3D();
-    var camera = scene._addEditorCamera();
-    var cameraNode = camera._node;
-    cameraNode.setPosition(new pc.Vec3(0, 0, 50));
-    camera._clearOptions.color[0] = 1.0;
     initScene3D(scene._sgNode, scene._sgScene, scene);
     cc.director.runSceneImmediate3D(scene);
 });

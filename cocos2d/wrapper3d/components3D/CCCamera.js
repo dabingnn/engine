@@ -23,6 +23,40 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-require('./CCModel');
-require('./CCLight');
-require('./CCCamera');
+var Component = require('../../core/components/CCComponent');
+
+
+var Camera = cc.Class({
+    name: 'cc.Camera',
+    extends: Component,
+
+
+    ctor: function () {
+        this.camera = new pc.Camera();
+    },
+
+    start: function() {
+    },
+    onEnable: function() {
+        var camera = this.camera;
+        camera._node = this.node._sgNode;
+        var scene = cc.director.getScene();
+        scene._sgScene.addCamera(camera);
+    },
+    onDisable: function() {
+        var scene = cc.director.getScene();
+        scene._sgScene.removeCamera(this.camera);
+    },
+    onDestroy: function() {
+
+    },
+    onFocusInEditor: function() {
+
+    },
+    onLostFocusInEditor: function() {
+
+    }
+
+});
+
+cc.Camera = module.exports = Camera;
