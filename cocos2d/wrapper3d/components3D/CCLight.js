@@ -23,5 +23,43 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-require('./CCModel');
-require('./CCLight');
+var Component = require('../../core/components/CCComponent');
+
+
+var Light = cc.Class({
+    name: 'cc.Light',
+    extends: Component,
+
+
+    ctor: function () {
+        var light = new pc.Light();
+        light.setColor(0.8,0.0,0.6);
+        light.setEnabled(true);
+        this.light = light;
+    },
+
+    start: function() {
+    },
+    onEnable: function() {
+        var scene = cc.director.getScene();
+        var light = this.light;
+        light._node = this.node._sgNode;
+        scene._sgScene.addLight(this.light);
+    },
+    onDisable: function() {
+        var scene = cc.director.getScene();
+        scene._sgScene.removeLight(this.light);
+    },
+    onDestroy: function() {
+
+    },
+    onFocusInEditor: function() {
+
+    },
+    onLostFocusInEditor: function() {
+
+    }
+
+});
+
+cc.Light = module.exports = Light;
