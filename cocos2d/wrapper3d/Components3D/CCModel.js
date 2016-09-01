@@ -144,6 +144,9 @@ var Model = cc.Class({
     name: 'cc.Model',
     extends: Component,
 
+    editor: CC_EDITOR && {
+        executeInEditMode: true,
+    },
 
     ctor: function () {
         var material = this.material = new pc.StandardMaterial();

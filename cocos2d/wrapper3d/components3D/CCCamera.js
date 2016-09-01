@@ -30,6 +30,9 @@ var Camera = cc.Class({
     name: 'cc.Camera',
     extends: Component,
 
+    editor: CC_EDITOR && {
+        executeInEditMode: true,
+    },
 
     ctor: function () {
         this.camera = new pc.Camera();

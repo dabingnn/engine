@@ -30,6 +30,9 @@ var Light = cc.Class({
     name: 'cc.Light',
     extends: Component,
 
+    editor: CC_EDITOR && {
+        executeInEditMode: true,
+    },
 
     ctor: function () {
         var light = new pc.Light();

@@ -34,11 +34,11 @@ var Activating = Flags.Activating;
 //var RegisteredInEditor = Flags.RegisteredInEditor;
 
 /**
- * !#en The event type supported by Node
- * !#zh Node 支持的事件类型
- * @enum Node.EventType
+ * !#en The event type supported by Node3D
+ * !#zh Node3D 支持的事件类型
+ * @enum Node3D.EventType
  * @static
- * @namespace Node
+ * @namespace Node3D
  */
 var EventType = cc.Enum({
     /**
@@ -240,7 +240,7 @@ var _mouseEvents = [
 //    if (cc.Mask) {
 //        var index = 0;
 //        var mask = null;
-//        for (var curr = node; curr && curr instanceof cc.Node; curr = curr.parent, ++index) {
+//        for (var curr = node; curr && curr instanceof cc.Node3D; curr = curr.parent, ++index) {
 //            mask = curr.getComponent(cc.Mask);
 //            if (mask) {
 //                return {
@@ -428,7 +428,7 @@ var Node3D = cc.Class({
 
     ctor: function () {
         var name = arguments[0];
-        this._name = typeof name !== 'undefined' ? name : 'New Node';
+        this._name = typeof name !== 'undefined' ? name : 'New Node3D';
         this._activeInHierarchy = false;
 
 
@@ -492,7 +492,7 @@ var Node3D = cc.Class({
         //this.stopAllActions();
         //this._releaseAllActions();
 
-        // Remove Node.currentHovered
+        // Remove Node3D.currentHovered
         //if (_currentHovered === this) {
         //    _currentHovered = null;
         //}
@@ -792,7 +792,7 @@ var Node3D = cc.Class({
         var cancelActivation = false;
         if (this._objFlags & Activating) {
             if (newActive) {
-                cc.error('Node "%s" is already activating', this.name);
+                cc.error('Node3D "%s" is already activating', this.name);
                 return;
             }
             else {
@@ -964,11 +964,11 @@ var Node3D = cc.Class({
 // EVENTS
     /**
      * !#en
-     * Register a callback of a specific event type on Node.<br/>
+     * Register a callback of a specific event type on Node3D.<br/>
      * Use this method to register touch or mouse event permit propagation based on scene graph,
      * you can propagate the event to the parents or swallow it by calling stopPropagation on the event.<br/>
-     * It's the recommended way to register touch/mouse event for Node,
-     * please do not use cc.eventManager directly for Node.
+     * It's the recommended way to register touch/mouse event for Node3D,
+     * please do not use cc.eventManager directly for Node3D.
      * !#zh
      * 在节点上注册指定类型的回调函数，也可以设置 target 用于绑定响应函数的调用者。<br/>
      * 同时您可以将事件派发到父节点或者通过调用 stopPropagation 拦截它。<br/>
@@ -985,11 +985,11 @@ var Node3D = cc.Class({
      *                              Either way, callback will be invoked when event's eventPhase attribute value is AT_TARGET.
      * @return {Function} - Just returns the incoming callback so you can save the anonymous function easier.
      * @example
-     * // add Node Touch Event
-     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
-     * node.on(cc.Node.EventType.TOUCH_MOVE, callback, this.node);
-     * node.on(cc.Node.EventType.TOUCH_END, callback, this.node);
-     * node.on(cc.Node.EventType.TOUCH_CANCEL, callback, this.node);
+     * // add Node3D Touch Event
+     * node.on(cc.Node3D.EventType.TOUCH_START, callback, this.node);
+     * node.on(cc.Node3D.EventType.TOUCH_MOVE, callback, this.node);
+     * node.on(cc.Node3D.EventType.TOUCH_END, callback, this.node);
+     * node.on(cc.Node3D.EventType.TOUCH_CANCEL, callback, this.node);
      */
     on: function (type, callback, target, useCapture) {
         var newAdded = false;
@@ -1055,9 +1055,9 @@ var Node3D = cc.Class({
      *                              one with capture and one without, each must be removed separately. Removal of a capturing callback
      *                              does not affect a non-capturing version of the same listener, and vice versa.
      * @example
-     * // remove Node TOUCH_START Event.
-     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
-     * node.off(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * // remove Node3D TOUCH_START Event.
+     * node.on(cc.Node3D.EventType.TOUCH_START, callback, this.node);
+     * node.off(cc.Node3D.EventType.TOUCH_START, callback, this.node);
      */
     off: function (type, callback, target, useCapture) {
         this._EventTargetOff(type, callback, target, useCapture);
@@ -1199,7 +1199,7 @@ var Node3D = cc.Class({
     runAction: function (action) {
         //if (!this.active)
         //    return;
-        //cc.assert(action, cc._LogInfos.Node.runAction);
+        //cc.assert(action, cc._LogInfos.Node3D.runAction);
         //
         //if (CC_JSB) {
         //    this._retainAction(action);
@@ -1243,7 +1243,7 @@ var Node3D = cc.Class({
      */
     stopActionByTag: function (tag) {
         //if (tag === cc.Action.TAG_INVALID) {
-        //    cc.log(cc._LogInfos.Node.stopActionByTag);
+        //    cc.log(cc._LogInfos.Node3D.stopActionByTag);
         //    return;
         //}
         //cc.director.getActionManager().removeActionByTag(tag, this);
@@ -1261,7 +1261,7 @@ var Node3D = cc.Class({
      */
     getActionByTag: function (tag) {
         //if (tag === cc.Action.TAG_INVALID) {
-        //    cc.log(cc._LogInfos.Node.getActionByTag);
+        //    cc.log(cc._LogInfos.Node3D.getActionByTag);
         //    return null;
         //}
         //cc.director.getActionManager().getActionByTag(tag, this);
@@ -1316,7 +1316,7 @@ if (CC_JSB) {
         }
     };
 
-    cc.js.getset(Node.prototype, '_sgNode',
+    cc.js.getset(Node3D.prototype, '_sgNode',
         function () {
             return this.__sgNode;
         },
@@ -1360,12 +1360,12 @@ if (CC_JSB) {
 /**
  * @event child-added
  * @param {Event} event
- * @param {Node} event.detail - child
+ * @param {Node3D} event.detail - child
  */
 /**
  * @event child-removed
  * @param {Event} event
- * @param {Node} event.detail - child
+ * @param {Node3D} event.detail - child
  */
 /**
  * @event child-reorder
@@ -1391,6 +1391,6 @@ if (CC_JSB) {
  *
  */
 
-Node.EventType = EventType;
+Node3D.EventType = EventType;
 
 cc.Node3D = module.exports = Node3D;
