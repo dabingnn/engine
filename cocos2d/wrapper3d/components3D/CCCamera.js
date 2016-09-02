@@ -32,6 +32,7 @@ var Camera = cc.Class({
 
     editor: CC_EDITOR && {
         executeInEditMode: true,
+        menu: 'i18n:MAIN_MENU.component.renderers3d/Camera',
     },
 
     ctor: function () {

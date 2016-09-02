@@ -146,6 +146,7 @@ var Model = cc.Class({
 
     editor: CC_EDITOR && {
         executeInEditMode: true,
+        menu: 'i18n:MAIN_MENU.component.renderers3d/Model',
     },
 
     ctor: function () {

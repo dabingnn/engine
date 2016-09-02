@@ -617,35 +617,34 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     _loadSceneByUuid: function (uuid, onLaunched, onUnloaded) {
-        //cc.AssetLibrary.unloadAsset(uuid);     // force reload
-        //cc.AssetLibrary.loadAsset(uuid, function (error, sceneAsset) {
-        //    var self = cc.director;
-        //    self._loadingScene = '';
-        //    var scene;
-        //    if (error) {
-        //        error = 'Failed to load scene: ' + error;
-        //        cc.error(error);
-        //        if (CC_DEV) {
-        //            console.assert(false, error);
-        //        }
-        //    }
-        //    else {
-        //        if (sceneAsset instanceof cc.SceneAsset) {
-        //            scene = sceneAsset.scene;
-        //            scene._id = sceneAsset._uuid;
-        //            scene._name = sceneAsset._name;
-        //            self.runSceneImmediate(scene, onUnloaded, onLaunched);
-        //        }
-        //        else {
-        //            error = 'The asset ' + uuid + ' is not a scene';
-        //            cc.error(error);
-        //            scene = null;
-        //        }
-        //    }
-        //    if (error && onLaunched) {
-        //        onLaunched(error);
-        //    }
-        //});
+        cc.AssetLibrary.loadAsset(uuid, function (error, sceneAsset) {
+            var self = cc.director;
+            self._loadingScene = '';
+            var scene;
+            if (error) {
+                error = 'Failed to load scene: ' + error;
+                cc.error(error);
+                if (CC_DEV) {
+                    console.assert(false, error);
+                }
+            }
+            else {
+                if (sceneAsset instanceof cc.SceneAsset) {
+                    scene = sceneAsset.scene;
+                    scene._id = sceneAsset._uuid;
+                    scene._name = sceneAsset._name;
+                    self.runSceneImmediate3D(scene, onUnloaded, onLaunched);
+                }
+                else {
+                    error = 'The asset ' + uuid + ' is not a scene';
+                    cc.error(error);
+                    scene = null;
+                }
+            }
+            if (error && onLaunched) {
+                onLaunched(error);
+            }
+        });
     },
 
     resume: function () {

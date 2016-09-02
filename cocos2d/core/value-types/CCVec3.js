@@ -33,10 +33,10 @@ function Vec3 (x, y, z) {
         y = x.y;
         x = x.x;
     }
-    x = x || 0;
-    y = y || 0;
-    z = z || 0;
-    this.data = [x,y,z];
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
+    this._data = [0,0,0];
 }
 JS.extend(Vec3, ValueType);
 CCClass.fastDefine('cc.Vec3', Vec3, { x: 0, y: 0, z: 0, });
@@ -272,35 +272,17 @@ JS.mixin(Vec3.prototype, {
     //}
 });
 
+Object.defineProperty(Vec3.prototype, 'data', {
+    get: function () {
+        var data = this._data;
+        data[0] = this.x;
+        data[1] = this.y;
+        data[2] = this.z;
+        return this._data;
+    },
+});
+
 // static
-Object.defineProperty(Vec3.prototype, 'x', {
-    get: function () {
-        return this.data[0];
-    },
-    set: function (value) {
-        this.data[0] = value;
-    }
-});
-
-
-Object.defineProperty(Vec3.prototype, 'y', {
-    get: function () {
-        return this.data[1];
-    },
-    set: function (value) {
-        this.data[1] = value;
-    }
-});
-
-Object.defineProperty(Vec3.prototype, 'z', {
-    get: function () {
-        return this.data[2];
-    },
-    set: function (value) {
-        this.data[2] = value;
-    }
-});
-
 JS.get(Vec3, 'ONE', function () {
     return new Vec3(1.0, 1.0, 1.0);
 });
