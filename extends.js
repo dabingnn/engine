@@ -25,7 +25,9 @@
 
 require('./cocos2d/core');
 require('./cocos2d/animation');
-require('./cocos2d/wrapper3d/components3D');
+if (!CC_EDITOR || !Editor.isMainProcess) {
+    require('./cocos2d/wrapper3d/components3D');
+}
 require('./cocos2d/particle/CCParticleAsset');
 if (!(CC_EDITOR && Editor.isMainProcess)) {
     require('./cocos2d/particle/CCParticleSystem');
