@@ -399,9 +399,9 @@ var BaseNode3D = cc.Class(/** @lends cc.Node# */{
          * @private
          */
         var sgNode = this._sgNode = new pc.GraphNode();
-        this._position = new pc.Vec3();
-        this._rotation = new pc.Vec3();
-        this._scale = new pc.Vec3(1,1,1);
+        this._position = new cc.Vec3();
+        this._rotation = new cc.Vec3();
+        this._scale = new cc.Vec3(1,1,1);
         //if (CC_JSB) {
         //    sgNode.retain();
         //    sgNode._entity = this;
