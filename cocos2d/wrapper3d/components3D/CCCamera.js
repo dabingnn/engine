@@ -25,6 +25,10 @@
 
 var Component = require('../../core/components/CCComponent');
 
+var ProjectionType = cc.Enum({
+    Perspective: 0,
+    Orthographic: 1,
+});
 
 var Camera = cc.Class({
     name: 'cc.Camera',
@@ -34,7 +38,82 @@ var Camera = cc.Class({
         executeInEditMode: true,
         menu: 'i18n:MAIN_MENU.component.renderers3d/Camera',
     },
+    properties: {
+        _clearColor: cc.color(128,128,128,255),
+        _projection: 0, //default is perspective
+        _near: 1,
+        _far: 1000,
+        _fov: 45, //for perspective
+        _orthoHeight: 100, //for orthographic
 
+        clearColor: {
+            get: function() {
+                return this._clearColor;
+            },
+            set: function(value) {
+                var color = this.camera._clearOptions.color;
+                this._clearColor.r = value.r;
+                this._clearColor.g = value.g;
+                this._clearColor.b = value.b;
+                this._clearColor.a = value.a;
+                color[0] = value.r/255;
+                color[1] = value.g/255;
+                color[2] = value.b/255;
+                color[3] = value.a/255;
+            },
+            type: cc.Color,
+        },
+
+        projection: {
+            get: function () {
+                return this._projection;
+            },
+            set: function(value) {
+                this._projection = value;
+                this.camera.setProjection(value);
+            },
+            type: ProjectionType
+        },
+
+        near: {
+            get: function() {
+                return this._near;
+            },
+            set: function(value) {
+                this._near = value;
+                this.camera.setNearClip(value);
+            }
+        },
+
+        far: {
+            get: function() {
+                return this._far;
+            },
+            set: function(value) {
+                this._far = value;
+                this.camera.setFarClip(value);
+            }
+        },
+
+        fov: {
+            get: function() {
+                return this._fov;
+            },
+            set: function(value) {
+                this._fov = value;
+                this.camera.setFov(value);
+            }
+        },
+        orthoHeight: {
+            get: function() {
+                return this._orthoHeight;
+            },
+            set: function(value) {
+                this._orthoHeight = value;
+                this.camera.setOrthoHeight(value);
+            }
+        },
+    },
     ctor: function () {
         this.camera = new pc.Camera();
     },
@@ -59,6 +138,19 @@ var Camera = cc.Class({
     },
     onLostFocusInEditor: function() {
 
+    },
+
+    __preload: function () {
+        var color = this.camera._clearOptions.color;
+        color[0] = this._clearColor.r/255;
+        color[1] = this._clearColor.g/255;
+        color[2] = this._clearColor.b/255;
+        color[3] = this._clearColor.a/255;
+        this.camera.setProjection(this._projection);
+        this.camera.setNearClip(this._near);
+        this.camera.setFarClip(this._far);
+        this.camera.setFov(this._fov);
+        this.camera.setOrthoHeight(this._orthoHeight);
     }
 
 });
