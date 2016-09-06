@@ -25,7 +25,16 @@
 
 var Component = require('../../core/components/CCComponent');
 
+var LightType = cc.Enum({
+    Directional: 0,
+    Point: 1,
+    Spot: 2,
+});
 
+var FallOffMode = cc.Enum({
+    Linear: 0,
+    InverseSquare: 1,
+});
 var Light = cc.Class({
     name: 'cc.Light',
     extends: Component,
@@ -33,6 +42,77 @@ var Light = cc.Class({
     editor: CC_EDITOR && {
         executeInEditMode: true,
         menu: 'i18n:MAIN_MENU.component.renderers3d/Light',
+    },
+    properties: {
+        _type: 0,
+        _color: cc.color(255,255,255,255),
+        _range: 50, //for point and spot
+        _falloffMode: 0, //for point and spot
+        _innerAngle: 45, //for spot
+        _outterAngle: 60, //for spot
+
+        type: {
+            get: function() {
+                return this._type;
+            },
+            set: function(value) {
+                this._type = value;
+                this.light.setType(value);
+            },
+            type: LightType
+        },
+        color: {
+            get: function() {
+                return this._color;
+            },
+            set: function(value) {
+                var color = this._color;
+                color.r = value.r;
+                color.g = value.g;
+                color.b = value.b;
+                this.light.setColor(color.r/255, color.g/255, color.b/255);
+            }
+        },
+
+        range: {
+            get: function() {
+                return this._range;
+            },
+            set: function(value) {
+                this._range = value;
+                this.light.setAttenuationEnd(value);
+                this.light.setAttenuationStart(value*0.5);
+            },
+        },
+
+        fallOffMode: {
+            get: function() {
+                return this._falloffMode;
+            },
+            set: function(value) {
+                this._falloffMode = value;
+                this.light.setFalloffMode(value);
+            },
+            type: FallOffMode
+        },
+        innerAngle: {
+            get: function() {
+                return this._innerAngle;
+            },
+            set: function(value) {
+                this._innerAngle = value;
+                this.light.setInnerConeAngle(value);
+            },
+        },
+        outterAngle: {
+            get: function() {
+                return this._outterAngle;
+            },
+            set: function(value) {
+                this._outterAngle = value;
+                this.light.setOuterConeAngle(value);
+            },
+        }
     },
 
     ctor: function () {
@@ -62,6 +142,17 @@ var Light = cc.Class({
     },
     onLostFocusInEditor: function() {
 
+    },
+    __preload: function () {
+        var light = this.light;
+        light.setType(this._type);
+        var color = this._color;
+        light.setColor(color.r/255, color.g/255, color.b/255);
+        light.setAttenuationEnd(this._range);
+        light.setAttenuationStart(this._range*0.5);
+        light.setFalloffMode(this._falloffMode);
+        light.setInnerConeAngle(this._innerAngle);
+        light.setOuterConeAngle(this._outterAngle);
     }
 
 });
