@@ -758,8 +758,6 @@ var View = cc._Class.extend({
         director._winSizeInPoints.width = this._designResolutionSize.width;
         director._winSizeInPoints.height = this._designResolutionSize.height;
         policy.postApply(this);
-        cc.winSize.width = director._winSizeInPoints.width;
-        cc.winSize.height = director._winSizeInPoints.height;
 
         if (cc._renderType === cc.game3D.RENDER_TYPE_WEBGL) {
             // reset director's member variables to fit visible rect

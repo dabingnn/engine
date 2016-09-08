@@ -362,13 +362,6 @@ var game = {
             cc.director = cc.Director3D._getInstance();
             if (cc.director.setOpenGLView)
                 cc.director.setOpenGLView(cc.view);
-            /**
-             * !#en cc.winSize is the alias object for the size of the current game window.
-             * !#zh cc.winSize 为当前的游戏窗口的大小。
-             * @property winSize
-             * @type Size
-             */
-            cc.winSize = cc.director.getWinSize();
 
             if (!CC_EDITOR) {
                 this._initEvents();
