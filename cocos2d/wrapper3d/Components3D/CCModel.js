@@ -24,6 +24,9 @@
  ****************************************************************************/
 
 var Component = require('../../core/components/CCComponent');
+var defaultMaterial = new pc.StandardMaterial();
+defaultMaterial.diffuse = new pc.Color(1.0,1,1);
+defaultMaterial.update();
 
 function initSphereMesh( device, radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength ) {
 
@@ -148,29 +151,59 @@ var Model = cc.Class({
         executeInEditMode: true,
         menu: 'i18n:MAIN_MENU.component.renderers3d/Model',
     },
+    properties: {
+        _material: {
+            default: null,
+            type: cc.Material
+        },
+
+        material: {
+            get: function() {
+                return this._material;
+            },
+            set: function(value) {
+                this._material = value;
+                this._applyMaterial();
+            },
+            type: cc.Material
+        },
+
+    },
 
     ctor: function () {
-        var material = this.material = new pc.StandardMaterial();
-        material.diffuse = new pc.Color(1.0,1,1);
-        material.update();
         this.model = new pc.Model();
         this.mesh = initSphereMesh(cc._renderContext,10,32,32);
     },
 
     start: function() {
     },
-    firstEnableTest: function() {
-        if(!this._firstEnableCalled) {
-            var modelNode = this.node;
-            var model = this.model;
-            model.graph = modelNode._sgNode;
-            model.meshInstances.push(new pc.MeshInstance(modelNode._sgNode,this.mesh, this.material));
-            model.getGraph().syncHierarchy();
-            this._firstEnableCalled = true;
+    _applyMaterial: function() {
+        var mtl = this._material;
+        var self = this;
+        function applyMtl() {
+            cc.log('apply mtl');
+            self._internalmaterial = mtl? mtl.getRenderedMtl() : defaultMaterial.clone();
+            var meshes = self.model.meshInstances;
+            for(var index = 0; index < meshes.length; ++index) {
+                meshes[index].material = self._internalmaterial;
+            }
+        }
+        if(!mtl || mtl._loaded) {
+            applyMtl();
+        } else {
+            mtl.once('load', applyMtl);
         }
     },
+    __preload: function() {
+        this._internalmaterial = defaultMaterial.clone();
+        var modelNode = this.node;
+        var model = this.model;
+        model.graph = modelNode._sgNode;
+        model.meshInstances.push(new pc.MeshInstance(modelNode._sgNode,this.mesh, this._internalmaterial));
+        model.getGraph().syncHierarchy();
+        this._applyMaterial();
+    },
     onEnable: function() {
-        this.firstEnableTest();
         var scene = cc.director.getScene();
         scene._sgScene.addModel(this.model);
     },
@@ -186,8 +219,15 @@ var Model = cc.Class({
     },
     onLostFocusInEditor: function() {
 
-    }
+    },
 
+    setRenderedMtl: function(mtl) {
+        this._internalmaterial = mtl ? mtl : defaultMaterial.clone();
+        var meshes = this.model.meshInstances;
+        for(var index = 0; index < meshes.length; ++index) {
+            meshes[index].material = this._internalmaterial;
+        }
+    }
 });
 
 cc.Model = module.exports = Model;
