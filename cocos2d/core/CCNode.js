@@ -25,6 +25,7 @@
 'use strict';
 
 var EventTarget = require('./event/event-target');
+var PrefabHelper = require('./utils/prefab-helper');
 
 var JS = cc.js;
 var Flags = cc.Object.Flags;
@@ -394,10 +395,7 @@ var Node = cc.Class({
          * @type {PrefabInfo}
          * @private
          */
-        _prefab: {
-            default: null,
-            editorOnly: true
-        },
+        _prefab: null,
 
         /**
          * If true, the node is an persist node which won't be destroyed during scene transition.
@@ -524,7 +522,7 @@ var Node = cc.Class({
         }
         
         // Actions
-        this.stopAllActions();
+        cc.director.getActionManager().removeAllActionsFromTarget(this);
         this._releaseAllActions();
 
         // Remove Node.currentHovered
@@ -791,13 +789,14 @@ var Node = cc.Class({
                 return;
             }
         }
-        if (ctor._requireComponent) {
+        var ReqComp = ctor._requireComponent;
+        if (ReqComp && !this.getComponent(ReqComp)) {
             if (index === this._components.length) {
                 // If comp should be last component, increase the index because required component added
                 ++index;
             }
-            var depend = this.addComponent(ctor._requireComponent);
-            if (!depend) {
+            var depended = this.addComponent(ReqComp);
+            if (!depended) {
                 // depend conflicts
                 return null;
             }
@@ -896,6 +895,33 @@ var Node = cc.Class({
         for (var i = 0, len = children.length; i < len; ++i) {
             var child = children[i];
             child._registerIfAttached(register);
+        }
+    },
+
+    /*
+     * The initializer for Node which will be called before all components onLoad
+     */
+    _onBatchCreated: function () {
+        var prefabInfo = this._prefab;
+        if (prefabInfo && prefabInfo.sync && !prefabInfo._synced) {
+            PrefabHelper.syncWithPrefab(this);
+        }
+
+        this._updateDummySgNode();
+
+        if (this._parent) {
+            this._parent._sgNode.addChild(this._sgNode);
+        }
+
+        if ( !this._activeInHierarchy ) {
+            // deactivate ActionManager and EventManager by default
+            cc.director.getActionManager().pauseTarget(this);
+            cc.eventManager.pauseTarget(this);
+        }
+
+        var children = this._children;
+        for (var i = 0, len = children.length; i < len; i++) {
+            children[i]._onBatchCreated();
         }
     },
 
@@ -1063,10 +1089,20 @@ var Node = cc.Class({
         var clone = cc.instantiate._clone(this, this);
         clone._parent = null;
 
-        // init
-        if (CC_EDITOR && cc.engine._isPlaying) {
+        var thisPrefabInfo = this._prefab;
+        var syncing = thisPrefabInfo && this === thisPrefabInfo.root && thisPrefabInfo.sync;
+        if (syncing) {
+            // copy non-serialized property
+            clone._prefab._synced = thisPrefabInfo._synced;
+            //if (thisPrefabInfo._synced) {
+            //    return clone;
+            //}
+        }
+        else if (CC_EDITOR && cc.engine._isPlaying) {
             this._name += ' (Clone)';
         }
+
+        // init
         clone._onBatchCreated();
 
         return clone;
@@ -1085,7 +1121,8 @@ var Node = cc.Class({
      * 同时您可以将事件派发到父节点或者通过调用 stopPropagation 拦截它。<br/>
      * 推荐使用这种方式来监听节点上的触摸或鼠标事件，请不要在节点上直接使用 cc.eventManager。
      * @method on
-     * @param {String} type - A string representing the event type to listen for.
+     * @param {String} type - A string representing the event type to listen for.<br>
+     *                        See {{#crossLink "Node/position-changed:event"}}Node Events{{/crossLink}} for all builtin events.
      * @param {Function} callback - The callback that will be invoked when the event is dispatched.
      *                              The callback is ignored if it is a duplicate (the callbacks are unique).
      * @param {Event} callback.param event
@@ -1096,11 +1133,12 @@ var Node = cc.Class({
      *                              Either way, callback will be invoked when event's eventPhase attribute value is AT_TARGET.
      * @return {Function} - Just returns the incoming callback so you can save the anonymous function easier.
      * @example
-     * // add Node Touch Event
+     * this.node.on(cc.Node.EventType.TOUCH_START, this.memberFunction, this);  // if "this" is component and the "memberFunction" declared in CCClass.
      * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
      * node.on(cc.Node.EventType.TOUCH_MOVE, callback, this.node);
      * node.on(cc.Node.EventType.TOUCH_END, callback, this.node);
      * node.on(cc.Node.EventType.TOUCH_CANCEL, callback, this.node);
+     * node.on("anchor-changed", callback, this);
      */
     on: function (type, callback, target, useCapture) {
         var newAdded = false;
@@ -1143,13 +1181,13 @@ var Node = cc.Class({
         }
         if (newAdded && !this._activeInHierarchy) {
             cc.director.getScheduler().schedule(function() {
-                if (this._activeInHierarchy) {
+                if (!this._activeInHierarchy) {
                     cc.eventManager.pauseTarget(this);
                 }
             }, this, 0, 0, 0, false);
         }
 
-        this._EventTargetOn(type, callback, target, useCapture);
+        return this._EventTargetOn(type, callback, target, useCapture);
     },
 
     /**
@@ -1166,9 +1204,9 @@ var Node = cc.Class({
      *                              one with capture and one without, each must be removed separately. Removal of a capturing callback
      *                              does not affect a non-capturing version of the same listener, and vice versa.
      * @example
-     * // remove Node TOUCH_START Event.
-     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * this.node.off(cc.Node.EventType.TOUCH_START, this.memberFunction, this);
      * node.off(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * node.off("anchor-changed", callback, this);
      */
     off: function (type, callback, target, useCapture) {
         this._EventTargetOff(type, callback, target, useCapture);
@@ -1282,6 +1320,7 @@ var Node = cc.Class({
         }
     },
 
+    // for event manager
     isRunning: function () {
         return this._activeInHierarchy;
     },
@@ -1458,7 +1497,6 @@ if (CC_JSB) {
  * @param {Event} event
  * @param {Vec2} event.detail - The old position, but this parameter is only available in editor!
  */
-/**
 /**
  * @event size-changed
  * @param {Event} event

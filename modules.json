@@ -45,7 +45,7 @@
   {
     "name": "ParticleSystem",
     "entries": [
-      "./cocos2d/particle.CCParticleSystem.js"
+      "./cocos2d/particle/CCParticleSystem.js"
     ]
   },
   {
@@ -91,6 +91,36 @@
     ]
   },
   {
+    "name": "Toggle",
+    "entries": [
+      "./cocos2d/core/components/CCToggle.js"
+    ]
+  },
+  {
+    "name": "ToggleGroup",
+    "entries": [
+      "./cocos2d/core/components/CCToggleGroup.js"
+    ]
+  },
+  {
+    "name": "PageView",
+    "entries": [
+      "./cocos2d/core/components/CCPageView.js"
+    ]
+  },
+  {
+    "name": "PageViewIndicator",
+    "entries": [
+      "./cocos2d/core/components/CCPageViewIndicator.js"
+    ]
+  },
+  {
+    "name": "Slider",
+    "entries": [
+      "./cocos2d/core/components/CCSlider.js"
+    ]
+  },
+  {
     "name": "Layout",
     "entries": [
       "./cocos2d/core/components/CCLayout.js"
@@ -106,6 +136,13 @@
     "name": "VideoPlayer",
     "entries": [
       "./cocos2d/core/components/CCVideoPlayer.js"
+    ]
+  },
+  {
+    "name": "RichText",
+    "entries": [
+      "./cocos2d/core/label/CCHtmlTextParser.js",
+      "./cocos2d/core/components/CCRichText.js"
     ]
   },
   {
@@ -144,13 +181,19 @@
   {
     "name": "Audio",
     "entries": [
-      "./cocos2d/audio/CCAudio.js"
+      "./cocos2d/audio/CCAudioEngine.js"
     ]
   },
   {
     "name": "Graphics",
     "entries": [
       "./cocos2d/core/graphics/index.js"
+    ]
+  },
+  {
+    "name": "DragonBones",
+    "entries": [
+      "./extensions/dragonbones/index.js"
     ]
   }
 ]

@@ -25,6 +25,7 @@
 
 var JS = require('../platform/js');
 var Pipeline = require('./pipeline');
+var LoadingItems = require('./loading-items');
 var Downloader = require('./downloader');
 var Loader = require('./loader');
 var AssetTable = require('./asset-table');
@@ -32,6 +33,12 @@ var callInNextTick = require('../platform/utils').callInNextTick;
 var AutoReleaseUtils = require('./auto-release-utils');
 
 var resources = new AssetTable();
+
+function getXMLHttpRequest () {
+    return window.XMLHttpRequest ? new window.XMLHttpRequest() : new ActiveXObject('MSXML2.XMLHTTP');
+}
+
+var _sharedList = [];
 
 /**
  * Loader for resource loading process. It's a singleton object.
@@ -76,7 +83,7 @@ JS.mixin(CCLoader.prototype, {
      * Get XMLHttpRequest.
      * @returns {XMLHttpRequest}
      */
-    getXMLHttpRequest: Pipeline.getXMLHttpRequest,
+    getXMLHttpRequest: getXMLHttpRequest,
 
     /**
      * Add custom supported types handler or modify existing type handler for download process.
@@ -155,96 +162,77 @@ JS.mixin(CCLoader.prototype, {
         }
 
         var self = this;
-        var singleRes = false;
+        var singleRes = null;
         if (!(resources instanceof Array)) {
+            singleRes = resources;
             resources = resources ? [resources] : [];
-            singleRes = true;
-        }
-        // Return directly if no resources
-        if (resources.length === 0) {
-            if (completeCallback) {
-                callInNextTick(function () {
-                    completeCallback.call(self, null, self._items);
-                    completeCallback = null;
-                });
-            }
-            return;
         }
 
-        // Resolve callback
-        var error = null;
-        var checker = {};
-        var totalCount = 0;
-        var completedCount = 0;
-
-        function loadedCheck (item) {
-            checker[item.id] = item;
-            if (item.error) {
-                error = error || [];
-                error.push(item.id);
-            }
-            completedCount++;
-
-            progressCallback && progressCallback.call(self, completedCount, totalCount, item);
-
-            for (var url in checker) {
-                // Not done yet
-                if (!checker[url]) {
-                    return;
-                }
-            }
-            // All url completed
-            if (completeCallback) {
-                callInNextTick(function () {
-                    if (singleRes) {
-                        completeCallback.call(self, item.error, item.content);
-                    }
-                    else {
-                        completeCallback.call(self, error, self._items);
-                    }
-                    completeCallback = null;
-                });
-            }
-        }
-
-        // Add loaded listeners
         for (var i = 0; i < resources.length; ++i) {
             var url = resources[i].id || resources[i];
             if (typeof url !== 'string')
                 continue;
             var item = this.getItem(url);
-            if ( !item || (item && !item.complete) ) {
-                this._items.addListener(url, loadedCheck);
-                checker[url] = null;
-                totalCount++;
-            }
-            else if (item && item.complete) {
-                checker[url] = item;
-                totalCount++;
-                completedCount++;
+            if (item) {
+                resources[i] = item;
             }
         }
 
-        // No new resources, complete directly
-        if (totalCount === completedCount) {
-            var id = resources[0].id || resources[0];
-            var content = this._items.getContent(id);
-            var error = this._items.getError(id);
-            if (completeCallback) {
-                callInNextTick(function () {
-                    if (singleRes) {
-                        completeCallback.call(self, error, content);
+        LoadingItems.create(this, resources, progressCallback, function (errors, items) {
+            callInNextTick(function () {
+                if (!completeCallback)
+                    return;
+
+                if (singleRes) {
+                    var id = singleRes.id || singleRes;
+                    completeCallback.call(self, items.getError(id), items.getContent(id));
+                }
+                else {
+                    completeCallback.call(self, errors, items);
+                }
+                completeCallback = null;
+                items.destroy();
+
+                if (CC_EDITOR) {
+                    for (var i = 0; i < resources.length; i++) {
+                        self.removeItem(resources[i].id || resources[i]);
                     }
-                    else {
-                        completeCallback.call(self, null, self._items);
-                    }
-                    completeCallback = null;
-                });
+                }
+            });
+        });
+    },
+
+    flowInDeps: function (owner, urlList, callback) {
+        if (owner && !owner.deps) {
+            owner.deps = [];
+        }
+
+        _sharedList.length = 0;
+        for (var i = 0; i < urlList.length; ++i) {
+            var url = urlList[i].id || urlList[i];
+            if (typeof url !== 'string')
+                continue;
+            var item = this.getItem(url);
+            if (item) {
+                _sharedList.push(item);
+                // Collect deps to avoid circle reference
+                owner && owner.deps.push(item);
+            }
+            else {
+                _sharedList.push(urlList[i]);
             }
         }
-        else {
-            this.flowIn(resources);
-        }
+
+        var queue = LoadingItems.create(this, function (errors, items) {
+            callback(errors, items);
+            // Clear deps because it's already done
+            // Each item will only flowInDeps once, so it's still safe here
+            owner && (owner.deps.length = 0);
+            items.destroy();
+        });
+        var accepted = queue.append(_sharedList, owner);
+        _sharedList.length = 0;
+        return accepted;
     },
 
     _resources: resources,
@@ -288,7 +276,7 @@ JS.mixin(CCLoader.prototype, {
      *     cc.log('Result should be a prefab: ' + (prefab instanceof cc.Prefab));
      * });
      *
-     * // load the sprite frame (project/assets/resources/imgs/cocos.png/cocos) from resources folder
+     * // load the sprite frame of (project/assets/resources/imgs/cocos.png) from resources folder
      * cc.loader.loadRes('imgs/cocos', cc.SpriteFrame, function (err, spriteFrame) {
      *     if (err) {
      *         cc.error(err.message || err);
@@ -314,7 +302,7 @@ JS.mixin(CCLoader.prototype, {
                 function (err, asset) {
                     if (asset) {
                         // should not release these assets, even if they are static referenced in the scene.
-                        self.setAutoReleaseRecursively(asset, false);
+                        self.setAutoReleaseRecursively(uuid, false);
                     }
                     if (completeCallback) {
                         completeCallback(err, asset);
@@ -353,7 +341,7 @@ JS.mixin(CCLoader.prototype, {
      *
      * @example
      *
-     * // load the texture (resources/imgs/cocos.png) and sprite frame (resources/imgs/cocos.png/cocos)
+     * // load the texture (resources/imgs/cocos.png) and the corresponding sprite frame
      * cc.loader.loadResAll('imgs/cocos', function (err, assets) {
      *     if (err) {
      *         cc.error(err);
@@ -382,41 +370,26 @@ JS.mixin(CCLoader.prototype, {
         var uuids = resources.getUuidArray(url, type);
         var remain = uuids.length;
         if (remain > 0) {
-            var results = [];
-            var aborted = false;
-            function loaded (err, res) {
-                if (aborted) {
-                    return;
-                }
-                if (err) {
-                    aborted = true;
-                    if (completeCallback) {
-                        completeCallback(err, null);
-                    }
-                    return;
-                }
-                results.push(res);
-                --remain;
-                if (remain === 0) {
-                    for (var i = 0; i < results.length; i++) {
-                        self.setAutoReleaseRecursively(results[i], false);
-                    }
-                    if (completeCallback) {
-                        completeCallback(null, results);
-                    }
-                }
-            }
+            var res = [];
             for (var i = 0, len = remain; i < len; ++i) {
                 var uuid = uuids[i];
-                self.load(
-                    {
-                        id: uuid,
-                        type: 'uuid',
-                        uuid: uuid
-                    },
-                    loaded
-                );
+                res.push({
+                    id: uuid,
+                    type: 'uuid',
+                    uuid: uuid
+                });
             }
+            this.load(res, function (errors, items) {
+                var results = [];
+                for (var key in items.map) {
+                    var item = items.getContent(key);
+                    self.setAutoReleaseRecursively(item, false);
+                    results.push(item);
+                }
+                if (completeCallback) {
+                    completeCallback(errors, results);
+                }
+            });
         }
         else {
             callInNextTick(function () {
@@ -438,12 +411,15 @@ JS.mixin(CCLoader.prototype, {
      * @returns {*}
      */
     getRes: function (url) {
-        var item = this._items.getContent(url);
+        var item = this._cache[url];
+        if (item.alias) {
+            item = this._cache[item.alias];
+        }
         if (!item) {
             var uuid = this._getResUuid(url);
-            item = this._items.getContent(uuid);
+            item = this._cache[uuid];
         }
-        return item;
+        return item ? item.content : null;
     },
 
     /**
@@ -451,24 +427,7 @@ JS.mixin(CCLoader.prototype, {
      * @returns {Number}
      */
     getResCount: function () {
-        return this._items.totalCount;
-    },
-
-    /**
-     * Returns an item in pipeline.
-     * @method getItem
-     * @return {Object}
-     */
-    getItem: function (url) {
-        var item = this._items.map[url];
-
-        if (!item)
-            return item;
-
-        if (item.alias)
-            item = this._items.map[item.alias];
-
-        return item;
+        return this._cache.length;
     },
 
     /**
@@ -521,11 +480,9 @@ JS.mixin(CCLoader.prototype, {
 
     // AUTO RELEASE
 
-    _baseRemoveItem: Pipeline.prototype.removeItem,
-
     // override
     removeItem: function (key) {
-        var removed = this._baseRemoveItem(key);
+        var removed = Pipeline.prototype.removeItem.call(this, key);
         delete this._autoReleaseSetting[key];
         return removed;
     },
@@ -557,11 +514,11 @@ JS.mixin(CCLoader.prototype, {
      * cc.loader.setAutoRelease(audioUrl, false);
      *
      * @method setAutoRelease
-     * @param {Asset|String} assetOrUrl - asset object or the raw asset's url
+     * @param {Asset|String} assetOrUrlOrUuid - asset object or the raw asset's url or uuid
      * @param {Boolean} autoRelease - indicates whether should release automatically
      */
-    setAutoRelease: function (assetOrUrl, autoRelease) {
-        var key = AutoReleaseUtils.getKey(this, assetOrUrl);
+    setAutoRelease: function (assetOrUrlOrUuid, autoRelease) {
+        var key = AutoReleaseUtils.getKey(this, assetOrUrlOrUuid);
         if (key) {
             this._autoReleaseSetting[key] = !!autoRelease;
         }
@@ -597,12 +554,12 @@ JS.mixin(CCLoader.prototype, {
      * cc.loader.setAutoReleaseRecursively(prefab, false);
      *
      * @method setAutoReleaseRecursively
-     * @param {Asset|String} assetOrUrl - asset object or the raw asset's url
+     * @param {Asset|String} assetOrUrlOrUuid - asset object or the raw asset's url or uuid
      * @param {Boolean} autoRelease - indicates whether should release automatically
      */
-    setAutoReleaseRecursively: function (assetOrUrl, autoRelease) {
+    setAutoReleaseRecursively: function (assetOrUrlOrUuid, autoRelease) {
         autoRelease = !!autoRelease;
-        var key = AutoReleaseUtils.getKey(this, assetOrUrl);
+        var key = AutoReleaseUtils.getKey(this, assetOrUrlOrUuid);
         if (key) {
             this._autoReleaseSetting[key] = autoRelease;
 
@@ -644,7 +601,18 @@ cc.loader = new CCLoader();
 
 if (CC_EDITOR) {
     cc.loader.refreshUrl = function (uuid, oldUrl, newUrl) {
-        this._items.refreshItemUrl(uuid, oldUrl, newUrl);
+        var item = this._cache[uuid];
+        if (item) {
+            item.url = newUrl;
+        }
+
+        item = this._cache[oldUrl];
+        if (item) {
+            item.id = newUrl;
+            item.url = newUrl;
+            this._cache[newUrl] = item;
+            delete this._cache[oldUrl];
+        }
     };
 }
 

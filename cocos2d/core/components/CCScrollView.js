@@ -103,7 +103,13 @@ var EventType = cc.Enum({
      * !#zh 滚动视图滚动滚动结束的时候发出的事件
      * @property {Number} AUTOSCROLL_ENDED
      */
-    AUTOSCROLL_ENDED : 9
+    AUTOSCROLL_ENDED : 9,
+    /**
+     * !#en The event emmitted when user release the touch
+     * !#zh 当用户松手的时候会发出一个事件
+     * @property {Number} TOUCH_UP
+     */
+    TOUCH_UP : 10
 });
 
 /**
@@ -123,7 +129,7 @@ var ScrollView = cc.Class({
     editor: CC_EDITOR && {
         menu: 'i18n:MAIN_MENU.component.ui/ScrollView',
         help: 'i18n:COMPONENT.help_url.scrollview',
-        executeInEditMode: true,
+        executeInEditMode: false,
     },
 
     ctor: function() {
@@ -210,7 +216,8 @@ var ScrollView = cc.Class({
             default: 0.5,
             type: 'Float',
             range: [0, 1, 0.1],
-            animatable: false
+            animatable: false,
+            tooltip: 'i18n:COMPONENT.scrollview.brake',
         },
 
         /**
@@ -220,7 +227,8 @@ var ScrollView = cc.Class({
          */
         elastic: {
             default: true,
-            animatable: false
+            animatable: false,
+            tooltip: 'i18n:COMPONENT.scrollview.elastic',
         },
 
         /**
@@ -231,7 +239,8 @@ var ScrollView = cc.Class({
         bounceDuration: {
             default: 1,
             range: [0, 10],
-            animatable: false
+            animatable: false,
+            tooltip: 'i18n:COMPONENT.scrollview.bounceDuration',
         },
 
         /**
@@ -277,19 +286,21 @@ var ScrollView = cc.Class({
          */
         scrollEvents: {
             default: [],
-            type: cc.Component.EventHandler
+            type: cc.Component.EventHandler,
+            tooltip: 'i18n:COMPONENT.scrollview.scrollEvents'
         },
 
         /**
-         * !#en If cancelInnerEvents is set to true, the scroll behavior will cancel touch events on inner content nodes of the scroll view
+         * !#en If cancelInnerEvents is set to true, the scroll behavior will cancel touch events on inner content nodes
          * It's set to true by default.
-         * !#zh 如果这个属性被设置为 true，那么滚动行为会取消 ScrollView 的子节点上注册的触摸事件，默认被设置为 true。
+         * !#zh 如果这个属性被设置为 true，那么滚动行为会取消子节点上注册的触摸事件，默认被设置为 true。
          * 注意，子节点上的 touchstart 事件仍然会触发，触点移动距离非常短的情况下 touchmove 和 touchend 也不会受影响。
          * @property {Boolean} cancelInnerEvents
          */
         cancelInnerEvents: {
             default: true,
             animatable: false,
+            tooltip: 'i18n:COMPONENT.scrollview.cancelInnerEvents'
         }
     },
 
@@ -698,10 +709,12 @@ var ScrollView = cc.Class({
     },
 
     _onMouseWheel: function(event) {
+        if (!this.enabledInHierarchy) return;
+
         var deltaMove = cc.p(0, 0);
-        var wheelPrecision = 1.0 / 40;
+        var wheelPrecision = -0.1;
         if(CC_JSB) {
-            wheelPrecision = 7;
+            wheelPrecision = -7;
         }
         if(this.vertical) {
             deltaMove = cc.p(0, event.getScrollY() * wheelPrecision);
@@ -847,6 +860,8 @@ var ScrollView = cc.Class({
 
     // touch event handler
     _onTouchBegan: function(event) {
+        if (!this.enabledInHierarchy) return;
+
         var touch = event.touch;
         if (this.content) {
             this._handlePressLogic(touch);
@@ -855,6 +870,8 @@ var ScrollView = cc.Class({
     },
 
     _onTouchMoved: function(event) {
+        if (!this.enabledInHierarchy) return;
+
         var touch = event.touch;
         if (this.content) {
             this._handleMoveLogic(touch);
@@ -881,15 +898,20 @@ var ScrollView = cc.Class({
     },
 
     _onTouchEnded: function(event) {
+        if (!this.enabledInHierarchy) return;
+
         var touch = event.touch;
         if (this.content) {
             this._handleReleaseLogic(touch);
         }
+        this._dispatchEvent(EventType.TOUCH_UP);
         if (this._touchMoved) {
             event.stopPropagation();
         }
     },
     _onTouchCancelled: function(event) {
+        if (!this.enabledInHierarchy) return;
+
         // Filte touch cancel event send from self
         if (!event.simulate) {
             var touch = event.touch;
@@ -980,10 +1002,10 @@ var ScrollView = cc.Class({
     _clampDelta: function(delta) {
         var contentSize = this.content.getContentSize();
         var scrollViewSize = this.node.getContentSize();
-        if (contentSize.width <= scrollViewSize.width) {
+        if (contentSize.width < scrollViewSize.width) {
             delta.x = 0;
         }
-        if (contentSize.height <= scrollViewSize.height) {
+        if (contentSize.height < scrollViewSize.height) {
             delta.y = 0;
         }
 
@@ -1038,8 +1060,7 @@ var ScrollView = cc.Class({
     _handleReleaseLogic: function(touch) {
         var delta = touch.getDelta();
         this._gatherTouchMove(delta);
-
-       this._processInertiaScroll();
+        this._processInertiaScroll();
     },
 
     _isOutOfBoundary: function() {

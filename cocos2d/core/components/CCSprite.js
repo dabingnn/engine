@@ -163,10 +163,17 @@ var Sprite = cc.Class({
                 return this._spriteFrame;
             },
             set: function (value, force) {
-                if (this._spriteFrame === value) {
-                    return;
-                }
                 var lastSprite = this._spriteFrame;
+                if (CC_EDITOR) {
+                    if (!force && ((lastSprite && lastSprite._uuid) === (value && value._uuid))) {
+                        return;
+                    }
+                }
+                else {
+                    if (lastSprite === value) {
+                        return;
+                    }
+                }
                 this._spriteFrame = value;
                 this._applySpriteFrame(lastSprite);
                 if (CC_EDITOR) {
@@ -604,8 +611,6 @@ var Sprite = cc.Class({
                 expectedW = rect.width;
                 expectedH = rect.height;
 
-            } else {
-
             }
 
             if (expectedW !== actualSize.width || expectedH !== actualSize.height) {
@@ -631,7 +636,7 @@ if (CC_EDITOR) {
 }
 
 var misc = require('../utils/misc');
-var SameNameGetSets = ['atlas', 'capInsets', 'insetLeft', 'insetTop', 'insetRight', 'insetBottom'];
+var SameNameGetSets = ['insetLeft', 'insetTop', 'insetRight', 'insetBottom'];
 var DiffNameGetSets = {
     type: [null, 'setRenderingType']
 };

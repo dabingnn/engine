@@ -64,6 +64,7 @@ var idGenerater = new IdGenerater('Node');
  * @private
  */
 var BaseNode = cc.Class(/** @lends cc.Node# */{
+    name: 'cc._BaseNode',
     extends: cc.Object,
     mixins: [cc.EventTarget],
 
@@ -461,7 +462,7 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
          * @readOnly
          * @example
          * var children = node.children;
-         * for (var i = 0; i < children.lenght; ++i) {
+         * for (var i = 0; i < children.length; ++i) {
          *     cc.log("Node: " + children[i]);
          * }
          */
@@ -615,10 +616,6 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
             },
         },
 
-        //running: {
-        //    get:
-        //},
-
         /**
          * Indicate whether ignore the anchor point property for positioning.
          * @property _ignoreAnchor
@@ -688,8 +685,8 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
         },
 
         /**
-         * !#en Indicate whether node's opacity value affect its child nodes, default value is false.
-         * !#zh 节点的不透明度值是否影响其子节点，默认值为 false。
+         * !#en Indicate whether node's opacity value affect its child nodes, default value is true.
+         * !#zh 节点的不透明度值是否影响其子节点，默认值为 true。
          * @property cascadeOpacity
          * @type {Boolean}
          * @example
@@ -1573,8 +1570,10 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
             // ensure transform computed
             cc.director._visitScene();
         }
-        var worldPositionIgnoreAnchorPoint = this._sgNode.convertToWorldSpace(nodePoint);
-        return cc.pSub(worldPositionIgnoreAnchorPoint, cc.p(this._anchorPoint.x * this._contentSize.width, this._anchorPoint.y * this._contentSize.height));
+        var x = nodePoint.x - this._anchorPoint.x * this._contentSize.width;
+        var y = nodePoint.y - this._anchorPoint.y * this._contentSize.height;
+        var worldPositionIgnoreAnchorPoint = this._sgNode.convertToWorldSpace(cc.v2(x, y));
+        return worldPositionIgnoreAnchorPoint;
     },
 
     /**
@@ -1886,7 +1885,7 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
                     sibling.setLocalZOrder(zOrder);
                 }
                 else {
-                    sibling.arrivalOrder = i;
+                    sibling._arrivalOrder = i;
                     cc.eventManager._setDirtyForNode(siblings[i]);
                 }
             }
@@ -1943,7 +1942,7 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
                         if (child._localZOrder < _children[j]._localZOrder) {
                             _children[j+1] = _children[j];
                         } else if (child._localZOrder === _children[j]._localZOrder &&
-                                   child._sgNode.arrivalOrder < _children[j]._sgNode.arrivalOrder) {
+                                   child._sgNode._arrivalOrder < _children[j]._sgNode._arrivalOrder) {
                             _children[j+1] = _children[j];
                         } else {
                             break;
@@ -1972,14 +1971,18 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
         sgNode.setScale(self._scaleX, self._scaleY);
         sgNode.setSkewX(self._skewX);
         sgNode.setSkewY(self._skewY);
-        sgNode.ignoreAnchorPointForPosition(self.__ignoreAnchor);
+        sgNode.setIgnoreAnchorPointForPosition(self.__ignoreAnchor);
 
-        var arrivalOrder = sgNode.arrivalOrder;
+        var arrivalOrder = sgNode._arrivalOrder;
         sgNode.setLocalZOrder(self._localZOrder);
-        sgNode.arrivalOrder = arrivalOrder;     // revert arrivalOrder changed in setLocalZOrder
+        sgNode._arrivalOrder = arrivalOrder;     // revert arrivalOrder changed in setLocalZOrder
 
         sgNode.setGlobalZOrder(self._globalZOrder);
 
+        if (CC_JSB) {
+            // fix tintTo and tintBy action for jsb displays err for fireball/issues/4137
+            sgNode.setColor(this._color);
+        }
         sgNode.setOpacity(self._opacity);
         sgNode.setOpacityModifyRGB(self._opacityModifyRGB);
         sgNode.setCascadeOpacityEnabled(self._cascadeOpacityEnabled);
@@ -2001,29 +2004,6 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
         else {
             cc.director.getActionManager().pauseTarget(this);
             cc.eventManager.pauseTarget(this);
-        }
-    },
-
-    /*
-     * The deserializer for sgNode which will be called before components onLoad
-     * @param {Boolean} [skipChildrenInEditor=false]
-     */
-    _onBatchCreated: function () {
-        this._updateDummySgNode();
-
-        if (this._parent) {
-            this._parent._sgNode.addChild(this._sgNode);
-        }
-
-        if ( !this._activeInHierarchy ) {
-            // deactivate ActionManager and EventManager by default
-            cc.director.getActionManager().pauseTarget(this);
-            cc.eventManager.pauseTarget(this);
-        }
-
-        var children = this._children;
-        for (var i = 0, len = children.length; i < len; i++) {
-            children[i]._onBatchCreated();
         }
     },
 
@@ -2080,16 +2060,14 @@ var BaseNode = cc.Class(/** @lends cc.Node# */{
 // Define public getter and setter methods to ensure api compatibility.
 
 var SameNameGetSets = ['name', 'skewX', 'skewY', 'position', 'rotation', 'rotationX', 'rotationY',
-                       'scale', 'scaleX', 'scaleY', 'children', 'childrenCount', 'parent', 'running',
-                       /*'actionManager',*/ 'scheduler', /*'shaderProgram',*/ 'opacity', 'color', 'tag'];
+                       'scale', 'scaleX', 'scaleY', 'children', 'childrenCount', 'parent',
+                       /*'shaderProgram',*/ 'opacity', 'color', 'tag'];
 var DiffNameGetSets = {
     x: ['getPositionX', 'setPositionX'],
     y: ['getPositionY', 'setPositionY'],
     zIndex: ['getLocalZOrder', 'setLocalZOrder'],
-    //running: ['isRunning'],
     opacityModifyRGB: ['isOpacityModifyRGB'],
     cascadeOpacity: ['isCascadeOpacityEnabled', 'setCascadeOpacityEnabled'],
-    cascadeColor: ['isCascadeColorEnabled', 'setCascadeColorEnabled'],
     //// privates
     //width: ['_getWidth', '_setWidth'],
     //height: ['_getHeight', '_setHeight'],

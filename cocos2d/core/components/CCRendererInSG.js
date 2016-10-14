@@ -52,7 +52,7 @@ var RendererInSG = cc.Class({
             sgNode.retain();
         }
 
-        // The replacement node used when this component disabled 
+        // The replacement node used when this component disabled
         this._plainNode = new _ccsg.Node();
         if (CC_JSB) {
             this._plainNode.retain();
@@ -71,6 +71,11 @@ var RendererInSG = cc.Class({
     },
 
     onEnable: function () {
+        if (CC_JSB && cc.director.getActionManager().getNumberOfRunningActionsInTarget(this.node) > 0) {
+            cc.error('The node "%s" has a component inherited from "cc._RendererInSG"', this.node.name);
+            cc.error('JSB environment is not support invoke node.runAction before the "cc._RendererInSG" component enabled.');
+            cc.error('Please use runAction in the method "start" instead.');
+        }
         this._replaceSgNode(this._sgNode);
     },
 
@@ -102,9 +107,9 @@ var RendererInSG = cc.Class({
             cc.warn('The same sgNode');
             return;
         }
-        
+
         // rebuild scene graph
-        
+
         // replace children
         var children = replaced.getChildren().slice();
         replaced.removeAllChildren(false);
@@ -117,15 +122,25 @@ var RendererInSG = cc.Class({
         for (var i = 0, len = children.length; i < len; ++i) {
             sgNode.addChild(children[i]);
         }
-        
+
         // replace parent
         var parentNode = replaced.getParent();
         if (parentNode) {
             parentNode.removeChild(replaced);
             parentNode.addChild(sgNode);
-            sgNode.arrivalOrder = replaced.arrivalOrder;
             if ( !CC_JSB ) {
+                sgNode._arrivalOrder = replaced._arrivalOrder;
                 cc.renderer.childrenOrderDirty = parentNode._reorderChildDirty = true;
+            } else {
+                // update the arrival order of replaced sgNode
+                var parentEntity = this.node._parent;
+                if (parentEntity) {
+                    var entityChildren = parentEntity._children;
+                    var startIdx = this.node.getSiblingIndex();
+                    for (i = startIdx + 1; i < entityChildren.length; i++) {
+                        entityChildren[i]._sgNode.updateOrderOfArrival();
+                    }
+                }
             }
         }
         // replaced.release();

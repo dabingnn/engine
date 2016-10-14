@@ -198,10 +198,11 @@ var TiledLayer = cc.Class({
      */
     setTileGID: function(gid, posOrX, flagsOrY, flags) {
         if (this._sgNode) {
-            if(!posOrX)
+            if(posOrX === undefined)
                 throw new Error("_ccsg.TMXLayer.setTileGID(): pos should be non-null");
             var pos;
-            if (flags !== undefined) {
+            if (flags !== undefined || !(posOrX instanceof cc.Vec2)) {
+                // four parameters or posOrX is not a Vec2 object
                 pos = cc.p(posOrX, flagsOrY);
             } else {
                 pos = posOrX;
@@ -544,6 +545,18 @@ var TiledLayer = cc.Class({
             this._sgNode.setProperties(properties);
         }
     },
+
+    // The method will remove self component from the node,
+    // and try to remove the node from scene graph.
+    // It should only be invoked by cc.TiledMap
+    // DO NOT use it manually.
+    _tryRemoveNode: function() {
+        this.node.removeComponent(cc.TiledLayer);
+        if (this.node._components.length === 1 &&
+            this.node.getChildren().length === 0) {
+            this.node.removeFromParent();
+        }
+    }
 });
 
 cc.TiledLayer = module.exports = TiledLayer;

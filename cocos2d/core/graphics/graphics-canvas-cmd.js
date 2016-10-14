@@ -61,7 +61,8 @@ _p.rendering = function (ctx, scaleX, scaleY) {
         if (ctxCmd === 'clear') {
             cmds.splice(0, i+1);
             i = 0;
-            return;
+            l = cmds.length;
+            continue;
         }
         else if (ctxCmd === 'moveTo' && endPath) {
             context.beginPath();
@@ -196,8 +197,5 @@ Js.mixin(_p, {
         this.setDirtyFlag(_ccsg.Node._dirtyFlags.contentDirty);
     }
 });
-
-var misc = require('../utils/misc');
-misc.propertyDefine(CanvasRenderCmd, ['lineWidth', 'lineCap', 'lineJoin', 'miterLimit', 'strokeColor', 'fillColor'], {});
 
 module.exports = CanvasRenderCmd;

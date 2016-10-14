@@ -112,6 +112,16 @@ for (var i = 0; i < actionArr.length; ++i) {
     }
 }
 
+cc.targetedAction = function (target, action) {
+    return new cc.TargetedAction(target, action);
+};
+
+cc.TargetedAction.prototype._ctor = function(target, action) {
+    var node = target._sgNode || target;
+    node._owner = target;
+    action && this.initWithTarget(node, action);
+};
+
 cc.follow = function (followedNode, rect) {
     return new cc.Follow(followedNode._sgNode, rect);
 };
@@ -123,31 +133,89 @@ cc.Follow.prototype.update = function(dt) {
     }
 };
 
-cc.Show.prototype.update = function (dt) {
-    var target = this.getTarget();
-    var _renderComps = target._owner.getComponentsInChildren();
+var _FlipX = cc.FlipX;
+cc.FlipX = _FlipX.extend({
+    _flippedX:false,
+
+    ctor:function(flip){
+        _FlipX.prototype.ctor.call(this);
+        this.initWithFlipX(flip);
+    },
+
+    initWithFlipX:function (flip) {
+        this._flippedX = !!flip;
+        return true;
+    },
+
+    update:function (dt) {
+        var target = this.getTarget();
+        target.scaleX = Math.abs(target.scaleX) * (this._flippedX ? -1 : 1);
+    },
+
+    reverse:function () {
+        return new cc.FlipX(!this._flippedX);
+    },
+
+    clone:function(){
+        return new cc.FlipX(this._flippedX);
+    }
+});
+
+cc.flipX = function (flip) {
+    return new cc.FlipX(flip);
+};
+
+var _FlipY = cc.FlipY;
+cc.FlipY = _FlipY.extend({
+    _flippedY:false,
+
+    ctor: function(flip){
+        _FlipY.prototype.ctor.call(this);
+        this.initWithFlipY(flip);
+    },
+
+    initWithFlipY:function (flip) {
+        this._flippedY = !!flip;
+        return true;
+    },
+
+    update:function (dt) {
+        var target = this.getTarget();
+        target.scaleY = Math.abs(target.scaleY) * (this._flippedY ? -1 : 1);
+    },
+
+    reverse:function () {
+        return new cc.FlipY(!this._flippedY);
+    },
+
+    clone:function(){
+        return new cc.FlipY(this._flippedY);
+    }
+});
+
+cc.flipY = function (flip) {
+    return new cc.FlipY(flip);
+};
+
+function setRendererVisibility (sgNode, toggleVisible, visible) {
+    if (!sgNode) { return; }
+    var _renderComps = sgNode._owner.getComponentsInChildren(cc._SGComponent);
     for (var i = 0; i < _renderComps.length; ++i) {
         var render = _renderComps[i];
-        render.enabled = true;
+        render.enabled = toggleVisible ? !render.enabled : visible;
     }
+}
+
+cc.Show.prototype.update = function (dt) {
+    setRendererVisibility(this.getTarget(), false, true);
 };
 
 cc.Hide.prototype.update = function (dt) {
-    var target = this.getTarget();
-    var _renderComps = target._owner.getComponentsInChildren();
-    for (var i = 0; i < _renderComps.length; ++i) {
-        var render = _renderComps[i];
-        render.enabled = false;
-    }
+    setRendererVisibility(this.getTarget(), false, false);
 };
 
 cc.ToggleVisibility.prototype.update = function (dt) {
-    var target = this.getTarget();
-    var _renderComps = target._owner.getComponentsInChildren();
-    for (var i = 0; i < _renderComps.length; ++i) {
-        var render = _renderComps[i];
-        render.enabled = true;
-    }
+    setRendererVisibility(this.getTarget(), true);
 };
 
 // Special call func
@@ -250,7 +318,7 @@ var targetRelatedFuncs = [
     ['removeAllActionsFromTarget', 0],
     ['removeActionByTag', 1],
     ['getActionByTag', 1],
-    ['numberOfRunningActionsInTarget', 0],
+    ['getNumberOfRunningActionsInTarget', 0],
     ['pauseTarget', 0],
     ['resumeTarget', 0]
 ];
@@ -343,9 +411,7 @@ function syncColorUpdate (dt) {
 // Sub classes must be registered before their super class.
 // Otherwise, JSB there will be internal Error: "too much recursion".
 var actionUpdate = {
-    'MoveTo': syncPositionUpdate,
     'MoveBy': syncPositionUpdate,
-    'JumpTo': syncPositionUpdate,
     'JumpBy': syncPositionUpdate,
     'Place': syncPositionUpdate,
     'CardinalSplineTo': syncPositionUpdate,

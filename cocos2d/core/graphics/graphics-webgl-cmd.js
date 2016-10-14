@@ -30,7 +30,7 @@ var LineJoin    = require('./types').LineJoin;
 
 var Earcut = require('./earcut');
 
-var Helper = require('./Helper');
+var Helper = require('./helper');
 
 var Vec2  = cc.Vec2;
 var Js    = cc.js;
@@ -283,6 +283,22 @@ Js.mixin(_p, {
 
     getFillColor: function () {
         return this._fillColor;
+    },
+
+    setLineWidth: function (v) {
+        this.lineWidth = v;
+    },
+
+    setLineJoin: function (v) {
+        this.lineJoin = v;
+    },
+
+    setLineCap: function (v) {
+        this.lineCap = v;
+    },
+
+    setMiterLimit: function (v) {
+        this.miterLimit = v;
     }
 });
 

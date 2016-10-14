@@ -1,5 +1,5 @@
 
-if (CC_DEV && typeof eruda === 'undefined') {
+if (CC_DEV) {
 
     var js = cc.js;
 
@@ -279,7 +279,9 @@ if (CC_DEV && typeof eruda === 'undefined') {
     }
     // deprecateEnum(cc.ProgressTimer, 'cc.ProgressTimer.TYPE', 'cc.ProgressTimer.Type');
     deprecateEnum(cc.game, 'cc.game.DEBUG_MODE', 'cc.DebugMode');
-    deprecateEnum(cc, 'cc', 'cc.Texture2D.WrapMode', false);
+    if (!CC_JSB) {
+        deprecateEnum(cc, 'cc', 'cc.Texture2D.WrapMode', false);
+    }
     if (_ccsg.EditBox) {
         deprecateEnum(cc, 'cc.KEYBOARD_RETURNTYPE', '_ccsg.EditBox.KeyboardReturnType');
         deprecateEnum(cc, 'cc.EDITBOX_INPUT_MODE', '_ccsg.EditBox.InputMode');
@@ -378,7 +380,6 @@ if (CC_DEV && typeof eruda === 'undefined') {
         'onEnterTransitionDidFinish',
         'onExitTransitionDidStart',
         'onExit',
-        'getNumberOfRunningActions',
         'scheduleUpdate',
         'scheduleUpdateWithPriority',
         'unscheduleUpdate',
@@ -398,6 +399,8 @@ if (CC_DEV && typeof eruda === 'undefined') {
         'transform',
         'getCamera',
         'grid',
+        'getOrderOfArrival',
+        'setOrderOfArrival',
         'getGrid',
         'setGrid',
         'getShaderProgram',
@@ -412,6 +415,8 @@ if (CC_DEV && typeof eruda === 'undefined') {
         'userObject',
         '_cascadeColorEnabled',
         'cascadeColor',
+        'isCascadeColorEnabled',
+        'setCascadeColorEnabled',
         'ignoreAnchor',
         'isIgnoreAnchorPointForPosition',
         'ignoreAnchorPointForPosition'
@@ -428,8 +433,6 @@ if (CC_DEV && typeof eruda === 'undefined') {
         _detachChild: 'removeChild',
         getZOrder: 'getLocalZOrder',
         setZOrder: 'setLocalZOrder',
-        getOrderOfArrival: 'getSiblingIndex',
-        setOrderOfArrival: 'setSiblingIndex',
         boundingBox: 'getBoundingBox',
         removeFromParentAndCleanup: 'removeFromParent',
         removeAllChildrenWithCleanup: 'removeAllChildren',
@@ -440,7 +443,7 @@ if (CC_DEV && typeof eruda === 'undefined') {
         removeAllComponents: 'removeComponent',
         getNodeToParentAffineTransform: 'getNodeToParentTransform',
     });
-    
+
     // RENDERERS
 
     function shouldNotUseNodeProp (component) {
@@ -550,33 +553,41 @@ if (CC_DEV && typeof eruda === 'undefined') {
         Mode: 'EmitterMode'
     });
 
-    // _ccsg.Node
-    markAsRemoved(_ccsg.Node, [
-        '_normalizedPositionDirty',
-        '_normalizedPosition',
-        '_usingNormalizedPosition',
-        'grid',
-        'userData',
-        'userObject',
-        'getNormalizedPosition',
-        'setNormalizedPosition',
-        'getCamera',
-        'getUserData',
-        'setUserData',
-        'getUserObject',
-        'setUserObject',
-        'getComponent',
-        'addComponent',
-        'removeComponent',
-        'removeAllComponents',
-        'enumerateChildren',
-        'setCameraMask',
-        'getCameraMask'
-    ], '_ccsg.Node');
+    if (!CC_JSB) {
+        // _ccsg.Node
+        markAsRemoved(_ccsg.Node, [
+            '_normalizedPositionDirty',
+            '_normalizedPosition',
+            '_usingNormalizedPosition',
+            'grid',
+            'userData',
+            'userObject',
+            'getNormalizedPosition',
+            'setNormalizedPosition',
+            'getCamera',
+            'getUserData',
+            'setUserData',
+            'getUserObject',
+            'setUserObject',
+            'getComponent',
+            'addComponent',
+            'removeComponent',
+            'removeAllComponents',
+            'enumerateChildren',
+            'setCameraMask',
+            'getCameraMask'
+        ], '_ccsg.Node');
+    }
+
+    js.obsolete(_ccsg.Node.prototype, '_ccsg.Node.ignoreAnchorPointForPosition', 'setIgnoreAnchorPointForPosition');
 
     js.obsoletes(cc.Scale9Sprite.prototype, 'cc.Scale9Sprite', {
         setPreferredSize: 'setContentSize',
         getPreferredSize: 'getContentSize',
+    });
+
+    js.obsoletes(cc.ActionManager.prototype, 'cc.ActionManager', {
+        'numberOfRunningActionsInTarget' : 'getNumberOfRunningActionsInTarget'
     });
 
     //ui
@@ -655,4 +666,5 @@ if (CC_DEV && typeof eruda === 'undefined') {
             }
         },
     });
+
 }

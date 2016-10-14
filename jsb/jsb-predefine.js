@@ -52,7 +52,9 @@ if (CC_DEV) {
 require('../cocos2d/core/platform/js');
 require('../cocos2d/core/value-types');
 require('../cocos2d/core/utils/find');
+require('../cocos2d/core/utils/mutable-forward-iterator');
 require('../cocos2d/core/event');
+require('../cocos2d/core/event-manager/CCSystemEvent');
 require('../CCDebugger');
 
 cc._initDebugSetting(cc.game.DEBUG_MODE_INFO);

@@ -186,6 +186,10 @@ var properties = {
         set: function (value) {
             this._texture = value;
             this._sgNode.texture = value ? cc.textureCache.addImage( value ) : null;
+            if (!value && this._file) {
+                // fallback to plist
+                this._applyFile();
+            }
         },
         url: cc.Texture2D
     },
@@ -892,6 +896,9 @@ var ParticleSystem = cc.Class({
             cc.loader.load(file, function (err, content) {
                 if (err || !content) {
                     throw err || new Error('Unkown error');
+                }
+                if (!self.isValid) {
+                    return;
                 }
 
                 sgNode.particleCount = 0;

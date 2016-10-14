@@ -30,9 +30,6 @@
  * @extends Component
  */
 
-// todo jsb 中无法针对单独的音效对象进行设置（如音量大小等）
-
-var audioEngine = cc.audioEngine;
 
 var AudioSource = cc.Class({
     name: 'cc.AudioSource',
@@ -44,7 +41,7 @@ var AudioSource = cc.Class({
     },
 
     ctor: function () {
-        this.audio = null;
+        this.audio = new cc.Audio(this._clip);
     },
 
     properties: {
@@ -70,7 +67,9 @@ var AudioSource = cc.Class({
          */
         isPlaying: {
             get: function () {
-                return (!cc.sys.isNative && this.audio && this.audio.getPlaying());
+                if (!this.audio) return false;
+                var state = this.audio.getState();
+                return state === cc.Audio.State.PLAYING;
             },
             visible: false
         },
@@ -88,6 +87,11 @@ var AudioSource = cc.Class({
             },
             set: function (value) {
                 this._clip = value;
+                this.audio.stop();
+                this.audio.src = this._clip;
+                if (this.audio.preload) {
+                    this.audio.preload();
+                }
             },
             url: cc.AudioClip,
             tooltip: 'i18n:COMPONENT.audio.clip',
@@ -107,14 +111,16 @@ var AudioSource = cc.Class({
             },
             set: function (value) {
                 this._volume = value;
-                if (this.audio) {
-                    if (cc.sys.isNative) {
-                        cc.audioEngine.setEffectsVolume(value);
-                    }
-                    else {
-                        this.audio.setVolume(value);
+                var audio = this.audio;
+                if (audio && !this._mute) {
+                    audio.setVolume(value);
+                    if (!audio._loaded) {
+                        audio.on('load', function () {
+                            audio.setVolume(value);
+                        });
                     }
                 }
+                return value;
             },
             tooltip: 'i18n:COMPONENT.audio.volume'
         },
@@ -133,20 +139,9 @@ var AudioSource = cc.Class({
             set: function (value) {
                 this._mute = value;
                 if (this.audio) {
-                    if (this._mute) {
-                        if (CC_JSB) {
-                            cc.audioEngine.setEffectsVolume(0);
-                        } else {
-                            this.audio.setVolume(0);
-                        }
-                    } else {
-                        if (CC_JSB) {
-                            cc.audioEngine.setEffectsVolume(this._volume);
-                        } else {
-                            this.audio.setVolume(this._volume);
-                        }
-                    }
+                    this.audio.setVolume(value ? 0 : this._volume);
                 }
+                return value;
             },
             animatable: false,
             tooltip: 'i18n:COMPONENT.audio.mute',
@@ -165,7 +160,10 @@ var AudioSource = cc.Class({
             },
             set: function (value) {
                 this._loop = value;
-                if (this.audio) this.audio.loop = this._loop;
+                if (this.audio) {
+                    this.audio.setLoop(value);
+                }
+                return value;
             },
             animatable: false,
             tooltip: 'i18n:COMPONENT.audio.loop'
@@ -182,12 +180,21 @@ var AudioSource = cc.Class({
             default: false,
             tooltip: 'i18n:COMPONENT.audio.play_on_load',
             animatable: false
+        },
+
+        preload: {
+            default: false,
+            animatable: false
         }
     },
 
     onEnable: function () {
         if ( this.playOnLoad ) {
             this.play();
+        }
+        if ( this.preload ) {
+            this.audio.src = this._clip;
+            this.audio.preload();
         }
     },
 
@@ -197,6 +204,7 @@ var AudioSource = cc.Class({
 
     onDestroy: function () {
         this.stop();
+        cc.audioEngine.uncache(this._clip);
     },
 
     /**
@@ -205,14 +213,26 @@ var AudioSource = cc.Class({
      * @method play
      */
     play: function () {
-        if ( this._clip ) {
-            var volume = this._mute ? 0 : this._volume;
-            this.audio = audioEngine.playEffect(this._clip, this._loop, volume);
+        if ( !this._clip ) return;
 
-            if (CC_JSB) {
-                cc.audioEngine.setEffectsVolume(volume);
-            }
+        var volume = this._mute ? 0 : this._volume;
+        var audio = this.audio;
+        var loop = this._loop;
+
+        if (audio._loaded) {
+            audio.stop();
+            audio.setCurrentTime(0);
+            audio.play();
+            return;
         }
+
+        audio.src = this._clip;
+        audio.once('load', function () {
+            audio.setLoop(loop);
+            audio.setVolume(volume);
+            audio.play();
+        });
+        audio.preload();
     },
 
     /**
@@ -221,7 +241,9 @@ var AudioSource = cc.Class({
      * @method stop
      */
     stop: function () {
-        if ( this.audio ) cc.audioEngine.stopEffect(this.audio);
+        if (this.audio) {
+            this.audio.stop();
+        }
     },
 
     /**
@@ -230,7 +252,9 @@ var AudioSource = cc.Class({
      * @method pause
      */
     pause: function () {
-        if ( this.audio ) cc.audioEngine.pauseEffect(this.audio);
+        if (this.audio) {
+            this.audio.pause();
+        }
     },
 
     /**
@@ -239,7 +263,9 @@ var AudioSource = cc.Class({
      * @method resume
      */
     resume: function () {
-        if ( this.audio ) cc.audioEngine.resumeEffect(this.audio);
+        if (this.audio) {
+            this.audio.resume();
+        }
     },
 
     /**
@@ -248,11 +274,56 @@ var AudioSource = cc.Class({
      * @method rewind
      */
     rewind: function(){
-        if ( this.audio ) {
-            this.stop();
-            this.play();
+        if (this.audio) {
+            this.audio.setCurrentTime(0);
         }
     },
+
+    /**
+     * !#en Get current time
+     * !#zh 获取当前的播放时间
+     * @method getCurrentTime
+     */
+    getCurrentTime: function () {
+        var time = 0;
+        if (this.audio) {
+            time = this.audio.getCurrentTime();
+        }
+        return time;
+    },
+    
+    /**
+     * !#en Set current time
+     * !#zh 设置当前的播放时间
+     * @method setCurrentTime
+     * @param {Number} time
+     */
+    setCurrentTime: function (time) {
+        var audio = this.audio;
+        if (!audio) return time;
+
+        if (!audio._loaded) {
+            audio.once('load', function () {
+                audio.setCurrentTime(time);
+            });
+            return time;
+        }
+        audio.setCurrentTime(time);
+        return time;
+    },
+    
+    /**
+     * !#en Get audio duration
+     * !#zh 获取当前音频的长度
+     * @method getDuration
+     */
+    getDuration: function () {
+        var time = 0;
+        if (this.audio) {
+            time = this.audio.getDuration();
+        }
+        return time;
+    }
 
 });
 
