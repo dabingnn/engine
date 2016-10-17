@@ -424,13 +424,10 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //this._scenesStack.push(scene);
         //this._nextScene = scene;
     },
-    runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
-        return this.runSceneImmediate3D(scene, onBeforeLoadScene, onLaunched);
-    },
-    runScene: function (scene, onBeforeLoadScene, onLaunched) {
-        return this.runScene3D(scene, onBeforeLoadScene, onLaunched);
-    },
     runSceneImmediate3D: function (scene, onBeforeLoadScene, onLaunched) {
+        return this.runSceneImmediate(scene, onBeforeLoadScene, onLaunched);
+    },
+    runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
         var id, node, game = cc.game3D;
         var persistNodes = game._persistRootNodes;
 
@@ -517,7 +514,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         this.emit(Director3D.EVENT_AFTER_SCENE_LAUNCH, scene);
     },
 
-    runScene3D: function (scene, onBeforeLoadScene, onLaunched) {
+    runScene: function (scene, onBeforeLoadScene, onLaunched) {
         //cc.assert(scene, cc._LogInfos.Director.pushScene);
         if (scene instanceof cc.Scene) {
             // ensure scene initialized
@@ -637,7 +634,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
                     scene = sceneAsset.scene;
                     scene._id = sceneAsset._uuid;
                     scene._name = sceneAsset._name;
-                    self.runSceneImmediate3D(scene, onUnloaded, onLaunched);
+                    self.runSceneImmediate(scene, onUnloaded, onLaunched);
                 }
                 else {
                     error = 'The asset ' + uuid + ' is not a scene';
