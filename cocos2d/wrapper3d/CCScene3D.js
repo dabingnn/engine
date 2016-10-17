@@ -34,8 +34,8 @@ var NIL = function () {};
  * @class Scene
  * @extends _BaseNode
  */
-cc.Scene3D = cc.Class({
-    name: 'cc.Scene3D',
+cc.Scene = cc.Class({
+    name: 'cc.Scene',
     extends: require('./CCBaseNode3D'),
 
     properties: {
@@ -127,4 +127,4 @@ cc.Scene3D = cc.Class({
     }
 });
 
-cc.Scene = module.exports = cc.Scene3D;
+module.exports = cc.Scene;
