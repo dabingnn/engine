@@ -127,4 +127,4 @@ cc.Scene3D = cc.Class({
     }
 });
 
-module.exports = cc.Scene3D;
+cc.Scene = module.exports = cc.Scene3D;

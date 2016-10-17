@@ -424,13 +424,17 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //this._scenesStack.push(scene);
         //this._nextScene = scene;
     },
-    runSceneImmediate: function (){},
-    runScene: function () {},
+    runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
+        return this.runSceneImmediate3D(scene, onBeforeLoadScene, onLaunched);
+    },
+    runScene: function (scene, onBeforeLoadScene, onLaunched) {
+        return this.runScene3D(scene, onBeforeLoadScene, onLaunched);
+    },
     runSceneImmediate3D: function (scene, onBeforeLoadScene, onLaunched) {
         var id, node, game = cc.game3D;
         var persistNodes = game._persistRootNodes;
 
-        if (scene instanceof cc.Scene3D) {
+        if (scene instanceof cc.Scene) {
             scene._load();  // ensure scene initialized
         }
 
@@ -466,7 +470,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //var sgScene = scene;
 
         // Run an Entity Scene
-        if (scene instanceof cc.Scene3D) {
+        if (scene instanceof cc.Scene) {
             this._scene = scene;
             //sgScene = scene._sgNode;
 
@@ -515,7 +519,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
 
     runScene3D: function (scene, onBeforeLoadScene, onLaunched) {
         //cc.assert(scene, cc._LogInfos.Director.pushScene);
-        if (scene instanceof cc.Scene3D) {
+        if (scene instanceof cc.Scene) {
             // ensure scene initialized
             scene._load();
         }

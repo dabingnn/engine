@@ -86,7 +86,7 @@ if(cc.sys){
         jsb.fileUtils.setSearchPaths(JSON.parse(scene3SearchPaths));
 }
 
-function initScene3D(sgRootNode, sgScene, scene) {
+function initScene(sgRootNode, sgScene, scene) {
     var lightNode1 = new cc.Node3D();
     scene.addChild(lightNode1);
     lightNode1.rotationX = lightNode1.rotationY = 0;
@@ -123,7 +123,7 @@ cc.game3D.run({
 
     "jsList"        : []
 }, function(){
-    var scene = new cc.Scene3D();
-    initScene3D(scene._sgNode, scene._sgScene, scene);
-    cc.director.runSceneImmediate3D(scene);
+    var scene = new cc.Scene();
+    initScene(scene._sgNode, scene._sgScene, scene);
+    cc.director.runScene(scene);
 });

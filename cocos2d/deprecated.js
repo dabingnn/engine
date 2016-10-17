@@ -631,40 +631,40 @@ if (CC_DEV) {
     }
 
     // SCENE
-
-    var ERR = '"%s" is not defined in the Scene, it is only defined in normal nodes.';
-    Object.defineProperties(cc.Scene.prototype, {
-        active: {
-            get: function () {
-                cc.error(ERR, 'active');
-                return true;
-            },
-            set: function () {
-                cc.error(ERR, 'active');
-            }
-        },
-        activeInHierarchy: {
-            get: function () {
-                cc.error(ERR, 'activeInHierarchy');
-                return true;
-            },
-        },
-        getComponent: {
-            get: function () {
-                cc.error(ERR, 'getComponent');
-                return function () {
-                    return null;
-                };
-            }
-        },
-        addComponent: {
-            get: function () {
-                cc.error(ERR, 'addComponent');
-                return function () {
-                    return null;
-                };
-            }
-        },
-    });
+    //
+    //var ERR = '"%s" is not defined in the Scene, it is only defined in normal nodes.';
+    //Object.defineProperties(cc.Scene.prototype, {
+    //    active: {
+    //        get: function () {
+    //            cc.error(ERR, 'active');
+    //            return true;
+    //        },
+    //        set: function () {
+    //            cc.error(ERR, 'active');
+    //        }
+    //    },
+    //    activeInHierarchy: {
+    //        get: function () {
+    //            cc.error(ERR, 'activeInHierarchy');
+    //            return true;
+    //        },
+    //    },
+    //    getComponent: {
+    //        get: function () {
+    //            cc.error(ERR, 'getComponent');
+    //            return function () {
+    //                return null;
+    //            };
+    //        }
+    //    },
+    //    addComponent: {
+    //        get: function () {
+    //            cc.error(ERR, 'addComponent');
+    //            return function () {
+    //                return null;
+    //            };
+    //        }
+    //    },
+    //});
 
 }

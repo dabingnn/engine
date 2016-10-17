@@ -32,7 +32,6 @@ if (!CC_EDITOR || !Editor.isMainProcess) {
     }
 
     require('./CCNode');
-    require('./CCScene');
 
     require('./components');
     require('./graphics');
