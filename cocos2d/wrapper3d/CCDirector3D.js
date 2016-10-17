@@ -424,9 +424,6 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         //this._scenesStack.push(scene);
         //this._nextScene = scene;
     },
-    runSceneImmediate3D: function (scene, onBeforeLoadScene, onLaunched) {
-        return this.runSceneImmediate(scene, onBeforeLoadScene, onLaunched);
-    },
     runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
         var id, node, game = cc.game;
         var persistNodes = game._persistRootNodes;
