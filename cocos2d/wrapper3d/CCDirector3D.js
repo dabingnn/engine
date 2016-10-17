@@ -137,7 +137,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
 
         EventTarget.call(self);
         self._lastUpdate = Date.now();
-        cc.game3D.on(cc.game3D.EVENT_SHOW, function () {
+        cc.game.on(cc.game.EVENT_SHOW, function () {
             self._lastUpdate = Date.now();
         });
     },
@@ -218,7 +218,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
             this._nextDeltaTimeZero = false;
         } else {
             this._deltaTime = (now - this._lastUpdate) / 1000;
-            if ((cc.game3D.config[cc.game3D.CONFIG_KEY.debugMode] > 0) && (this._deltaTime > 1))
+            if ((cc.game.config[cc.game.CONFIG_KEY.debugMode] > 0) && (this._deltaTime > 1))
                 this._deltaTime = 1 / 60.0;
         }
 
@@ -428,7 +428,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
         return this.runSceneImmediate(scene, onBeforeLoadScene, onLaunched);
     },
     runSceneImmediate: function (scene, onBeforeLoadScene, onLaunched) {
-        var id, node, game = cc.game3D;
+        var id, node, game = cc.game;
         var persistNodes = game._persistRootNodes;
 
         if (scene instanceof cc.Scene) {
@@ -528,7 +528,7 @@ var Director3D = Class.extend(/** @lends Director3D# */{
     },
 
     _getSceneUuid: function (key) {
-        //var scenes = cc.game3D._sceneInfos;
+        //var scenes = cc.game._sceneInfos;
         //if (typeof key === 'string') {
         //    if (!key.endsWith('.fire')) {
         //        key += '.fire';

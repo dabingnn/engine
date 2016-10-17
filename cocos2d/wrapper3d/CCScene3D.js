@@ -61,7 +61,7 @@ cc.Scene3D = cc.Class({
         //this._anchorPoint.y = 0.0;
 
         this._activeInHierarchy = false;
-        this._inited = !cc.game3D._isCloning;
+        this._inited = !cc.game._isCloning;
 
         // cache all depend assets for auto release
         this.dependAssets = null;

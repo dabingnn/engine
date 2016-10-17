@@ -413,7 +413,7 @@ var BaseNode3D = cc.Class(/** @lends cc.Node# */{
         //        }
         //    };
         //}
-        //if (!cc.game3D._isCloning) {
+        //if (!cc.game._isCloning) {
         //    sgNode.cascadeOpacity = true;
         //}
 

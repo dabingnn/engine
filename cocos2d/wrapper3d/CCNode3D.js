@@ -416,11 +416,11 @@ var Node3D = cc.Class({
          */
         group: {
             get: function () {
-                return cc.game3D.groupList[this.groupIndex] || '';
+                return cc.game.groupList[this.groupIndex] || '';
             },
 
             set: function (value) {
-                this.groupIndex = cc.game3D.groupList.indexOf(value);
+                this.groupIndex = cc.game.groupList.indexOf(value);
                 this.emit('group-changed');
             }
         }
@@ -519,7 +519,7 @@ var Node3D = cc.Class({
 
         // remove from persist
         if (this._persistNode) {
-            cc.game3D.removePersistRootNode(this);
+            cc.game.removePersistRootNode(this);
         }
 
         if ( !destroyByParent ) {
@@ -885,7 +885,7 @@ var Node3D = cc.Class({
     _onHierarchyChanged: function (oldParent) {
         var newParent = this._parent;
         if (this._persistNode && !(newParent instanceof cc.Scene)) {
-            cc.game3D.removePersistRootNode(this);
+            cc.game.removePersistRootNode(this);
             if (CC_EDITOR) {
                 cc.warn('Set "%s" to normal node (not persist root node).');
             }

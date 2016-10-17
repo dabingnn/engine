@@ -114,7 +114,7 @@ function initScene(sgRootNode, sgScene, scene) {
 
 }
 
-cc.game3D.run({
+cc.game.run({
     "debugMode"     : 1,
     "showFPS"       : true,
     "frameRate"     : 60,
