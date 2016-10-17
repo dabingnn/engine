@@ -730,4 +730,3 @@ cc.js.addon(game, EventTarget.prototype);
  */
 
 cc.game = module.exports = game ;
-cc.game3D = cc.game;
