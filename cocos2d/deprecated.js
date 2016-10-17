@@ -351,120 +351,120 @@ if (CC_DEV) {
 
     // cc.Node
 
-    markAsRemoved(cc.Node, [
-        '_componentContainer',
-        '_camera',
-        '_additionalTransform',
-        '_scheduler',
-        '_actionManager',
-        'actionManager',
-        '_isTransitionFinished',
-        '_additionalTransformDirty',
-        '_shaderProgram',
-        'shaderProgram',
-        '_normalizedPositionDirty',
-        '_normalizedPosition',
-        '_usingNormalizedPosition',
-        '_renderCmd',
-        '_vertexZ',
-        '_showNode',
-        '_arrayMakeObjectsPerformSelector',
-        'getActionManager',
-        'setActionManager',
-        'getScheduler',
-        'setScheduler',
-        'reorderChild',
-        'draw',
-        'transformAncestors',
-        'onEnter',
-        'onEnterTransitionDidFinish',
-        'onExitTransitionDidStart',
-        'onExit',
-        'scheduleUpdate',
-        'scheduleUpdateWithPriority',
-        'unscheduleUpdate',
-        'schedule',
-        'scheduleOnce',
-        'unschedule',
-        'unscheduleAllCallbacks',
-        'resumeSchedulerAndActions',
-        'resume',
-        'pauseSchedulerAndActions',
-        'pause',
-        'setAdditionalTransform',
-        'updateTransform',
-        'retain',
-        'release',
-        'visit',
-        'transform',
-        'getCamera',
-        'grid',
-        'getOrderOfArrival',
-        'setOrderOfArrival',
-        'getGrid',
-        'setGrid',
-        'getShaderProgram',
-        'setShaderProgram',
-        'getGLServerState',
-        'setGLServerState',
-        '_initRendererCmd',
-        '_createRenderCmd',
-        'updateDisplayedOpacity',
-        'updateDisplayedColor',
-        'userData',
-        'userObject',
-        '_cascadeColorEnabled',
-        'cascadeColor',
-        'isCascadeColorEnabled',
-        'setCascadeColorEnabled',
-        'ignoreAnchor',
-        'isIgnoreAnchorPointForPosition',
-        'ignoreAnchorPointForPosition'
-    ]);
-    provideClearError(cc.Node.prototype, {
-        arrivalOrder: 'getSiblingIndex, setSiblingIndex',
-        _visible: '_activeInHierarchy, active',
-        _running: '_activeInHierarchy, active',
-        running: 'activeInHierarchy, active',
-        _realOpacity: '_opacity, _opacity',
-        _realColor: '_color, _color',
-        _insertChild: 'addChild',
-        _addChildHelper: 'addChild',
-        _detachChild: 'removeChild',
-        getZOrder: 'getLocalZOrder',
-        setZOrder: 'setLocalZOrder',
-        boundingBox: 'getBoundingBox',
-        removeFromParentAndCleanup: 'removeFromParent',
-        removeAllChildrenWithCleanup: 'removeAllChildren',
-        parentToNodeTransform: 'getParentToNodeTransform',
-        nodeToWorldTransform: 'getNodeToWorlshaderProgramdTransform',
-        worldToNodeTransform: 'getWorldToNodeTransform',
-        nodeToParentTransform: 'getNodeToParentTransform',
-        removeAllComponents: 'removeComponent',
-        getNodeToParentAffineTransform: 'getNodeToParentTransform',
-    });
+    //markAsRemoved(cc.Node, [
+    //    '_componentContainer',
+    //    '_camera',
+    //    '_additionalTransform',
+    //    '_scheduler',
+    //    '_actionManager',
+    //    'actionManager',
+    //    '_isTransitionFinished',
+    //    '_additionalTransformDirty',
+    //    '_shaderProgram',
+    //    'shaderProgram',
+    //    '_normalizedPositionDirty',
+    //    '_normalizedPosition',
+    //    '_usingNormalizedPosition',
+    //    '_renderCmd',
+    //    '_vertexZ',
+    //    '_showNode',
+    //    '_arrayMakeObjectsPerformSelector',
+    //    'getActionManager',
+    //    'setActionManager',
+    //    'getScheduler',
+    //    'setScheduler',
+    //    'reorderChild',
+    //    'draw',
+    //    'transformAncestors',
+    //    'onEnter',
+    //    'onEnterTransitionDidFinish',
+    //    'onExitTransitionDidStart',
+    //    'onExit',
+    //    'scheduleUpdate',
+    //    'scheduleUpdateWithPriority',
+    //    'unscheduleUpdate',
+    //    'schedule',
+    //    'scheduleOnce',
+    //    'unschedule',
+    //    'unscheduleAllCallbacks',
+    //    'resumeSchedulerAndActions',
+    //    'resume',
+    //    'pauseSchedulerAndActions',
+    //    'pause',
+    //    'setAdditionalTransform',
+    //    'updateTransform',
+    //    'retain',
+    //    'release',
+    //    'visit',
+    //    'transform',
+    //    'getCamera',
+    //    'grid',
+    //    'getOrderOfArrival',
+    //    'setOrderOfArrival',
+    //    'getGrid',
+    //    'setGrid',
+    //    'getShaderProgram',
+    //    'setShaderProgram',
+    //    'getGLServerState',
+    //    'setGLServerState',
+    //    '_initRendererCmd',
+    //    '_createRenderCmd',
+    //    'updateDisplayedOpacity',
+    //    'updateDisplayedColor',
+    //    'userData',
+    //    'userObject',
+    //    '_cascadeColorEnabled',
+    //    'cascadeColor',
+    //    'isCascadeColorEnabled',
+    //    'setCascadeColorEnabled',
+    //    'ignoreAnchor',
+    //    'isIgnoreAnchorPointForPosition',
+    //    'ignoreAnchorPointForPosition'
+    //]);
+    //provideClearError(cc.Node.prototype, {
+    //    arrivalOrder: 'getSiblingIndex, setSiblingIndex',
+    //    _visible: '_activeInHierarchy, active',
+    //    _running: '_activeInHierarchy, active',
+    //    running: 'activeInHierarchy, active',
+    //    _realOpacity: '_opacity, _opacity',
+    //    _realColor: '_color, _color',
+    //    _insertChild: 'addChild',
+    //    _addChildHelper: 'addChild',
+    //    _detachChild: 'removeChild',
+    //    getZOrder: 'getLocalZOrder',
+    //    setZOrder: 'setLocalZOrder',
+    //    boundingBox: 'getBoundingBox',
+    //    removeFromParentAndCleanup: 'removeFromParent',
+    //    removeAllChildrenWithCleanup: 'removeAllChildren',
+    //    parentToNodeTransform: 'getParentToNodeTransform',
+    //    nodeToWorldTransform: 'getNodeToWorlshaderProgramdTransform',
+    //    worldToNodeTransform: 'getWorldToNodeTransform',
+    //    nodeToParentTransform: 'getNodeToParentTransform',
+    //    removeAllComponents: 'removeComponent',
+    //    getNodeToParentAffineTransform: 'getNodeToParentTransform',
+    //});
 
     // RENDERERS
 
-    function shouldNotUseNodeProp (component) {
-        var compProto = component.prototype;
-        for (var prop in cc.Node.prototype) {
-            (function (prop) {
-                if (!(prop in compProto) && prop[0] !== '_') {
-                    Object.defineProperty(compProto, prop, {
-                        get: function () {
-                            var compName = cc.js.getClassName(this);    // 允许继承
-                            var Info = 'Sorry, ' + compName + '.%s is undefined, please use cc.Node.%s instead.';
-                            cc.error(Info, prop, prop);
-                        },
-                        enumerable: false,
-                        configurable: true,   // 允许继承
-                    });
-                }
-            })(prop);
-        }
-    }
-    shouldNotUseNodeProp(cc._SGComponent);
+    //function shouldNotUseNodeProp (component) {
+    //    var compProto = component.prototype;
+    //    for (var prop in cc.Node.prototype) {
+    //        (function (prop) {
+    //            if (!(prop in compProto) && prop[0] !== '_') {
+    //                Object.defineProperty(compProto, prop, {
+    //                    get: function () {
+    //                        var compName = cc.js.getClassName(this);    // 允许继承
+    //                        var Info = 'Sorry, ' + compName + '.%s is undefined, please use cc.Node.%s instead.';
+    //                        cc.error(Info, prop, prop);
+    //                    },
+    //                    enumerable: false,
+    //                    configurable: true,   // 允许继承
+    //                });
+    //            }
+    //        })(prop);
+    //    }
+    //}
+    //shouldNotUseNodeProp(cc._SGComponent);
 
 
     // cc.Sprite

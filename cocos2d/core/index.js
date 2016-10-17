@@ -31,8 +31,6 @@ if (!CC_EDITOR || !Editor.isMainProcess) {
         require('./sprites/CCSpriteFrameCache');
     }
 
-    require('./CCNode');
-
     require('./components');
     require('./graphics');
     require('./collider');

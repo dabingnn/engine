@@ -1393,4 +1393,4 @@ if (CC_JSB) {
 
 Node3D.EventType = EventType;
 
-cc.Node3D = module.exports = Node3D;
+cc.Node = cc.Node3D = module.exports = Node3D;

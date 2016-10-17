@@ -24,7 +24,6 @@
  ****************************************************************************/
 
 require('../platform/CCObject');
-require('../CCNode');
 var idGenerater = new (require('../platform/id-generater'))('Comp');
 var Misc = require('../utils/misc');
 
@@ -52,7 +51,7 @@ var callOnFocusInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_
 var callOnLostFocusInTryCatch = CC_EDITOR && eval(ExecInTryCatchTmpl.replace(/_FUNC_/g, 'onLostFocusInEditor'));
 
 function callOnEnable (self, enable) {
-    
+
     if (!CC_EDITOR || (cc.engine.isPlaying || self.constructor._executeInEditMode) ) {
         var enableCalled = self._objFlags & IsOnEnableCalled;
         if (enable) {
