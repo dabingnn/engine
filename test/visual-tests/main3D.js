@@ -87,26 +87,26 @@ if(cc.sys){
 }
 
 function initScene(sgRootNode, sgScene, scene) {
-    var lightNode1 = new cc.Node3D();
+    var lightNode1 = new cc.Node();
     scene.addChild(lightNode1);
     lightNode1.rotationX = lightNode1.rotationY = 0;
     lightNode1.rotationZ = -30;
     lightNode1.addComponent(cc.Light);
 
-    var lightNode2 = new cc.Node3D();
+    var lightNode2 = new cc.Node();
     scene.addChild(lightNode2);
     lightNode1.rotationX = lightNode1.rotationY = 0;
     lightNode2.rotationZ = 140;
     lightNode2.addComponent(cc.Light);
 
-    var modelNode = new cc.Node3D();
+    var modelNode = new cc.Node();
     modelNode.scale = {x:1,y:2,z:1};
     modelNode.position = {x:0,y:0,z:0};
     modelNode.rotation = {x:0,y:0,z:0};
     modelNode.addComponent(cc.Model);
     scene.addChild(modelNode);
 
-    var cameraNode = new cc.Node3D();
+    var cameraNode = new cc.Node();
     cameraNode.setPosition(new pc.Vec3(0, 0, 50));
     cameraNode.addComponent(cc.Camera);
 

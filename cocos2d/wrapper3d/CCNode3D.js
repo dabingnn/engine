@@ -240,7 +240,7 @@ var _mouseEvents = [
 //    if (cc.Mask) {
 //        var index = 0;
 //        var mask = null;
-//        for (var curr = node; curr && curr instanceof cc.Node3D; curr = curr.parent, ++index) {
+//        for (var curr = node; curr && curr instanceof cc.Node; curr = curr.parent, ++index) {
 //            mask = curr.getComponent(cc.Mask);
 //            if (mask) {
 //                return {
@@ -313,7 +313,7 @@ function findChildComponents (children, constructor, components) {
 }
 
 var Node3D = cc.Class({
-    name: 'cc.Node3D',
+    name: 'cc.Node',
     extends: require('./CCBaseNode3D'),
     mixins: [EventTarget],
 
@@ -986,10 +986,10 @@ var Node3D = cc.Class({
      * @return {Function} - Just returns the incoming callback so you can save the anonymous function easier.
      * @example
      * // add Node3D Touch Event
-     * node.on(cc.Node3D.EventType.TOUCH_START, callback, this.node);
-     * node.on(cc.Node3D.EventType.TOUCH_MOVE, callback, this.node);
-     * node.on(cc.Node3D.EventType.TOUCH_END, callback, this.node);
-     * node.on(cc.Node3D.EventType.TOUCH_CANCEL, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_MOVE, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_END, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_CANCEL, callback, this.node);
      */
     on: function (type, callback, target, useCapture) {
         var newAdded = false;
@@ -1056,8 +1056,8 @@ var Node3D = cc.Class({
      *                              does not affect a non-capturing version of the same listener, and vice versa.
      * @example
      * // remove Node3D TOUCH_START Event.
-     * node.on(cc.Node3D.EventType.TOUCH_START, callback, this.node);
-     * node.off(cc.Node3D.EventType.TOUCH_START, callback, this.node);
+     * node.on(cc.Node.EventType.TOUCH_START, callback, this.node);
+     * node.off(cc.Node.EventType.TOUCH_START, callback, this.node);
      */
     off: function (type, callback, target, useCapture) {
         this._EventTargetOff(type, callback, target, useCapture);
@@ -1393,4 +1393,4 @@ if (CC_JSB) {
 
 Node3D.EventType = EventType;
 
-cc.Node = cc.Node3D = module.exports = Node3D;
+cc.Node = module.exports = Node3D;
