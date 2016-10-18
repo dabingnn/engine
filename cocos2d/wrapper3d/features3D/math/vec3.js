@@ -2,15 +2,15 @@ pc.extend(pc, (function () {
     'use strict';
 
     /**
-    * @name pc.Vec3
-    * @class A 3-dimensional vector.
-    * @description Creates a new Vec3 object
-    * @param {Number} [x] The x value
-    * @param {Number} [y] The y value
-    * @param {Number} [z] The z value
-    * @example
-    * var v = new pc.Vec3(1,2,3);
-    */
+     * @name pc.Vec3
+     * @class A 3-dimensional vector.
+     * @description Creates a new Vec3 object
+     * @param {Number} [x] The x value
+     * @param {Number} [y] The y value
+     * @param {Number} [z] The z value
+     * @example
+     * var v = new pc.Vec3(1,2,3);
+     */
     var Vec3 = function () {
         this.data = new Float32Array(3);
 
