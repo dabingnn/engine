@@ -858,4 +858,4 @@ var BaseNode3D = cc.Class(/** @lends cc.Node# */{
 var SameNameGetSets = ['name','position','rotation','parent','tag'];
 Misc.propertyDefine(BaseNode3D, SameNameGetSets, []);
 
-cc._BaseNode3D = module.exports = BaseNode3D;
+cc._BaseNode = module.exports = BaseNode3D;
