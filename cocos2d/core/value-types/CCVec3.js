@@ -33,270 +33,313 @@ function Vec3 (x, y, z) {
         y = x.y;
         x = x.x;
     }
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
-    this._data = [0,0,0];
+
+    this.data = new Float32Array(3);
+    this.data[0] = x || 0;
+    this.data[1] = y || 0;
+    this.data[2] = z || 0;
+
+    Object.defineProperty(this, 'x', {
+        get: function () {
+            return this.data[0];
+        },
+        set: function (value) {
+            this.data[0] = value;
+        },
+        enumerable: true
+    });
+
+    Object.defineProperty(this, 'y', {
+        get: function () {
+            return this.data[1];
+        },
+        set: function (value) {
+            this.data[1] = value;
+        },
+        enumerable: true
+    });
+
+    Object.defineProperty(this, 'z', {
+        get: function () {
+            return this.data[2];
+        },
+        set: function (value) {
+            this.data[2] = value;
+        },
+        enumerable: true
+    });
 }
 JS.extend(Vec3, ValueType);
 CCClass.fastDefine('cc.Vec3', Vec3, { x: 0, y: 0, z: 0, });
 
 JS.mixin(Vec3.prototype, {
 
-    clone: function () {
-        return new Vec3(this.x, this.y, this.z);
-    },
+    add: function (rhs) {
+        var a = this.data,
+            b = rhs.data;
 
-    set: function (newValue) {
-        this.x = newValue.x;
-        this.y = newValue.y;
-        this.z = newValue.z;
+        a[0] += b[0];
+        a[1] += b[1];
+        a[2] += b[2];
+
         return this;
     },
 
-    equals: function (other) {
-        return other && this.x === other.x && this.y === other.y && this.z === other.z;
+    add2: function (lhs, rhs) {
+        var a = lhs.data,
+            b = rhs.data,
+            r = this.data;
+
+        r[0] = a[0] + b[0];
+        r[1] = a[1] + b[1];
+        r[2] = a[2] + b[2];
+
+        return this;
+    },
+
+    clone: function () {
+        return new Vec3().copy(this);
+    },
+
+    copy: function (rhs) {
+        var a = this.data,
+            b = rhs.data;
+
+        a[0] = b[0];
+        a[1] = b[1];
+        a[2] = b[2];
+
+        return this;
+    },
+
+
+    cross: function (lhs, rhs) {
+        var a, b, r, ax, ay, az, bx, by, bz;
+
+        a = lhs.data;
+        b = rhs.data;
+        r = this.data;
+
+        ax = a[0];
+        ay = a[1];
+        az = a[2];
+        bx = b[0];
+        by = b[1];
+        bz = b[2];
+
+        r[0] = ay * bz - by * az;
+        r[1] = az * bx - bz * ax;
+        r[2] = ax * by - bx * ay;
+
+        return this;
+    },
+
+    dot: function (rhs) {
+        var a = this.data,
+            b = rhs.data;
+
+        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    },
+
+    equals: function (rhs) {
+        var a = this.data,
+            b = rhs.data;
+
+        return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+    },
+
+    length: function () {
+        var v = this.data;
+
+        return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    },
+
+    lengthSq: function () {
+        var v = this.data;
+
+        return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+    },
+
+    lerp: function (lhs, rhs, alpha) {
+        var a = lhs.data,
+            b = rhs.data,
+            r = this.data;
+
+        r[0] = a[0] + alpha * (b[0] - a[0]);
+        r[1] = a[1] + alpha * (b[1] - a[1]);
+        r[2] = a[2] + alpha * (b[2] - a[2]);
+
+        return this;
+    },
+
+    mul: function (rhs) {
+        var a = this.data,
+            b = rhs.data;
+
+        a[0] *= b[0];
+        a[1] *= b[1];
+        a[2] *= b[2];
+
+        return this;
+    },
+
+    mul2: function (lhs, rhs) {
+        var a = lhs.data,
+            b = rhs.data,
+            r = this.data;
+
+        r[0] = a[0] * b[0];
+        r[1] = a[1] * b[1];
+        r[2] = a[2] * b[2];
+
+        return this;
+    },
+
+    normalize: function () {
+        return this.scale(1 / this.length());
+    },
+
+    project: function (rhs) {
+        var a = this.data;
+        var b = rhs.data;
+        var a_dot_b = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        var b_dot_b = b[0] * b[0] + b[1] * b[1] + b[2] * b[2];
+        var s = a_dot_b / b_dot_b;
+        a[0] = b[0] * s;
+        a[1] = b[1] * s;
+        a[2] = b[2] * s;
+        return this;
+    },
+
+    scale: function (scalar) {
+        var v = this.data;
+
+        v[0] *= scalar;
+        v[1] *= scalar;
+        v[2] *= scalar;
+
+        return this;
+    },
+
+    set: function (x, y, z) {
+        var v = this.data;
+
+        v[0] = x;
+        v[1] = y;
+        v[2] = z;
+
+        return this;
+    },
+
+    sub: function (rhs) {
+        var a = this.data,
+            b = rhs.data;
+
+        a[0] -= b[0];
+        a[1] -= b[1];
+        a[2] -= b[2];
+
+        return this;
+    },
+
+    sub2: function (lhs, rhs) {
+        var a = lhs.data,
+            b = rhs.data,
+            r = this.data;
+
+        r[0] = a[0] - b[0];
+        r[1] = a[1] - b[1];
+        r[2] = a[2] - b[2];
+
+        return this;
     },
 
     toString: function () {
-        return "(" +
-            this.x.toFixed(2) + ", " +
-            this.y.toFixed(2) + ", " +
-            this.z.toFixed(2) + ")"
-            ;
+        return "(" + this.data[0] + ", " + this.data[1] + ", " + this.data[2] + ")";
     },
 
-    lerp: function (to, ratio, out) {
-        out = out || new Vec3();
-        var x = this.x;
-        var y = this.y;
-        var z = this.z;
-        out.x = x + (to.x - x) * ratio;
-        out.y = y + (to.y - y) * ratio;
-        out.z = z + (to.z - z) * ratio;
-        return out;
-    },
-
-    addSelf: function (vector) {
-        this.x += vector.x;
-        this.y += vector.y;
-        this.z += vector.z;
-        return this;
-    },
-
-    add: function (vector, out) {
-        out = out || new Vec3();
-        out.x = this.x + vector.x;
-        out.y = this.y + vector.y;
-        out.z = this.z + vector.z;
-        return out;
-    },
-
-    subSelf: function (vector) {
-        this.x -= vector.x;
-        this.y -= vector.y;
-        this.z -= vector.z;
-        return this;
-    },
-
-    sub: function (vector, out) {
-        out = out || new Vec3();
-        out.x = this.x - vector.x;
-        out.y = this.y - vector.y;
-        out.z = this.z - vector.z;
-        return out;
-    },
-
-    mulSelf: function (num) {
-        this.x *= num;
-        this.y *= num;
-        this.z *= num;
-        return this;
-    },
-
-    mul: function (num, out) {
-        out = out || new Vec3();
-        out.x = this.x * num;
-        out.y = this.y * num;
-        out.z = this.z * num;
-        return out;
-    },
-
-    scaleSelf: function (vector) {
-        this.x *= vector.x;
-        this.y *= vector.y;
-        this.z *= vector.z;
-        return this;
-    },
-
-    scale: function (vector, out) {
-        out = out || new Vec3();
-        out.x = this.x * vector.x;
-        out.y = this.y * vector.y;
-        out.z = this.z * vector.z;
-        return out;
-    },
-
-    divSelf: function (num) {
-        this.x /= num;
-        this.y /= num;
-        this.z /= num;
-        return this;
-    },
-
-    div: function (num, out) {
-        out = out || new Vec3();
-        out.x = this.x / num;
-        out.y = this.y / num;
-        out.z = this.z / num;
-        return out;
-    },
-
-    negSelf: function () {
-        this.x = -this.x;
-        this.y = -this.y;
-        this.z = -this.z;
-        return this;
-    },
-
-    neg: function (out) {
-        out = out || new Vec3();
-        out.x = -this.x;
-        out.y = -this.y;
-        out.z = -this.z;
-        return out;
-    },
-
-    dot: function (vector) {
-        return this.x * vector.x + this.y * vector.y + this.z * vector.z;
-    },
-
-    cross: function (vector, out) {
-        var ax, ay, az, bx, by, bz;
-        out = out || new Vec3();
-
-        ax = this.x;
-        ay = this.y;
-        az = this.z;
-        bx = vector.x;
-        by = vector.y;
-        bz = vector.z;
-
-        out.x = ay * bz - by * az;
-        out.y = az * bx - bz * ax;
-        out.z = ax * by - bx * ay;
-
-        return out;
-    },
-
-    mag: function () {
-        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-    },
-
-    magSqr: function () {
-        return this.x * this.x + this.y * this.y + this.z * this.z;
-    },
-
-    normalizeSelf: function () {
-        var magSqr = this.x * this.x + this.y * this.y + this.z * this.z;
-        if (magSqr === 1.0)
-            return this;
-
-        if (magSqr === 0.0) {
-            console.warn("Can't normalize zero vector");
-            return this;
-        }
-
-        var invsqrt = 1.0 / Math.sqrt(magSqr);
-        this.x *= invsqrt;
-        this.y *= invsqrt;
-        this.z *= invsqrt;
-        return this;
-    },
-
-
-    normalize: function (out) {
-        out = out || new Vec3();
-        out.x = this.x;
-        out.y = this.y;
-        out.z = this.z;
-        out.normalizeSelf();
-        return out;
-    },
-
-    angle: function (vector) {
-        var magSqr1 = this.magSqr();
-        var magSqr2 = vector.magSqr();
-
-        if (magSqr1 === 0 || magSqr2 === 0) {
-            console.warn("Can't get angle between zero vector");
-            return 0.0;
-        }
-
-        var dot = this.dot(vector);
-        var theta = dot / (Math.sqrt(magSqr1 * magSqr2));
-        theta = cc.clampf(theta, -1.0, 1.0);
-        return Math.acos(theta);
-    },
-
-    signAngle: function (vector) {
-        //todo: add implementation here by Harrison
-        cc.error("add implementation here");
-        return 0;
-    },
-
-    rotate: function (radians, out) {
-        //todo: add implementation here by Harrison
-        cc.error("add implementation here");
-
-        out = out || new Vec3();
-        out.x = this.x;
-        out.y = this.y;
-        out.z = this.z;
-        return out;
-    },
-
-
-    rotateSelf: function (radians) {
-        //todo: add implementation here by Harrison
-        cc.error("add implementation here");
-        return this;
-    }
-
-    //_serialize: function () {
-    //    return [this.x, this.y];
+    //_serialize: function() {
+    //    return this.data;
     //},
-    //_deserialize: function (data) {
-    //    this.x = data[0];
-    //    this.y = data[1];
-    //}
+    //
+    //_deserialize: function(data) {
+    //    this.data[0] = data[0];
+    //    this.data[1] = data[1];
+    //    this.data[2] = data[2];
+    //},
+
 });
 
-Object.defineProperty(Vec3.prototype, 'data', {
-    get: function () {
-        var data = this._data;
-        data[0] = this.x;
-        data[1] = this.y;
-        data[2] = this.z;
-        return this._data;
-    },
+Object.defineProperty(Vec3, 'BACK', {
+    get: (function () {
+        var back = new Vec3(0, 0, -1);
+        return function () {
+            return back;
+        };
+    }())
 });
 
-// static
-JS.get(Vec3, 'ONE', function () {
-    return new Vec3(1.0, 1.0, 1.0);
+Object.defineProperty(Vec3, 'DOWN', {
+    get: (function () {
+        var down = new Vec3(0, -1, 0);
+        return function () {
+            return down;
+        };
+    }())
 });
 
-JS.get(Vec3, 'ZERO', function () {
-    return new Vec3(0.0, 0.0, 0.0);
+Object.defineProperty(Vec3, 'FORWARD', {
+    get: (function () {
+        var forward = new Vec3(0, 0, 1);
+        return function () {
+            return forward;
+        };
+    }())
 });
 
-JS.get(Vec3, 'UP', function () {
-    return new Vec3(0.0, 1.0, 0.0);
+Object.defineProperty(Vec3, 'LEFT', {
+    get: (function () {
+        var left = new Vec3(-1, 0, 0);
+        return function () {
+            return left;
+        };
+    }())
 });
 
-JS.get(Vec3, 'RIGHT', function () {
-    return new Vec3(1.0, 0.0, 0.0);
+Object.defineProperty(Vec3, 'ONE', {
+    get: (function () {
+        var one = new Vec3(1, 1, 1);
+        return function () {
+            return one;
+        };
+    }())
+});
+
+Object.defineProperty(Vec3, 'RIGHT', {
+    get: (function () {
+        var right = new Vec3(1, 0, 0);
+        return function () {
+            return right;
+        };
+    }())
+});
+
+Object.defineProperty(Vec3, 'UP', {
+    get: (function () {
+        var down = new Vec3(0, 1, 0);
+        return function () {
+            return down;
+        };
+    }())
+});
+
+Object.defineProperty(Vec3, 'ZERO', {
+    get: (function () {
+        var zero = new Vec3(0, 0, 0);
+        return function () {
+            return zero;
+        };
+    }())
 });
 
 cc.Vec3 = Vec3;
