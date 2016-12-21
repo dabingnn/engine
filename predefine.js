@@ -75,6 +75,12 @@ if (!CC_JSB) {
     require('./cocos2d/core/CCDirectorWebGL');
     require('./cocos2d/core/CCDirectorCanvas');
 
+    require('./cocos2d/wrapper3d/features3D');
+    require('./cocos2d/wrapper3d/CCScene3D');
+    require('./cocos2d/wrapper3d/CCNode3D');
+    require('./cocos2d/wrapper3d/CCDirector3D');
+    require('./cocos2d/wrapper3d/CCDirector3DWebGL');
+
     if (!(CC_EDITOR && Editor.isMainProcess)) {
         require('./cocos2d/core/platform/CCSAXParser');
         require('./cocos2d/core/platform/CCView');

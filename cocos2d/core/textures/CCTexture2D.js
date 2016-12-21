@@ -1092,4 +1092,4 @@ game.once(game.EVENT_RENDERER_INITED, function () {
  * @type {Number}
  */
 
-cc.Texture2D = module.exports = Texture2D;
+cc.Texture2D = module.exports = require('../../wrapper3d/assets3D/CCTexture');

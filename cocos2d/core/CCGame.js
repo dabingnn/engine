@@ -26,7 +26,7 @@
 var EventTarget = require('./event/event-target');
 var View;
 if (!(CC_EDITOR && Editor.isMainProcess)) {
-    View = require('./platform/CCView');
+    View = require('../wrapper3d/CCView3D');
 }
 
 require('../audio/CCAudioEngine');
@@ -360,7 +360,8 @@ var game = {
              * @property director
              * @type {Director}
              */
-            cc.director = cc.Director._getInstance();
+
+            cc.director = cc.Director3D._getInstance();
             if (cc.director.setOpenGLView)
                 cc.director.setOpenGLView(cc.view);
             /**
@@ -680,30 +681,12 @@ var game = {
         localCanvas.setAttribute("tabindex", 99);
 
         if (cc._renderType === game.RENDER_TYPE_WEBGL) {
+            //TODO: add graphic initiallization here
             this._renderContext = cc._renderContext = cc.webglContext
-             = cc.create3DContext(localCanvas, {
-                'stencil': true,
-                'alpha': true,
-                'preserveDrawingBuffer': false
-            });
-        }
-        // WebGL context created successfully
-        if (this._renderContext) {
-            cc.renderer = cc.rendererWebGL;
-            win.gl = this._renderContext; // global variable declared in CCMacro.js
-            cc.renderer.init();
-            cc.shaderCache._init();
-            cc._drawingUtil = new cc.DrawingPrimitiveWebGL(this._renderContext);
-            cc.textureCache._initializingRenderer();
-            cc.glExt = {};
-            cc.glExt.instanced_arrays = win.gl.getExtension("ANGLE_instanced_arrays");
-            cc.glExt.element_uint = win.gl.getExtension("OES_element_index_uint");
+                = new pc.GraphicsDevice(localCanvas);
+            cc.renderer = new pc.ForwardRenderer(this._renderContext);
         } else {
-            cc._renderType = game.RENDER_TYPE_CANVAS;
-            cc.renderer = cc.rendererCanvas;
-            cc.renderer.init();
-            this._renderContext = cc._renderContext = new cc.CanvasContextWrapper(localCanvas.getContext("2d"));
-            cc._drawingUtil = cc.DrawingPrimitiveCanvas ? new cc.DrawingPrimitiveCanvas(this._renderContext) : null;
+            cc.error('does not support canvas rendering for 3D');
         }
 
         cc._gameDiv = localContainer;
