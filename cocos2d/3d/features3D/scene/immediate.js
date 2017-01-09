@@ -123,11 +123,11 @@ cc3d.extend(cc3d.Application.prototype, function () {
      * @description Draw a line in one color
      * @param {cc.Vec3} start The start of the line
      * @param {cc.Vec3} end The end of the line
-     * @param {cc3d.Color} color The color of the line
+     * @param {cc.ColorF} color The color of the line
      * @example
      * var start = new cc.Vec3(0,0,0);
      * var end = new cc.Vec3(1,0,0);
-     * var color = new cc3d.Color(1,1,1);
+     * var color = new cc.ColorF(1,1,1);
      * app.renderLine(start, end, color);
      */
     /**
@@ -136,13 +136,13 @@ cc3d.extend(cc3d.Application.prototype, function () {
      * @description Draw a line which blends between two colors
      * @param {cc.Vec3} start The start of the line
      * @param {cc.Vec3} end The end of the line
-     * @param {cc3d.Color} startColor The start color of the line
-     * @param {cc3d.Color} endColor The end color of the line
+     * @param {cc.ColorF} startColor The start color of the line
+     * @param {cc.ColorF} endColor The end color of the line
      * @example
      * var start = new cc.Vec3(0,0,0);
      * var end = new cc.Vec3(1,0,0);
-     * var startColor = new cc3d.Color(1,1,1);
-     * var endColor = new cc3d.Color(1,0,0);
+     * var startColor = new cc.ColorF(1,1,1);
+     * var endColor = new cc.ColorF(1,0,0);
      * app.renderLine(start, end, startColor, endColor);
      */
     /**
@@ -151,12 +151,12 @@ cc3d.extend(cc3d.Application.prototype, function () {
      * @description Draw a line of one color with specified line type
      * @param {cc.Vec3} start The start of the line
      * @param {cc.Vec3} end The end of the line
-     * @param {cc3d.Color} color The color of the line
+     * @param {cc.ColorF} color The color of the line
      * @param {Number} lineType The type of rendering to use: cc3d.LINEBATCH_WORLD, cc3d.LINEBATCH_OVERLAY, cc3d.LINEBATCH_GIZMO. Default is cc3d.LINEBATCH_WORLD
      * @example
      * var start = new cc.Vec3(0,0,0);
      * var end = new cc.Vec3(1,0,0);
-     * var color = new cc3d.Color(1,1,1);
+     * var color = new cc.ColorF(1,1,1);
      * app.renderLine(start, end, startColor, color, cc3d.LINEBATCH_OVERLAY);
      */
     /**
@@ -165,13 +165,13 @@ cc3d.extend(cc3d.Application.prototype, function () {
      * @description Draw a line which blends between two colors with specified line type
      * @param {cc.Vec3} start The start of the line
      * @param {cc.Vec3} end The end of the line
-     * @param {cc3d.Color} startColor The start color of the line
-     * @param {cc3d.Color} endColor The end color of the line
+     * @param {cc.ColorF} startColor The start color of the line
+     * @param {cc.ColorF} endColor The end color of the line
      * @param {Number} lineType The type of rendering to use: cc3d.LINEBATCH_WORLD, cc3d.LINEBATCH_OVERLAY, cc3d.LINEBATCH_GIZMO. Default is cc3d.LINEBATCH_WORLD
      * @example
      * var start = new cc.Vec3(0,0,0);
      * var end = new cc.Vec3(1,0,0);
-     * var color = new cc3d.Color(1,1,1);
+     * var color = new cc.ColorF(1,1,1);
      * app.renderLine(start, end, startColor, startColor, endColor, cc3d.LINEBATCH_OVERLAY);
      */
     function renderLine(start, end, color, arg3, arg4) {
@@ -193,11 +193,11 @@ cc3d.extend(cc3d.Application.prototype, function () {
      * @name cc3d.Application#renderLines
      * @description Draw an array of lines.
      * @param {cc.Vec3[]} position An array of points to draw lines between
-     * @param {cc3d.Color[]} color An array of colors to color the lines. This must be the same size as the position array
+     * @param {cc.ColorF[]} color An array of colors to color the lines. This must be the same size as the position array
      * @param {Number} [lineType] The type of rendering to use: cc3d.LINEBATCH_WORLD, cc3d.LINEBATCH_OVERLAY, cc3d.LINEBATCH_GIZMO. Default is cc3d.LINEBATCH_WORLD
      * @example
      * var points = [new cc.Vec3(0,0,0), new cc.Vec3(1,0,0), new cc.Vec3(1,1,0), new cc.Vec3(1,1,1)];
-     * var colors = [new cc3d.Color(1,0,0), new cc3d.Color(1,1,0), new cc3d.Color(0,1,1), new cc3d.Color(0,0,1)];
+     * var colors = [new cc.ColorF(1,0,0), new cc.ColorF(1,1,0), new cc.ColorF(0,1,1), new cc.ColorF(0,0,1)];
      * app.renderLines(points, colors);
      */
     function renderLines(position, color, lineType) {

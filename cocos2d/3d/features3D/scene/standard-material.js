@@ -7,9 +7,9 @@ cc3d.extend(cc3d, function () {
      * @name cc3d.StandardMaterial
      * @class A Standard material is the main, general purpose material that is most often used for rendering.
      * It can approximate a wide variety of surface types and can simlulate dynamic reflected light.
-     * @property {cc3d.Color} ambient The ambient color of the material. This color value is 3-component (RGB),
+     * @property {cc.ColorF} ambient The ambient color of the material. This color value is 3-component (RGB),
      * where each component is between 0 and 1.
-     * @property {cc3d.Color} diffuse The diffuse color of the material. This color value is 3-component (RGB),
+     * @property {cc.ColorF} diffuse The diffuse color of the material. This color value is 3-component (RGB),
      * where each component is between 0 and 1.
      * @property {cc3d.Texture} diffuseMap The diffuse map of the material. This must be a 2D texture rather
      * than a cube map. If this property is set to a valid texture, the texture is used as the source for diffuse
@@ -19,7 +19,7 @@ cc3d.extend(cc3d, function () {
      * @property {Boolean} diffuseMapVertexColor Use vertex colors for diffuse instead of a map
      * @property {cc.Vec2v2} diffuseMapTiling Controls the 2D tiling of the diffuse map.
      * @property {cc.Vec2v2} diffuseMapOffset Controls the 2D offset of the diffuse map. Each component is between 0 and 1.
-     * @property {cc3d.Color} specular The specular color of the material. This color value is 3-component (RGB),
+     * @property {cc.ColorF} specular The specular color of the material. This color value is 3-component (RGB),
      * @property {cc3d.Texture} specularMap The per-pixel specular map of the material. This must be a 2D texture
      * rather than a cube map. If this property is set to a valid texture, the texture is used as the source for
      * specular color in preference to the 'specular' property.
@@ -219,7 +219,7 @@ cc3d.extend(cc3d, function () {
     };
 
     var _createRgb = function (param) {
-        return new cc3d.Color(param.data[0], param.data[1], param.data[2]);
+        return new cc.ColorF(param.data[0], param.data[1], param.data[2]);
     };
 
     var _propsSerial = [];
@@ -1054,10 +1054,10 @@ cc3d.extend(cc3d, function () {
         obj.dirtyColor = true;
         obj._scene = null;
 
-        _defineColor(obj, "ambient", new cc3d.Color(0.7, 0.7, 0.7));
-        _defineColor(obj, "diffuse", new cc3d.Color(1, 1, 1));
-        _defineColor(obj, "specular", new cc3d.Color(0, 0, 0));
-        _defineColor(obj, "emissive", new cc3d.Color(0, 0, 0), true);
+        _defineColor(obj, "ambient", new cc.ColorF(0.7, 0.7, 0.7));
+        _defineColor(obj, "diffuse", new cc.ColorF(1, 1, 1));
+        _defineColor(obj, "specular", new cc.ColorF(0, 0, 0));
+        _defineColor(obj, "emissive", new cc.ColorF(0, 0, 0), true);
 
         _defineFloat(obj, "shininess", 25, function (mat, shininess) {
             // Shininess is 0-100 value

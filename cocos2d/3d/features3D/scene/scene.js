@@ -223,7 +223,7 @@ cc3d.extend(cc3d, function () {
      * @name cc3d.Scene
      * @class A scene is a container for {@link cc3d.Model} instances.
      * @description Creates a new Scene.
-     * @property {cc3d.Color} ambientLight The color of the scene's ambient light. Defaults to black (0, 0, 0).
+     * @property {cc.ColorF} ambientLight The color of the scene's ambient light. Defaults to black (0, 0, 0).
      * @property {String} fog The type of fog used by the scene. Can be:
      * <ul>
      *     <li>cc3d.FOG_NONE</li>
@@ -231,7 +231,7 @@ cc3d.extend(cc3d, function () {
      *     <li>cc3d.FOG_EXP</li>
      *     <li>cc3d.FOG_EXP2</li>
      * </ul>
-     * @property {cc3d.Color} fogColor The color of the fog (if enabled). Defaults to black (0, 0, 0).
+     * @property {cc.ColorF} fogColor The color of the fog (if enabled). Defaults to black (0, 0, 0).
      * @property {Number} fogDensity The density of the fog (if enabled). This property is only valid if the
      * fog property is set to cc3d.FOG_EXP or cc3d.FOG_EXP2. Defaults to 0.
      * @property {Number} fogEnd The distance from the viewpoint where linear fog reaches its maximum. This
@@ -275,12 +275,12 @@ cc3d.extend(cc3d, function () {
         this.immediateDrawCalls = []; // Only for this frame
 
         this.fog = cc3d.FOG_NONE;
-        this.fogColor = new cc3d.Color(0, 0, 0);
+        this.fogColor = new cc.ColorF(0, 0, 0);
         this.fogStart = 1;
         this.fogEnd = 1000;
         this.fogDensity = 0;
 
-        this.ambientLight = new cc3d.Color(0, 0, 0);
+        this.ambientLight = new cc.ColorF(0, 0, 0);
 
         this._gammaCorrection = cc3d.GAMMA_NONE;
         this._toneMapping = 0;
@@ -484,12 +484,12 @@ cc3d.extend(cc3d, function () {
         this._gravity.set(settings.physics.gravity[0], settings.physics.gravity[1], settings.physics.gravity[2]);
 
         var al = settings.render.global_ambient;
-        this.ambientLight = new cc3d.Color(al[0], al[1], al[2]);
+        this.ambientLight = new cc.ColorF(al[0], al[1], al[2]);
 
         this.fog = settings.render.fog;
 
         var fogColor = settings.render.fog_color;
-        this.fogColor = new cc3d.Color(fogColor[0], fogColor[1], fogColor[2]);
+        this.fogColor = new cc.ColorF(fogColor[0], fogColor[1], fogColor[2]);
 
         this.fogStart = settings.render.fog_start;
         this.fogEnd = settings.render.fog_end;

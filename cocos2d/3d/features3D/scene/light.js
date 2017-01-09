@@ -14,7 +14,7 @@ cc3d.extend(cc3d, function () {
     var Light = function Light() {
         // Light properties (defaults)
         this._type = cc3d.LIGHTTYPE_DIRECTIONAL;
-        this._color = new cc3d.Color(0.8, 0.8, 0.8);
+        this._color = new cc.ColorF(0.8, 0.8, 0.8);
         this._intensity = 1;
         this._castShadows = false;
         this._enabled = false;
@@ -194,7 +194,7 @@ cc3d.extend(cc3d, function () {
          * @description Queries the diffuse color of the light. The PlayCanvas 'standard' shader uses this
          * value by multiplying it by the diffuse color of a mesh's material and adding it to
          * the total light contribution.
-         * @returns {cc3d.Color} The diffuse color of the light (RGB components ranging 0..1).
+         * @returns {cc.ColorF} The diffuse color of the light (RGB components ranging 0..1).
          */
         getColor: function () {
             return this._color;
@@ -510,7 +510,7 @@ cc3d.extend(cc3d, function () {
          * @name cc3d.Light#setColor
          * @description Sets the RGB color of the light. RGB components should be
          * specified in the range 0 to 1.
-         * @param {cc3d.Color} color The RGB color of the light.
+         * @param {cc.ColorF} color The RGB color of the light.
          */
         /**
          * @private

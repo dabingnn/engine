@@ -25,7 +25,7 @@
 
 var Component = require('../../core/components/CCComponent');
 var defaultMaterial = new cc3d.StandardMaterial();
-defaultMaterial.diffuse = new cc3d.Color(1.0,1,1);
+defaultMaterial.diffuse = new cc.ColorF(1.0,1,1);
 defaultMaterial.update();
 
 var ModelType = cc.Enum({

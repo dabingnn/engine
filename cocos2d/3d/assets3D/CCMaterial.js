@@ -129,13 +129,13 @@ var Material = cc.Class(/** @lends cc.Material# */{
         var mtl = new cc3d.StandardMaterial();
         var diffuse = this._diffuseColor;
         var specular = this._specularColor;
-        mtl.diffuse = new cc3d.Color(diffuse.r/255,diffuse.g/255,diffuse.b/255);
+        mtl.diffuse = new cc.ColorF(diffuse.r/255,diffuse.g/255,diffuse.b/255);
 
         mtl.diffuseMap = this._diffuseTexture && this._diffuseTexture._internalTexture;
 
         mtl.normalMap = this._normalTexture && this._normalTexture._internalTexture;
         if(this._enableSpecular) {
-            mtl.specular = new cc3d.Color(specular.r/255,specular.g/255,specular.b/255);
+            mtl.specular = new cc.ColorF(specular.r/255,specular.g/255,specular.b/255);
             mtl.specularMap = this._specularTexture && this._specularTexture._internalTexture;
             mtl.shininess = this._glossiness;
         }

@@ -4,7 +4,7 @@ cc3d.extend(cc3d, function () {
      * @name cc3d.BasicMaterial
      * @class A Basic material is is for rendering unlit geometry, either using a constant color or a
      * color map modulated with a color.
-     * @property {cc3d.Color} color The flat color of the material (RGBA, where each component is 0 to 1).
+     * @property {cc.ColorF} color The flat color of the material (RGBA, where each component is 0 to 1).
      * @property {cc3d.Texture} colorMap The color map of the material. If specified, the color map is
      * modulated by the color property.
      * @example
@@ -22,7 +22,7 @@ cc3d.extend(cc3d, function () {
      * @author Will Eastcott
      */
     var BasicMaterial = function () {
-        this.color = new cc3d.Color(1, 1, 1, 1);
+        this.color = new cc.ColorF(1, 1, 1, 1);
         this.colorMap = null;
         this.vertexColors = false;
 

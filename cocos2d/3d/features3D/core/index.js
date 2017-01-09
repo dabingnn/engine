@@ -1,5 +1,4 @@
 cc3d = require('./core').cc3d;
-require('./color');
 require('./guid');
 require('./time');
 require('./uri');

@@ -46,7 +46,7 @@ var callback = function(){
     node.setLocalPosition(new cc.Vec3(0,0,-10));
     var mesh = cc3d.createSphere(cc.game._renderDevice);
     var mtl = new cc3d.StandardMaterial();
-    //mtl.diffuse = new cc3d.Color(1.0, 1.0, 0);
+    mtl.diffuse = new cc.ColorF(1.0, 1.0, 0);
     mtl.update();
     var meshIns = new cc3d.MeshInstance(node, mesh, mtl);
     var model = new cc3d.Model();
@@ -55,7 +55,7 @@ var callback = function(){
     var light = new cc3d.Light();
     light._node = node;
     light.setEnabled(true);
-    light._color = new cc3d.Color(1.0, 1.0, 1.0);
+    light.setColor(new cc.ColorF(1.0, 1.0, 1.0));
     scene._sgScene.addLight(light);
     cc.director.runSceneImmediate(scene);
 

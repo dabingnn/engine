@@ -425,7 +425,7 @@ cc3d.extend(cc3d, function () {
                     if (pass === PASS_COLOR) {
                         lmMaterial.chunks.endPS = bakeLmEnd; // encode to RGBM
                         // don't bake ambient
-                        lmMaterial.ambient = new cc3d.Color(0, 0, 0);
+                        lmMaterial.ambient = new cc.ColorF(0, 0, 0);
                         lmMaterial.ambientTint = true;
                     } else {
                         lmMaterial.chunks.basePS = chunks.basePS + "\nuniform sampler2D texture_dirLightMap;\nuniform float bakeDir;\n";
