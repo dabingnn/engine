@@ -46,20 +46,17 @@ var callback = function(){
     node.setLocalPosition(new cc.Vec3(0,0,-10));
     var mesh = cc3d.createSphere(cc.game._renderDevice);
     var mtl = new cc3d.StandardMaterial();
-    mtl.diffuse = new cc.ColorF(1.0, 1.0, 0);
+    mtl.diffuse = new cc.ColorF(1.0, 1.0, 1.0);
     mtl.update();
     var meshIns = new cc3d.MeshInstance(node, mesh, mtl);
     var model = new cc3d.Model();
     model.meshInstances.push(meshIns);
     scene._sgScene.addModel(model);
-    var light = new cc3d.Light();
-    light._node = node;
-    light.setEnabled(true);
-    light.setColor(new cc.ColorF(1.0, 1.0, 1.0));
-    scene._sgScene.addLight(light);
+    var light = node.addComponent('cc.LightComponent');
+    light.color = new cc.ColorF(0.7,0.4,1);
     var node2 = new cc.Node3D();
     var camera = node2.addComponent('cc.CameraComponent');
-    camera.clearColor = new cc.ColorF(1,0,0,0);
+    camera.clearColor = new cc.ColorF(0,0.5,0,0);
     scene.addChild(node2);
 
     cc.director.runSceneImmediate(scene);

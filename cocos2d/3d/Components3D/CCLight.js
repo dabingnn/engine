@@ -35,17 +35,17 @@ var FallOffMode = cc.Enum({
     Linear: 0,
     InverseSquare: 1,
 });
-var Light = cc.Class({
-    name: 'cc.Light',
+var LightComponent = cc.Class({
+    name: 'cc.LightComponent',
     extends: Component,
 
     editor: CC_EDITOR && {
         executeInEditMode: true,
-        menu: 'i18n:MAIN_MENU.component.renderers/Light',
+        menu: 'i18n:MAIN_MENU.component.renderers/LightComponent',
     },
     properties: {
         _type: 0,
-        _color: cc.color(255,255,255,255),
+        _color: new cc.ColorF(1,1,1),
         _range: 50, //for point and spot
         _falloffMode: 0, //for point and spot
         _innerAngle: 45, //for spot
@@ -67,10 +67,8 @@ var Light = cc.Class({
             },
             set: function(value) {
                 var color = this._color;
-                color.r = value.r;
-                color.g = value.g;
-                color.b = value.b;
-                this.light.setColor(color.r/255, color.g/255, color.b/255);
+                color.copy(value);
+                this.light.setColor(value);
             }
         },
 
@@ -127,7 +125,7 @@ var Light = cc.Class({
     onEnable: function() {
         var scene = cc.director.getScene();
         var light = this.light;
-        light._node = this.node._sgNode;
+        light._node = this.node;
         scene._sgScene.addLight(this.light);
     },
     onDisable: function() {
@@ -146,8 +144,7 @@ var Light = cc.Class({
     __preload: function () {
         var light = this.light;
         light.setType(this._type);
-        var color = this._color;
-        light.setColor(color.r/255, color.g/255, color.b/255);
+        light.setColor(this._color);
         light.setAttenuationEnd(this._range);
         light.setAttenuationStart(this._range*0.5);
         light.setFalloffMode(this._falloffMode);
@@ -157,4 +154,4 @@ var Light = cc.Class({
 
 });
 
-cc.Light = module.exports = Light;
+cc.LightComponent = module.exports = LightComponent;

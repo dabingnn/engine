@@ -24,6 +24,6 @@
  ****************************************************************************/
 
 //require('./CCModel');
-//require('./CCLight');
+require('./CCLight');
 require('./CCCamera');
 //require('./CCAnimation');
