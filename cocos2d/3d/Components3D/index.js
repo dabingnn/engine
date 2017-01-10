@@ -23,7 +23,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-require('./CCModel');
-require('./CCLight');
+//require('./CCModel');
+//require('./CCLight');
 require('./CCCamera');
-require('./CCAnimation');
+//require('./CCAnimation');

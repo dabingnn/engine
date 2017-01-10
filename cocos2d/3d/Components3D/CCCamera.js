@@ -30,13 +30,13 @@ var ProjectionType = cc.Enum({
     Orthographic: 1,
 });
 
-var Camera = cc.Class({
-    name: 'cc.Camera',
+var CameraComponent = cc.Class({
+    name: 'cc.CameraComponent',
     extends: Component,
 
     editor: CC_EDITOR && {
         executeInEditMode: true,
-        menu: 'i18n:MAIN_MENU.component.renderers/Camera',
+        menu: 'i18n:MAIN_MENU.component.renderers/CameraComponent',
     },
     properties: {
         _clearColor: cc.color(128,128,128,255),
@@ -120,16 +120,19 @@ var Camera = cc.Class({
 
     start: function() {
     },
+
     onEnable: (!CC_EDITOR) && function() {
         var camera = this.camera;
-        camera._node = this.node._sgNode;
+        camera._node = this.node;
         var scene = cc.director.getScene();
-        scene._sgScene.addCamera(camera);
+        scene.addCamera(camera);
     },
+
     onDisable: (!CC_EDITOR) && function() {
         var scene = cc.director.getScene();
-        scene._sgScene.removeCamera(this.camera);
+        scene.removeCamera(this.camera);
     },
+
     onDestroy: function() {
 
     },
@@ -155,4 +158,4 @@ var Camera = cc.Class({
 
 });
 
-cc.Camera = module.exports = Camera;
+cc.CameraComponent = module.exports = CameraComponent;

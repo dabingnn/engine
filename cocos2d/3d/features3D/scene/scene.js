@@ -320,7 +320,6 @@ cc3d.extend(cc3d, function () {
 
         // Lights
         this._lights = [];
-        this._cameras = [];
         this._globalLights = []; // All currently enabled directionals
         this._localLights = [[], []]; // All currently enabled points and spots
 
@@ -827,25 +826,6 @@ cc3d.extend(cc3d, function () {
         }
 
         this.skybox = null;
-    };
-
-    Scene.prototype.addCamera = function (camera) {
-        var index = this._cameras.indexOf(camera);
-        if (index === -1) {
-            this._cameras.push(camera);
-        }
-
-    };
-
-    Scene.prototype.getCameras = function () {
-        return this._cameras;
-    };
-
-    Scene.prototype.removeCamera = function (camera) {
-        var index = this._cameras.indexOf(camera);
-        if (index !== -1) {
-            this._cameras.splice(index, 1);
-        }
     };
 
     return {

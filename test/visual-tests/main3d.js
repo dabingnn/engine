@@ -57,6 +57,11 @@ var callback = function(){
     light.setEnabled(true);
     light.setColor(new cc.ColorF(1.0, 1.0, 1.0));
     scene._sgScene.addLight(light);
+    var node2 = new cc.Node3D();
+    var camera = node2.addComponent('cc.CameraComponent');
+    camera.clearColor = cc.color(255,0,0,0);
+    scene.addChild(node2);
+
     cc.director.runSceneImmediate(scene);
 
 }

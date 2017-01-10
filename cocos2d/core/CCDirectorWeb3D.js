@@ -276,7 +276,10 @@ cc.game.once(cc.game.EVENT_RENDERER_INITED, function () {
     _p._visitScene = function () {
         if(this._scene) {
             this._scene.syncHierarchy();
-            cc.renderer.render(this._scene._sgScene, this._scene._testCamera);
+            var cameras = this._scene.getCameras();
+            for(var index = 0, len = cameras.length; index < len; ++index) {
+                cc.renderer.render(this._scene._sgScene, cameras[index]);
+            }
         }
     };
 

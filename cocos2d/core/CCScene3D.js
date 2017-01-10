@@ -52,25 +52,13 @@ cc.Scene3D = cc.Class({
 
     ctor: function () {
         this._sgScene = new cc3d.Scene();
-        this._testCode();
         this._activeInHierarchy = false;
         this._inited = !cc.game._isCloning;
 
         // cache all depend assets for auto release
         this.dependAssets = null;
-    },
 
-    //todo: test forward renderer remove it later
-    _testCode: function() {
-        var camera = this._testCamera = new cc3d.Camera();
-        camera._node = this;
-        camera.setClearOptions({
-            color: [186.0 / 255.0, 0.0 / 255.0, 0.0 / 255.0, 1.0],
-            depth: 1.0,
-            stencil: 0,
-            flags: cc3d.CLEARFLAG_COLOR | cc3d.CLEARFLAG_DEPTH | cc3d.CLEARFLAG_STENCIL
-        });
-
+        this._cameras = [];
     },
 
     destroy: function () {
@@ -130,7 +118,26 @@ cc.Scene3D = cc.Class({
                 child._onActivatedInHierarchy(active);
             }
         }
-    }
+    },
+
+    addCamera: function(camera) {
+        var index = this._cameras.indexOf(camera);
+        if (index === -1) {
+            this._cameras.push(camera);
+        }
+    },
+
+    getCameras: function() {
+        return this._cameras;
+    },
+
+    removeCamera: function(camera) {
+        var index = this._cameras.indexOf(camera);
+        if (index !== -1) {
+            this._cameras.splice(index, 1);
+        }
+    },
+
 });
 
 module.exports = cc.Scene3D;
