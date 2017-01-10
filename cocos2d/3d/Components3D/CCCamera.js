@@ -39,7 +39,7 @@ var CameraComponent = cc.Class({
         menu: 'i18n:MAIN_MENU.component.renderers/CameraComponent',
     },
     properties: {
-        _clearColor: cc.color(128,128,128,255),
+        _clearColor: new cc.ColorF(0.5,0.5,0.5,1.0),
         _projection: 0, //default is perspective
         _near: 1,
         _far: 1000,
@@ -51,17 +51,14 @@ var CameraComponent = cc.Class({
                 return this._clearColor;
             },
             set: function(value) {
+                this._clearColor.copy(value);
                 var color = this.camera._clearOptions.color;
-                this._clearColor.r = value.r;
-                this._clearColor.g = value.g;
-                this._clearColor.b = value.b;
-                this._clearColor.a = value.a;
-                color[0] = value.r/255;
-                color[1] = value.g/255;
-                color[2] = value.b/255;
-                color[3] = value.a/255;
+                color[0] = value.r;
+                color[1] = value.g;
+                color[2] = value.b;
+                color[3] = value.a;
             },
-            type: cc.Color,
+            type: cc.ColorF,
         },
 
         projection: {
@@ -145,10 +142,10 @@ var CameraComponent = cc.Class({
 
     __preload: function () {
         var color = this.camera._clearOptions.color;
-        color[0] = this._clearColor.r/255;
-        color[1] = this._clearColor.g/255;
-        color[2] = this._clearColor.b/255;
-        color[3] = this._clearColor.a/255;
+        color[0] = this._clearColor.r;
+        color[1] = this._clearColor.g;
+        color[2] = this._clearColor.b;
+        color[3] = this._clearColor.a;
         this.camera.setProjection(this._projection);
         this.camera.setNearClip(this._near);
         this.camera.setFarClip(this._far);
