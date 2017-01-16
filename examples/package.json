@@ -1,0 +1,17 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "build": "browserify ./gltf-loader/index.js -o ./bin/gltf-loader.js",
+    "start": "http-server ./ -a localhost -p 8520 -c-1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^13.3.0",
+    "http-server": "^0.9.0",
+    "rollup": "^0.41.1"
+  }
+}
