@@ -308,7 +308,7 @@ function initScene () {
                     }
 
                     camera._node = child;
-                    scene._sgScene.addCamera(camera);
+                    scene.addCamera(camera);
                 }
 
                 // add model
@@ -365,7 +365,7 @@ function initScene () {
         var light = new cc3d.Light();
         light._node = node;
         light.setEnabled(true);
-        light._color = new cc3d.Color(1.0, 1.0, 1.0);
+        light._color = new cc.ColorF(1.0, 1.0, 1.0);
         scene._sgScene.addLight(light);
     });
 
