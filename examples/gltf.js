@@ -288,27 +288,24 @@ function initScene () {
 
             walk(scene, (parent, child) => {
                 // add camera
-                if ( child._cameraID ) {
-                    var camera = new cc3d.Camera();
+                if ( child._cameraID  ) {
+                    var camera = child.addComponent('cc.CameraComponent');
                     var gltfCamera = json.cameras[child._cameraID];
                     var isOrtho = gltfCamera.type === 'orthographic';
 
-                    camera.setProjection(
-                        isOrtho ? cc3d.PROJECTION_ORTHOGRAPHIC : cc3d.PROJECTION_PERSPECTIVE
-                    );
+                    camera.projection = isOrtho ? cc3d.PROJECTION_ORTHOGRAPHIC : cc3d.PROJECTION_PERSPECTIVE;
+
 
                     if ( isOrtho ) {
-                        camera.setNearClip(gltfCamera.orthographic.znear);
-                        camera.setFarClip(gltfCamera.orthographic.zfar);
-                        camera.getOrthoHeight(gltfCamera.ymag * 0.5);
+                        camera.nearClip = gltfCamera.orthographic.znear;
+                        camera.farClip = gltfCamera.orthographic.zfar;
+                        camera.orthoHeight = gltfCamera.ymag * 0.5;
                     } else {
-                        camera.setNearClip(gltfCamera.perspective.znear);
-                        camera.setFarClip(gltfCamera.perspective.zfar);
-                        camera.setFov(gltfCamera.perspective.yfov);
+                        camera.nearClip = gltfCamera.perspective.znear;
+                        camera.farClip = gltfCamera.perspective.zfar;
+                        camera.fov = gltfCamera.perspective.yfov;
                     }
 
-                    camera._node = child;
-                    scene._sgScene.addCamera(camera);
                 }
 
                 // add model
@@ -362,11 +359,9 @@ function initScene () {
         scene.addChild(node);
 
         // light
-        var light = new cc3d.Light();
-        light._node = node;
-        light.setEnabled(true);
-        light._color = new cc3d.Color(1.0, 1.0, 1.0);
-        scene._sgScene.addLight(light);
+        var light = node.addComponent('cc.LightComponent');
+        light.color = new cc.ColorF(1.0, 0.0, 1.0);
+
     });
 
     cc.director.runSceneImmediate(scene);
