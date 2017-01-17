@@ -21,6 +21,64 @@ function loadGLTF (url, callback) {
     });
 }
 
+function loadTextures (json, callback) {
+    var manifest = {};
+    var id;
+
+    for ( id in json.textures ) {
+        var gltfTexture = json.textures[id];
+        var gltfImage = json.images[gltfTexture.source];
+
+        manifest[id] = {
+            type: 'image',
+            src: 'assets/gltf-exports/' + gltfImage.uri
+        };
+    }
+
+    gltf.resl({
+        manifest: manifest,
+
+        onDone: (assets) => {
+            callback(null, assets);
+        },
+
+        onError: function (err) {
+            console.error(err);
+            callback(err);
+        }
+    });
+}
+
+function loadMaterials (json, textures) {
+    var materials = {};
+
+    for ( var id in json.materials ) {
+        var gltfMaterial = json.materials[id];
+        var mtl;
+
+        if ( gltfMaterial.technique === 'diffuse' ) {
+            mtl = new cc3d.StandardMaterial();
+
+            var color = gltfMaterial.values.color;
+            if ( color !== undefined ) {
+                mtl.diffuse = new cc.ColorF(color[0], color[1], color[2]);
+            }
+
+            var mainTexture = gltfMaterial.values.mainTexture;
+            if ( mainTexture !== undefined ) {
+                mtl.diffuseMap = textures[mainTexture];
+            }
+        } else {
+            mtl = new cc3d.StandardMaterial();
+        }
+
+        mtl.update();
+        materials[id] = mtl;
+    }
+
+    return materials;
+}
+
 function loadBuffers (json, callback) {
     var manifest = {};
     var buffer2viewIDs = {};
@@ -280,6 +338,35 @@ function initScene () {
     loadGLTF('assets/gltf-exports/scene.gltf', function (err, json) {
         let gltfScene = json.scenes[json.scene];
         loadBuffers(json, function (err, bufferViews) {
+            // pre-cache textures
+            var textures = {};
+            for ( var id in json.textures ) {
+                var gltfTexture = json.textures[id];
+
+                textures[id] = new cc3d.Texture(device, {
+                    format: gltf.toTextureFormatCC3D(gltfTexture.format, gltfTexture.type),
+                });
+            }
+
+            loadTextures(json, function (err, images) {
+                for ( var id in images ) {
+                    var img = images[id];
+
+                    var gltfTexture = json.textures[id];
+                    var gltfSampler = json.samplers[gltfTexture.sampler];
+
+                    var texture = textures[id];
+
+                    texture.minFilter = gltf.toFilterCC3D(gltfSampler.minFilter);
+                    texture.magFilter = gltf.toFilterCC3D(gltfSampler.magFilter);
+                    texture.addressU = gltf.toAddressCC3D(gltfSampler.wrapS);
+                    texture.addressV = gltf.toAddressCC3D(gltfSampler.wrapT);
+                    texture.autoMipmap = true;
+                    texture.setSource(img);
+                }
+            });
+
+            var materials = loadMaterials(json, textures);
 
             var info = buildVertexAndIndexBuffers(json, device, bufferViews);
             var meshes = buildMeshes(json, device, info.vertexBuffers, info.indexBuffers);
@@ -289,23 +376,21 @@ function initScene () {
             walk(scene, (parent, child) => {
                 // add camera
                 if ( child._cameraID  ) {
-                    var camera = child.addComponent('cc.CameraComponent');
+                    var cameraComp = child.addComponent('cc.CameraComponent');
                     var gltfCamera = json.cameras[child._cameraID];
                     var isOrtho = gltfCamera.type === 'orthographic';
 
-                    camera.projection = isOrtho ? cc3d.PROJECTION_ORTHOGRAPHIC : cc3d.PROJECTION_PERSPECTIVE;
-
+                    cameraComp.projection = isOrtho ? cc3d.PROJECTION_ORTHOGRAPHIC : cc3d.PROJECTION_PERSPECTIVE;
 
                     if ( isOrtho ) {
-                        camera.nearClip = gltfCamera.orthographic.znear;
-                        camera.farClip = gltfCamera.orthographic.zfar;
-                        camera.orthoHeight = gltfCamera.ymag * 0.5;
+                        cameraComp.nearClip = gltfCamera.orthographic.znear;
+                        cameraComp.farClip = gltfCamera.orthographic.zfar;
+                        cameraComp.orthoHeight = gltfCamera.ymag * 0.5;
                     } else {
-                        camera.nearClip = gltfCamera.perspective.znear;
-                        camera.farClip = gltfCamera.perspective.zfar;
-                        camera.fov = gltfCamera.perspective.yfov;
+                        cameraComp.nearClip = gltfCamera.perspective.znear;
+                        cameraComp.farClip = gltfCamera.perspective.zfar;
+                        cameraComp.fov = gltfCamera.perspective.yfov;
                     }
-
                 }
 
                 // add model
@@ -318,11 +403,7 @@ function initScene () {
                             var id = gltfPrimitive.attributes.POSITION;
 
                             var mesh = meshes[id];
-                            // var texture = new cc3d.Texture(device, options);
-                            var mtl = new cc3d.StandardMaterial();
-                            // mtl.diffuse = new cc3d.Color(1.0, 1.0, 0);
-                            // mtl.diffuseMap = texture;
-                            mtl.update();
+                            var mtl = materials[gltfPrimitive.material];
 
                             var meshInst = new cc3d.MeshInstance(child, mesh, mtl);
                             model.meshInstances.push(meshInst);
@@ -360,7 +441,7 @@ function initScene () {
 
         // light
         var light = node.addComponent('cc.LightComponent');
-        light.color = new cc.ColorF(1.0, 0.0, 1.0);
+        light.color = new cc.ColorF(0.8, 0.8, 0.8);
 
     });
 

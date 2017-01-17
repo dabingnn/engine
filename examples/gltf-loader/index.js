@@ -51,4 +51,67 @@ window.gltf = {
         // 'blendweight': cc3d.SEMANTIC_BLENDWEIGHT,
         // 'blendindices': cc3d.SEMANTIC_BLENDINDICES,
     },
+
+    toTextureFormatCC3D: function ( format, type ) {
+        if ( format === 6406 && type === 5121 ) {
+            // ALPHA & UNSIGNED_BYTE
+            return cc3d.PIXELFORMAT_A8;
+        } else if ( format === 6409 && type === 5121 ) {
+            // LUMINANCE & UNSIGNED_BYTE
+            return cc3d.PIXELFORMAT_L8;
+        } else if ( format === 6410 && type === 5121 ) {
+            // LUMINANCE_ALPHA & UNSIGNED_BYTE
+            return cc3d.PIXELFORMAT_L8_A8;
+        } else if ( format === 6407 && type === 33635 ) {
+            // RGB & UNSIGNED_SHORT_5_6_5
+            return cc3d.PIXELFORMAT_R5_G6_B5;
+        } else if ( format === 6408 && type === 32820 ) {
+            // RGBA & UNSIGNED_SHORT_5_5_5_1
+            return cc3d.PIXELFORMAT_R5_G5_B5_A1;
+        } else if ( format === 6408 && type === 32819 ) {
+            // RGBA & UNSIGNED_SHORT_4_4_4_4
+            return cc3d.PIXELFORMAT_R4_G4_B4_A4;
+        } else if ( format === 6407 && type === 5121 ) {
+            // RGB & UNSIGNED_BYTE
+            return cc3d.PIXELFORMAT_R8_G8_B8;
+        } else if ( format === 6408 && type === 5121 ) {
+            // RGBA & UNSIGNED_BYTE
+            return cc3d.PIXELFORMAT_R8_G8_B8_A8;
+        } else if ( format === 6408 && type === 5121 ) {
+            // RGBA & UNSIGNED_BYTE
+            return cc3d.PIXELFORMAT_R8_G8_B8_A8;
+        }
+
+        return cc3d.PIXELFORMAT_R8_G8_B8_A8;
+    },
+
+    toFilterCC3D: function ( type ) {
+        if ( type === 9728 ) {
+            return cc3d.FILTER_NEAREST;
+        } else if ( type === 9729 ) {
+            return cc3d.FILTER_LINEAR;
+        } else if ( type === 9984 ) {
+            return cc3d.FILTER_NEAREST_MIPMAP_NEAREST;
+        } else if ( type === 9985 ) {
+            return cc3d.FILTER_LINEAR_MIPMAP_NEAREST;
+        } else if ( type === 9986 ) {
+            return cc3d.FILTER_NEAREST_MIPMAP_LINEAR;
+        } else if ( type === 9987 ) {
+            return cc3d.FILTER_LINEAR_MIPMAP_LINEAR;
+        }
+
+        return cc3d.FILTER_LINEAR;
+    },
+
+    toAddressCC3D: function ( type ) {
+        if ( type === 10497 ) {
+            return cc3d.ADDRESS_REPEAT;
+        } else if ( type === 33071 ) {
+            return cc3d.ADDRESS_CLAMP_TO_EDGE;
+        } else if ( type === 33648 ) {
+            return cc3d.ADDRESS_MIRRORED_REPEAT;
+        }
+
+        return cc3d.ADDRESS_REPEAT;
+    },
 };
