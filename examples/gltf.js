@@ -396,6 +396,7 @@ function initScene () {
                 // add model
                 if ( child._meshIDs && child._meshIDs.length > 0 ) {
                     child._meshIDs.forEach(function (meshID) {
+                        var modelComponent = child.addComponent('cc.ModelComponent');
                         var gltfMesh = json.meshes[meshID];
                         var model = new cc3d.Model();
 
@@ -408,8 +409,7 @@ function initScene () {
                             var meshInst = new cc3d.MeshInstance(child, mesh, mtl);
                             model.meshInstances.push(meshInst);
                         });
-
-                        scene._sgScene.addModel(model);
+                        modelComponent.setModel(model);
                     });
                 }
             });
