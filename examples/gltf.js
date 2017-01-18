@@ -262,7 +262,7 @@ function buildMeshes (json, device, vertexBuffers, indexBuffers) {
             mesh.primitive[idx].indexed = ib !== undefined;
             mesh.aabb = aabb;
 
-            result[vbID] = mesh;
+            result[ibID] = mesh;
         });
     }
 
@@ -401,7 +401,7 @@ function initScene () {
                         var model = new cc3d.Model();
 
                         gltfMesh.primitives.forEach(function (gltfPrimitive) {
-                            var id = gltfPrimitive.attributes.POSITION;
+                            var id = gltfPrimitive.indices;
 
                             var mesh = meshes[id];
                             var mtl = materials[gltfPrimitive.material];
