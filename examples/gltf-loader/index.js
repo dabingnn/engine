@@ -48,8 +48,8 @@ window.gltf = {
         'uv5': cc3d.SEMANTIC_TEXCOORD5,
         'uv6': cc3d.SEMANTIC_TEXCOORD6,
         'uv7': cc3d.SEMANTIC_TEXCOORD7,
-        // 'blendweight': cc3d.SEMANTIC_BLENDWEIGHT,
-        // 'blendindices': cc3d.SEMANTIC_BLENDINDICES,
+        'weight': cc3d.SEMANTIC_BLENDWEIGHT,
+        'joint': cc3d.SEMANTIC_BLENDINDICES,
     },
 
     toTextureFormatCC3D: function ( format, type ) {

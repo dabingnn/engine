@@ -108,11 +108,18 @@ function loadBuffers (json, callback) {
                 var viewIDs = buffer2viewIDs[id];
                 viewIDs.forEach(viewID => {
                     var gltfBufferView = json.bufferViews[viewID];
-                    bufferViews[viewID] = new Uint8Array(
-                        assets[id],
-                        gltfBufferView.byteOffset,
-                        gltfBufferView.byteLength
-                    );
+                    if ( gltfBufferView.target ) {
+                        bufferViews[viewID] = new Uint8Array(
+                            assets[id],
+                            gltfBufferView.byteOffset,
+                            gltfBufferView.byteLength
+                        );
+                    } else {
+                        bufferViews[viewID] = assets[id].slice(
+                            gltfBufferView.byteOffset,
+                            gltfBufferView.byteOffset + gltfBufferView.byteLength
+                        );
+                    }
                 });
             }
 
@@ -126,11 +133,32 @@ function loadBuffers (json, callback) {
     });
 }
 
+function _duplicate (node) {
+    if ( !node ) {
+        return null;
+    }
+
+    var newNode = new cc.Node3D();
+    newNode._id = node._id;
+    newNode.name = node.name;
+    newNode.setLocalScale(node.getLocalScale());
+    newNode.setLocalRotation(node.getLocalRotation());
+    newNode.setLocalPosition(node.getLocalPosition());
+
+    if ( node.children && node.children.length > 0 ) {
+        node.children.forEach(function(child) {
+            newNode.addChild(_duplicate(child));
+        });
+    }
+
+    return newNode;
+}
+
 function walk ( node, fn ) {
-  node.children.forEach(child => {
-    fn ( node, child );
-    walk( child, fn );
-  });
+    node.children.forEach(child => {
+        fn ( node, child );
+        walk( child, fn );
+    });
 }
 
 function buildVertexAndIndexBuffers (json, device, bufferViews) {
@@ -169,7 +197,9 @@ function buildVertexAndIndexBuffers (json, device, bufferViews) {
             accessor.name === 'uv4' ||
             accessor.name === 'uv5' ||
             accessor.name === 'uv6' ||
-            accessor.name === 'uv7'
+            accessor.name === 'uv7' ||
+            accessor.name === 'joint' ||
+            accessor.name === 'weight'
            ) {
             updateVB(id, accessor);
         } else if ( accessor.name.indexOf('indices') === 0 ) {
@@ -201,6 +231,7 @@ function buildVertexAndIndexBuffers (json, device, bufferViews) {
         [
             'position', 'normal', 'tangent', 'color',
             'uv0', 'uv1', 'uv2', 'uv3', 'uv4', 'uv5', 'uv6', 'uv7',
+            'joint', 'weight',
         ].forEach(function (name) {
             var accessor = info[name];
             if ( accessor ) {
@@ -312,8 +343,12 @@ function recurseNode (json, node, childrenIDs, meshes ) {
         }
 
         // extra information
+        childNode._id = nodeID;
         childNode._meshIDs = gltfNode.meshes;
+        childNode._skinID = gltfNode.skin;
+        childNode._skeletonIDs = gltfNode.skeletons;
         childNode._cameraID = gltfNode.camera;
+        childNode._extras = gltfNode.extras;
 
         node.addChild(childNode);
 
@@ -321,6 +356,144 @@ function recurseNode (json, node, childrenIDs, meshes ) {
             recurseNode ( json, childNode, gltfNode.children, meshes );
         }
     });
+}
+
+function buildSkins (json, device, bufferViews) {
+    var skins = {};
+    var skinId;
+
+    function parseIbps (accessor, bufferViews) {
+        if (
+            accessor.componentType !== 5126 ||
+            accessor.type !== 'MAT4'
+        ) {
+            console.error(
+                'can not represent Inverse Bindind Matrix with type' +
+                accessor.componentType +
+                '(not float) and type ' +
+                accessor.type +
+                '(not mat4)'
+            );
+        }
+
+        var bufferView = bufferViews[accessor.bufferView];
+        var data = new Float32Array(bufferView, accessor.byteOffset, accessor.count * 16);
+
+        var ibps = [];
+        for (var index = 0; index < accessor.count; ++index) {
+            var offset = 16 * index;
+            var mat = new cc.Mat4(
+                data[offset],
+                data[offset + 1],
+                data[offset + 2],
+                data[offset + 3],
+                data[offset + 4],
+                data[offset + 5],
+                data[offset + 6],
+                data[offset + 7],
+                data[offset + 8],
+                data[offset + 9],
+                data[offset + 10],
+                data[offset + 11],
+                data[offset + 12],
+                data[offset + 13],
+                data[offset + 14],
+                data[offset + 15]
+            );
+            ibps.push(mat);
+        }
+        return ibps;
+    }
+
+    for ( skinId in json.skins ) {
+        var gltfSkin = json.skins[skinId];
+        var boneNames = gltfSkin.jointNames.slice(0);
+        var ibps = parseIbps(json.accessors[gltfSkin.inverseBindMatrices], bufferViews);
+        var skin = new cc3d.Skin(device, ibps, boneNames);
+        skins[skinId] = skin;
+    }
+
+    return skins;
+}
+
+function buildJoints (json) {
+    var joints = {};
+    var id, node;
+
+    for ( id in json.nodes ) {
+        var gltfNode = json.nodes[id];
+        if ( !gltfNode.jointName ) {
+            continue;
+        }
+
+        node = new cc.Node3D();
+        node.name = gltfNode.jointName;
+        node._id = id;
+        node._childrenIDs = gltfNode.children;
+
+        // position
+        if ( gltfNode.translation ) {
+            node.setLocalPosition(new cc.Vec3(
+                gltfNode.translation[0],
+                gltfNode.translation[1],
+                gltfNode.translation[2]
+            ));
+        } else {
+            node.setLocalPosition(cc.Vec3.ZERO);
+        }
+
+        // rotation
+        if ( gltfNode.rotation ) {
+            node.setLocalRotation(new cc.Quat(
+                gltfNode.rotation[0],
+                gltfNode.rotation[1],
+                gltfNode.rotation[2],
+                gltfNode.rotation[3]
+            ));
+        } else {
+            node.setLocalRotation(cc.Quat.IDENTITY);
+        }
+
+        // scale
+        if ( gltfNode.scale ) {
+            node.setLocalScale(new cc.Vec3(
+                gltfNode.scale[0],
+                gltfNode.scale[1],
+                gltfNode.scale[2]
+            ));
+        } else {
+            node.setLocalScale(cc.Vec3.ONE);
+        }
+
+        joints[id] = node;
+    }
+
+    for ( id in joints ) {
+        node = joints[id];
+        if ( node._childrenIDs && node._childrenIDs.length > 0 ) {
+            node._childrenIDs.forEach(function(childID) {
+                joints[childID] && node.addChild(joints[childID]);
+            });
+        }
+        delete node._childrenIDs;
+    }
+
+    return joints;
+}
+
+function findJointByName (node, name) {
+    if (node.name === name) {
+        return node;
+    }
+
+    for ( var i = 0; i < node.children.length; ++i ) {
+        var result = findJointByName(node.children[i], name);
+        if (result) {
+            return result;
+        }
+    }
+
+    return null;
 }
 
 function initScene () {
@@ -370,6 +543,8 @@ function initScene () {
 
             var info = buildVertexAndIndexBuffers(json, device, bufferViews);
             var meshes = buildMeshes(json, device, info.vertexBuffers, info.indexBuffers);
+            var skins = buildSkins(json, device, bufferViews);
+            var joints = buildJoints(json);
 
             recurseNode(json, scene, gltfScene.nodes, meshes);
 
@@ -393,13 +568,60 @@ function initScene () {
                     }
                 }
 
+                // add skeleton
+                if ( child._extras && child._extras.root ) {
+                    var jointRoot = joints[child._extras.root];
+                    var cloneRoot = _duplicate(jointRoot);
+
+                    var cloneJoints = {};
+                    walk(cloneRoot, (parent, child) => {
+                        cloneJoints[child._id] = child;
+                    });
+
+                    child.addChild(cloneRoot);
+                    cloneRoot.syncHierarchy();
+                    child._joints = cloneJoints;
+                    child._graph = cloneRoot;
+                }
+
                 // add model
                 if ( child._meshIDs && child._meshIDs.length > 0 ) {
                     child._meshIDs.forEach(function (meshID) {
                         var modelComponent = child.addComponent('cc.ModelComponent');
                         var gltfMesh = json.meshes[meshID];
                         var model = new cc3d.Model();
+                        var skinInstance = null;
 
+                        // handle skin
+                        if ( child._skinID ) {
+                            var skin = skins[child._skinID];
+                            var skeletonID = child._skeletonIDs && child._skeletonIDs[child._meshIDs.indexOf(meshID)];
+                            var graph;
+
+                            if ( child.parent && child.parent._graph ) {
+                                graph = child.parent._graph;
+                            } else {
+                                graph = _duplicate(joints[skeletonID]);
+                                child.addChild(graph);
+                                graph.syncHierarchy();
+                            }
+                            model.graph = graph;
+
+                            var bones = [];
+                            skin.boneNames.forEach(function (name) {
+                                var bone = findJointByName(graph, name);
+                                if ( bone ) {
+                                    bones.push(bone);
+                                } else {
+                                    console.error(`Can not find joint: ${name}`);
+                                }
+                            });
+
+                            skinInstance = new cc3d.SkinInstance(skin, graph);
+                            skinInstance.bones = bones;
+                        }
+
+                        //
                         gltfMesh.primitives.forEach(function (gltfPrimitive) {
                             var id = gltfPrimitive.indices;
 
@@ -407,6 +629,8 @@ function initScene () {
                             var mtl = materials[gltfPrimitive.material];
 
                             var meshInst = new cc3d.MeshInstance(child, mesh, mtl);
+                            meshInst.skinInstance = skinInstance;
+
                             model.meshInstances.push(meshInst);
                         });
                         modelComponent.setModel(model);
