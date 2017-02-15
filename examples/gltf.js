@@ -207,7 +207,7 @@ function buildAnimations(json, device, bufferViews) {
     var animations = {};
     for (var aniInfoKey in json.animations) {
         var aniInfo = json.animations[aniInfoKey];
-        var animation = animations[aniInfo.name] = new cc3d.Animation();
+        var animation = new cc3d.Animation();
         animations[aniInfoKey] = animation;
         animation.name = aniInfo.name;
 
@@ -235,6 +235,7 @@ function buildAnimations(json, device, bufferViews) {
         aniInfo.channels.forEach(function(channel) {
             var nodeName = json.nodes[channel.target.id].jointName;
             var boneCurve = animation._nodeDict[nodeName];
+            var samplerInfo = aniInfo.samplers[channel.sampler];
             if (!boneCurve) {
                 boneCurve = new cc3d.Node();
                 boneCurve._name = nodeName;
@@ -245,14 +246,14 @@ function buildAnimations(json, device, bufferViews) {
                 animation._nodes.push(boneCurve);
             }
 
-            var curve = aniCurves[channel.sampler];
+            var curve = aniCurves[samplerInfo.output];
             for (var index = 0; index < boneCurve._keys.length; ++index) {
                 if (channel.target.path === 'translation') {
-                    boneCurve._keys[index].position = curve[index];
+                    boneCurve._keys[index].position = curve[index] || curve[0];
                 } else if(channel.target.path === 'rotation') {
-                    boneCurve._keys[index].rotation = curve[index];
+                    boneCurve._keys[index].rotation = curve[index] || curve[0];
                 } else if(channel.target.path === 'scale') {
-                    boneCurve._keys[index].scale = curve[index];
+                    boneCurve._keys[index].scale = curve[index] || curve[0];
                 }
             }
 
