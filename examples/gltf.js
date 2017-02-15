@@ -161,67 +161,81 @@ function walk ( node, fn ) {
     });
 }
 
+function parseCurves(accessor, device, bufferViews ) {
+    var result = [];
+    var bufferView = bufferViews[accessor.bufferView];
+    var componentType = accessor.componentType;
+    var curverKeysView;
+    var componentCount = gltf.typeToCompnents(accessor.type);
+
+    if ( componentType === 5120 ) {
+        curverKeysView = new Int8Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5121 ) {
+        curverKeysView = new Uint8Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5122 ) {
+        curverKeysView = new Int16Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5123 ) {
+        curverKeysView = new Uint16Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5126 ) {
+        curverKeysView = new Float32Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    }
+
+    for(var i = 0; i < accessor.count; ++i) {
+        if(componentCount === 1) {
+            result.push(curverKeysView[i]);
+        } else if(componentCount === 3) {
+            result.push(new cc.Vec3(
+                curverKeysView[3*i],
+                curverKeysView[3*i + 1],
+                curverKeysView[3*i + 2]
+            ));
+        } else if(componentCount === 4) {
+            result.push(new cc.Quat(
+                curverKeysView[4*i],
+                curverKeysView[4*i + 1],
+                curverKeysView[4*i + 2],
+                curverKeysView[4*i + 3]
+            ));
+        }
+    }
+
+    return result;
+}
+
+
 function buildAnimations(json, device, bufferViews) {
     var animations = {};
-    for(var aniInfoKey in json.animations) {
+    for (var aniInfoKey in json.animations) {
         var aniInfo = json.animations[aniInfoKey];
         var animation = animations[aniInfo.name] = new cc3d.Animation();
         animations[aniInfoKey] = animation;
         animation.name = aniInfo.name;
-        //parse parameters
+
+        // parse parameters
         var aniCurveTimes = [];
         var aniCurves = {};
-        for(var aniCurveInfoKey in aniInfo.parameters) {
-            function parseCurves(accessor, device, bufferViews ) {
-                var result = [];
-                var bufferView = bufferViews[accessor.bufferView];
-                var componentType = accessor.componentType;
-                var curverKeysView;
-                var componentCount = gltf.typeToCompnents(accessor.type);
-                if ( componentType === 5120 ) {
-                    //return cc3d.ELEMENTTYPE_INT8;
-                    curverKeysView = new Int8Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
-                } else if ( componentType === 5121 ) {
-                    //return cc3d.ELEMENTTYPE_UINT8;
-                    curverKeysView = new Uint8Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
-                } else if ( componentType === 5122 ) {
-                    //return cc3d.ELEMENTTYPE_INT16;
-                    curverKeysView = new Int16Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
-                } else if ( componentType === 5123 ) {
-                    //return cc3d.ELEMENTTYPE_UINT16;
-                    curverKeysView = new Uint16Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
-                } else if ( componentType === 5126 ) {
-                    //return cc3d.ELEMENTTYPE_FLOAT32;
-                    curverKeysView = new Float32Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
-                }
+        for (var aniCurveInfoKey in aniInfo.parameters) {
+            var curve = parseCurves(
+                json.accessors[aniInfo.parameters[aniCurveInfoKey]],
+                device,
+                bufferViews
+            );
 
-                for(var countIndex = 0; countIndex < accessor.count; ++countIndex) {
-                    if(componentCount === 1) {
-                        result.push(curverKeysView[countIndex]);
-                    } else if(componentCount === 3) {
-                        result.push(new cc.Vec3(curverKeysView[countIndex * 3], curverKeysView[countIndex * 3 + 1], curverKeysView[countIndex * 3 + 2]));
-                    } else if(componentCount === 4) {
-                        result.push(new cc.Quat(curverKeysView[countIndex * 4], curverKeysView[countIndex * 4 + 1], curverKeysView[countIndex * 4 + 2],
-                            curverKeysView[countIndex * 4 + 3]));
-                    }
-                }
-                return result;
-            }
-            var curve = parseCurves(json.accessors[aniInfo.parameters[aniCurveInfoKey]], device, bufferViews);
-            if(aniCurveInfoKey === 'time')
-            {
+            if (aniCurveInfoKey === 'time') {
                 aniCurveTimes = curve;
             } else {
                 aniCurves[aniCurveInfoKey] = curve;
             }
         }
-        //assign duration
+
+        // assign duration
         animation.duration = aniCurveTimes[aniCurveTimes.length - 1];
-        //parse channels
+
+        // parse channels
         aniInfo.channels.forEach(function(channel) {
             var nodeName = json.nodes[channel.target.id].jointName;
             var boneCurve = animation._nodeDict[nodeName];
-            if(!boneCurve) {
+            if (!boneCurve) {
                 boneCurve = new cc3d.Node();
                 boneCurve._name = nodeName;
                 aniCurveTimes.forEach(function(time) {
@@ -232,8 +246,8 @@ function buildAnimations(json, device, bufferViews) {
             }
 
             var curve = aniCurves[channel.sampler];
-            for(var index = 0; index < boneCurve._keys.length; ++index) {
-                if(channel.target.path === 'translation') {
+            for (var index = 0; index < boneCurve._keys.length; ++index) {
+                if (channel.target.path === 'translation') {
                     boneCurve._keys[index].position = curve[index];
                 } else if(channel.target.path === 'rotation') {
                     boneCurve._keys[index].rotation = curve[index];
@@ -667,7 +681,7 @@ function initScene () {
                 // add skeleton and animation
                 if ( child._extras ) {
                     var skeletonRoot = null;
-                    if( child._extras.root ) {
+                    if ( child._extras.root ) {
                         var jointRoot = joints[child._extras.root];
                         skeletonRoot = _duplicate(jointRoot);
 
@@ -682,9 +696,9 @@ function initScene () {
                         child._graph = skeletonRoot;
                     }
 
-                    if( skeletonRoot && child._extras.animations ) {
+                    if ( skeletonRoot && child._extras.animations ) {
                         var animation = animations[child._extras.animations[0]];
-                        if(animation) {
+                        if (animation) {
                             var skeleton = new cc3d.Skeleton(skeletonRoot);
                             skeleton.setGraph(skeletonRoot);
                             skeleton.animation = animation;
