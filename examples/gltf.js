@@ -161,6 +161,116 @@ function walk ( node, fn ) {
     });
 }
 
+function parseCurves(accessor, device, bufferViews ) {
+    var result = [];
+    var bufferView = bufferViews[accessor.bufferView];
+    var componentType = accessor.componentType;
+    var curverKeysView;
+    var componentCount = gltf.typeToCompnents(accessor.type);
+
+    if ( componentType === 5120 ) {
+        curverKeysView = new Int8Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5121 ) {
+        curverKeysView = new Uint8Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5122 ) {
+        curverKeysView = new Int16Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5123 ) {
+        curverKeysView = new Uint16Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    } else if ( componentType === 5126 ) {
+        curverKeysView = new Float32Array(bufferView, accessor.byteOffset, accessor.count * componentCount);
+    }
+
+    for(var i = 0; i < accessor.count; ++i) {
+        if(componentCount === 1) {
+            result.push(curverKeysView[i]);
+        } else if(componentCount === 3) {
+            result.push(new cc.Vec3(
+                curverKeysView[3*i],
+                curverKeysView[3*i + 1],
+                curverKeysView[3*i + 2]
+            ));
+        } else if(componentCount === 4) {
+            result.push(new cc.Quat(
+                curverKeysView[4*i],
+                curverKeysView[4*i + 1],
+                curverKeysView[4*i + 2],
+                curverKeysView[4*i + 3]
+            ));
+        }
+    }
+
+    return result;
+}
+
+
+function buildAnimations(json, device, bufferViews) {
+    var animations = {};
+    for (var aniInfoKey in json.animations) {
+        var aniInfo = json.animations[aniInfoKey];
+        var animation = new cc3d.Animation();
+        animations[aniInfoKey] = animation;
+        animation.name = aniInfo.name;
+
+        // parse parameters
+        var aniCurveTimes = [];
+        var aniCurves = {};
+        for (var aniCurveInfoKey in aniInfo.parameters) {
+            var curve = parseCurves(
+                json.accessors[aniInfo.parameters[aniCurveInfoKey]],
+                device,
+                bufferViews
+            );
+
+            if (aniCurveInfoKey === 'time') {
+                aniCurveTimes = curve;
+            } else {
+                aniCurves[aniCurveInfoKey] = curve;
+            }
+        }
+
+        // assign duration
+        animation.duration = aniCurveTimes[aniCurveTimes.length - 1];
+
+        // parse channels
+        aniInfo.channels.forEach(function(channel) {
+            var nodeName = json.nodes[channel.target.id].jointName;
+            var boneCurve = animation._nodeDict[nodeName];
+            var samplerInfo = aniInfo.samplers[channel.sampler];
+            if (!boneCurve) {
+                boneCurve = new cc3d.Node();
+                boneCurve._name = nodeName;
+                aniCurveTimes.forEach(function(time) {
+                    boneCurve._keys.push(new cc3d.Key(time, null, null, null));
+                });
+                animation._nodeDict[nodeName] = boneCurve;
+                animation._nodes.push(boneCurve);
+            }
+
+            var curve = aniCurves[samplerInfo.output];
+            for (var index = 0; index < boneCurve._keys.length; ++index) {
+                if (channel.target.path === 'translation') {
+                    boneCurve._keys[index].position = curve[index] || curve[0];
+                } else if(channel.target.path === 'rotation') {
+                    boneCurve._keys[index].rotation = curve[index] || curve[0];
+                } else if(channel.target.path === 'scale') {
+                    boneCurve._keys[index].scale = curve[index] || curve[0];
+                }
+            }
+
+        });
+
+        animation._nodes.forEach(function(node) {
+            node._keys.forEach(function(key) {
+                key.position = key.position || new cc.Vec3(0,0,0);
+                key.rotation = key.rotation || new cc.Quat(0,0,0,1);
+                key.scale = key.scale || new cc.Vec3(1,1,1);
+            });
+        });
+    }
+
+    return animations;
+}
+
 function buildVertexAndIndexBuffers (json, device, bufferViews) {
     var vbInfos = {}; // key: buffer_view_id, value: { id: position_accessor_id, position: accessor, normal: accessor, .... }
     var id;
@@ -543,6 +653,7 @@ function initScene () {
 
             var info = buildVertexAndIndexBuffers(json, device, bufferViews);
             var meshes = buildMeshes(json, device, info.vertexBuffers, info.indexBuffers);
+            var animations = buildAnimations(json, device, bufferViews);
             var skins = buildSkins(json, device, bufferViews);
             var joints = buildJoints(json);
 
@@ -568,20 +679,37 @@ function initScene () {
                     }
                 }
 
-                // add skeleton
-                if ( child._extras && child._extras.root ) {
-                    var jointRoot = joints[child._extras.root];
-                    var cloneRoot = _duplicate(jointRoot);
+                // add skeleton and animation
+                if ( child._extras ) {
+                    var skeletonRoot = null;
+                    if ( child._extras.root ) {
+                        var jointRoot = joints[child._extras.root];
+                        skeletonRoot = _duplicate(jointRoot);
 
-                    var cloneJoints = {};
-                    walk(cloneRoot, (parent, child) => {
-                        cloneJoints[child._id] = child;
-                    });
+                        var cloneJoints = {};
+                        walk(skeletonRoot, (parent, child) => {
+                            cloneJoints[child._id] = child;
+                        });
 
-                    child.addChild(cloneRoot);
-                    cloneRoot.syncHierarchy();
-                    child._joints = cloneJoints;
-                    child._graph = cloneRoot;
+                        child.addChild(skeletonRoot);
+                        skeletonRoot.syncHierarchy();
+                        child._joints = cloneJoints;
+                        child._graph = skeletonRoot;
+                    }
+
+                    if ( skeletonRoot && child._extras.animations ) {
+                        var animation = animations[child._extras.animations[0]];
+                        if (animation) {
+                            var skeleton = new cc3d.Skeleton(skeletonRoot);
+                            skeleton.setGraph(skeletonRoot);
+                            skeleton.animation = animation;
+                            skeleton.looping = true;
+                            cc.director.getScheduler().scheduleUpdate(child, 0, false, function(dt) {
+                                skeleton.addTime(dt);
+                                skeleton.updateGraph();
+                            });
+                        }
+                    }
                 }
 
                 // add model

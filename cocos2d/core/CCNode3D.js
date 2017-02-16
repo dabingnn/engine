@@ -219,6 +219,16 @@ var Node = cc.Class({
         };
     }(),
 
+    findByName: function (name) {
+        if (this.name === name) return this;
+
+        for (var i = 0; i < this._children.length; i++) {
+            var found = this._children[i].findByName(name);
+            if (found !== null) return found;
+        }
+        return null;
+    },
+
     setWorldEulerAngles: function () {
         var invParentRot = new cc.Quat();
 
