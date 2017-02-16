@@ -20,3 +20,4 @@ npm-debug.log
 
 # examples
 examples/bin/
+examples/assets/gltf-exports/
