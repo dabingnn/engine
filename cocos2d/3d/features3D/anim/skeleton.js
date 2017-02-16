@@ -118,7 +118,7 @@ cc3d.extend(cc3d, function () {
                 if (keys.length === 1) {
                     interpKey._pos.copy(keys[0].position);
                     interpKey._quat.copy(keys[0].rotation);
-                    interpKey._scale(keys[0].scale);
+                    interpKey._scale.copy(keys[0].scale);
                 } else {
                     // Otherwise, find the keyframe pair for this node
                     for (var currKeyIndex = this._currKeyIndices[nodeName]; currKeyIndex < keys.length - 1 && currKeyIndex >= 0; currKeyIndex += offset) {
