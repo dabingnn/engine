@@ -12,6 +12,8 @@ node_modules
 /.project
 npm-debug.log
 
+# vscode files
+.vscode/
 
 # exvim files
 *.err

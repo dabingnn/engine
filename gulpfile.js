@@ -127,6 +127,12 @@ gulp.task('build-test', ['build-modular-cocos2d', 'clean-test'], function (done)
                done);
 });
 
+gulp.task('build-examples', ['build-modular-cocos2d', 'clean-test'], function (done) {
+    Test.build('./index.js', './examples/bin/cocos2d-js-for-test.js',
+               '../editor/test-utils/engine-extends-entry.js','./examples/bin/cocos2d-js-extends-for-test.js',
+               done);
+});
+
 gulp.task('unit-runner', ['build-test'], function (done) {
     Test.unit('./bin', [
         './bin/cocos2d-js-for-test.js'

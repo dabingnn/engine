@@ -8,7 +8,11 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test": "gulp test"
+    "test": "gulp test",
+    "start": "http-server ./examples -a localhost -p 8520 -c-1",
+    "build:examples": "npm run build:test-for-examples && npm run build:gltf-for-examples",
+    "build:test-for-examples": "gulp build-examples",
+    "build:gltf-for-examples": "browserify ./examples/gltf-loader/index.js -o ./examples/bin/gltf-loader.js"
   },
   "devDependencies": {
     "async": "1.5.2",
@@ -31,9 +35,11 @@
     "gulp-sourcemaps": "1.5.2",
     "gulp-uglify": "1.5.3",
     "gulp-util": "3.0.6",
+    "http-server": "^0.9.0",
     "jshint-stylish": "2.1.0",
     "multipipe": "0.3.0",
     "require-dir": "0.3.0",
+    "rollup": "^0.41.1",
     "vinyl": "1.1.0",
     "vinyl-buffer": "1.0.0",
     "vinyl-source-stream": "1.0.0",
