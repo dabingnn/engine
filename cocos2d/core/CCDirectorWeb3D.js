@@ -185,7 +185,7 @@ cc.game.once(cc.game.EVENT_RENDERER_INITED, function () {
         }
 
         // unload scene
-        if (cc.isValid(oldScene)) {
+        if (cc.isValid(oldScene) && oldScene != scene) {
             oldScene.destroy();
         }
 
