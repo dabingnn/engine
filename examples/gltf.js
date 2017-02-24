@@ -10,14 +10,6 @@ var Font = function (data, texture) {
         vshader: cc3d.shaderChunks.msdfVS,
         fshader: cc3d.shaderChunks.msdfPS.replace("[PRECISION]", "precision highp float;"),
     };
-    var shaderDefinition = {
-        attributes: {
-            aPosition: cc3d.SEMANTIC_POSITION,
-            aUv0: cc3d.SEMANTIC_TEXCOORD0
-        },
-        vshader: cc3d.shaderChunks.msdfVS,
-        fshader: cc3d.shaderChunks.msdfPS.replace("[PRECISION]", "precision highp float;"),
-    };
 
     var shader = new cc3d.Shader(cc.renderer.device, shaderDefinition);
 
