@@ -211,7 +211,7 @@ var Node = cc.Class({
             if (this._parent === null) {
                 this._localRotation.copy(rotation);
             } else {
-                var parentRot = this._parent.getRotation();
+                var parentRot = this._parent.getWorldRotation();
                 invParentRot.copy(parentRot).invert();
                 this._localRotation.copy(invParentRot).mul(rotation);
             }
@@ -250,7 +250,7 @@ var Node = cc.Class({
             this._localRotation.setFromEulerAngles(ex, ey, ez);
 
             if (this._parent !== null) {
-                var parentRot = this._parent.getRotation();
+                var parentRot = this._parent.getWorldRotation();
                 invParentRot.copy(parentRot).invert();
                 this._localRotation.mul2(invParentRot, this._localRotation);
             }
@@ -399,8 +399,8 @@ var Node = cc.Class({
             if (this._parent === null) {
                 this._localRotation.mul2(quaternion, this._localRotation);
             } else {
-                var rot = this.getRotation();
-                var parentRot = this._parent.getRotation();
+                var rot = this.getWorldRotation();
+                var parentRot = this._parent.getWorldRotation();
 
                 invParentRot.copy(parentRot).invert();
                 quaternion.mul2(invParentRot, quaternion);

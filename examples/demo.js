@@ -1,5 +1,3 @@
-var gltf = window.gltf;
-
 function initScene () {
     cc.view.enableRetina(false);
     if (cc.sys.isNative) {
@@ -8,8 +6,10 @@ function initScene () {
         cc.view.resizeWithBrowserSize(true);
     }
 
+    window.debug();
+
     var url = 'assets/gltf-exports/scene.gltf';
-    gltf.loader.loadScene(url, function (err, scene) {
+    window.gltf.loader.loadScene(url, function (err, scene) {
         if (err) {
             console.error(`Failed to load ${url}: ${err}`);
             return;
@@ -23,14 +23,6 @@ function initScene () {
         // light
         var light = node.addComponent('cc.LightComponent');
         light.color = new cc.ColorF(0.8, 0.8, 0.8);
-
-        // update input
-        cc.director.on(cc.Director.EVENT_BEFORE_UPDATE, function () {
-            // var dt = cc.director._deltaTime;
-            // console.log(`foobar: ${dt}`);
-
-            // TODO:
-        });
     });
 }
 
