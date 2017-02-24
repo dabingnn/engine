@@ -115,6 +115,33 @@ function toAddressCC3D ( type ) {
     return cc3d.ADDRESS_REPEAT;
 }
 
+function loadFont (fontJason, fontImage, callBack) {
+
+    resl({
+        manifest: {
+            'json': {
+                type: 'text',
+                src: fontJason,
+                parser: JSON.parse
+            },
+            'texture': {
+                type: 'image',
+                src: fontImage
+            },
+        },
+
+        onDone: function (assets) {
+            callBack(null, assets);
+        },
+
+        onError: function (err) {
+            console.error(err);
+            callBack(err);
+        }
+    });
+
+}
+
 function loadGLTF (url, callback) {
     resl({
         manifest: {
@@ -895,4 +922,5 @@ function loadScene (url, callback) {
 
 module.exports = {
     loadScene: loadScene,
+    loadFont: loadFont,
 };
