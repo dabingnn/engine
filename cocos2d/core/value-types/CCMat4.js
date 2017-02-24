@@ -368,9 +368,10 @@ JS.mixin(Mat4.prototype, {
 
         angle *= cc.MathUtils.DEG_TO_RAD;
 
-        x = axis.x;
-        y = axis.y;
-        z = axis.z;
+        var axisLenInv = 1/ axis.length();
+        x = axis.x * axisLenInv;
+        y = axis.y * axisLenInv;
+        z = axis.z * axisLenInv;
         c = Math.cos(angle);
         s = Math.sin(angle);
         t = 1 - c;
@@ -536,11 +537,11 @@ JS.mixin(Mat4.prototype, {
         tx = t.x;
         ty = t.y;
         tz = t.z;
-
-        qx = r.x;
-        qy = r.y;
-        qz = r.z;
-        qw = r.w;
+        var rLenInv = 1/ r.length();
+        qx = r.x * rLenInv;
+        qy = r.y * rLenInv;
+        qz = r.z * rLenInv;
+        qw = r.w * rLenInv;
 
         sx = s.x;
         sy = s.y;
