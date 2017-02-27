@@ -34,7 +34,7 @@ var Node = cc.Class({
         _localScale: new cc.Vec3(1,1,1),
     },
 
-    ctor: function(name) {
+    ctor: function() {
         this._localEulerAngles = new cc.Vec3(0,0,0);
 
         this._worldPosition = new cc.Vec3(0,0,0);
@@ -158,7 +158,7 @@ var Node = cc.Class({
         this._dirtyLocal = true;
     },
 
-    setLocalRotation: function (q) {
+    setLocalRotation: function () {
         if (arguments.length === 1) {
             this._localRotation.copy(arguments[0]);
         } else {

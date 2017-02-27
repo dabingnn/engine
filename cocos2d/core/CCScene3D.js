@@ -143,7 +143,7 @@ var Immediate = function (scene_) {
         }
         // Append
         lineBatches[batchId].addLines(position, color);
-    }
+    };
 
     this.renderLine = function (start, end, color, arg3, arg4) {
         var endColor = color;
@@ -157,7 +157,7 @@ var Immediate = function (scene_) {
             }
         }
         this._addLines(lineType, [start, end], [color, endColor]);
-    }
+    };
 
     this.renderLines = function (position, color, lineType) {
         if (lineType === undefined) lineType = cc3d.LINEBATCH_WORLD;
@@ -173,7 +173,7 @@ var Immediate = function (scene_) {
             return;
         }
         this._addLines(lineType, position, color);
-    }
+    };
 
     this.renderWireCube = function (matrix, color, lineType) {
         if (lineType === undefined) lineType = cc3d.LINEBATCH_WORLD;
@@ -205,7 +205,7 @@ var Immediate = function (scene_) {
             cubeWorldPos[2], cubeWorldPos[6],
             cubeWorldPos[3], cubeWorldPos[7]
         ], color, lineType);
-    }
+    };
 
     this._preRenderImmediate = function () {
         for (var i = 0; i < 3; i++) {
@@ -213,17 +213,17 @@ var Immediate = function (scene_) {
                 lineBatches[i].finalize(scene.immediateDrawCalls);
             }
         }
-    }
+    };
 
     this.renderMeshInstance = function (meshInstance) {
         scene.immediateDrawCalls.push(meshInstance);
-    }
+    };
 
     this.renderMesh = function (mesh, material, matrix) {
         var node = {_worldTransform: matrix};
         var instance = new cc3d.MeshInstance(node, mesh, material);
         scene.immediateDrawCalls.push(instance);
-    }
+    };
 
     this.renderQuad = function (matrix, material, layer) {
         // Init quad data once
@@ -253,7 +253,7 @@ var Immediate = function (scene_) {
         var quad = new cc3d.MeshInstance(node, quadMesh, material);
         if (layer) quad.layer = layer;
         scene.immediateDrawCalls.push(quad);
-    }
+    };
 };
 
 /**
