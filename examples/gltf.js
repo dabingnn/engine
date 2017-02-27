@@ -60,6 +60,32 @@ Font.prototype.getMaterial = function(backgroundColor, foregroundColor) {
     return material;
 };
 
+Font.prototype.getMaterial2d = function(backgroundColor, foregroundColor) {
+    var shaderDefinition = {
+        attributes: {
+            aPosition: cc3d.SEMANTIC_POSITION,
+            aUv0: cc3d.SEMANTIC_TEXCOORD0
+        },
+        vshader: cc3d.shaderChunks.msdf2dVS,
+        fshader: cc3d.shaderChunks.msdfPS.replace("[PRECISION]", "precision highp float;"),
+    };
+
+    var shader = new cc3d.Shader(cc.renderer.device, shaderDefinition);
+
+    var material = new cc3d.Material();
+    material.setShader(shader);
+
+    material.setParameter("texture_atlas", this.texture);
+    material.setParameter("material_background", [backgroundColor.r,backgroundColor.g,backgroundColor.b,backgroundColor.a]);
+    material.setParameter("material_foreground", [foregroundColor.r,foregroundColor.g,foregroundColor.b,foregroundColor.a]);
+    material.blendType = cc3d.BLEND_PREMULTIPLIED;
+    material.cull = cc3d.CULLFACE_NONE;
+    material.depthWrite = false;
+    material.depthTest = false;
+
+    return material;
+};
+
 Font.prototype.createMesh = function (testString, lineHeight) {
     lineHeight = lineHeight || 1.0;
     var l = testString.length;
@@ -196,7 +222,7 @@ function initScene () {
 
         labelMesh = font.createMesh(testString, 1.1);
 
-        labelMtl = font.getMaterial(new cc.ColorF(0,0,0,0), new cc.ColorF(0.8,0.5,0.3,1));
+        labelMtl = font.getMaterial2d(new cc.ColorF(0,0,0,0), new cc.ColorF(0.8,0.5,0.3,1));
 
     });
 
@@ -218,11 +244,37 @@ function initScene () {
 
 
         node = new cc.Node3D();
-        node.setLocalPosition(new cc.Vec3(-23.34,8.49,-32));
-        node.setLocalRotation(new cc.Quat().setFromAxisAngle(cc.Vec3.UP, -90));
-        node.setLocalScale(3,3,3);
+        //node.setLocalPosition(new cc.Vec3(-23.34,8.49,-32));
+        //node.setLocalRotation(new cc.Quat().setFromAxisAngle(cc.Vec3.UP, -90));
+        //node.setLocalScale(3,3,3);
         scene.addChild(node);
         scene._sgScene.drawCalls.push(new cc3d.MeshInstance(node, labelMesh, labelMtl));
+        {
+            var modelMat = new cc.Mat4();
+            var projMat = new cc.Mat4();
+            modelMat.copy(node.getWorldTransform());
+            var w = cc.renderer.device.canvas.width/32;
+            var h = cc.renderer.device.canvas.height/32;
+            var left;
+            var right;
+            var bottom;
+            var top;
+            var near = 2;
+            var far = 0;
+            var xscale = -1/32;
+            var yscale = -1/32;
+            left = 0;
+            right = -w;
+            xscale = -1/32;
+            bottom = -h;
+            top = 0;
+            yscale = -1/32;
+            projMat.setOrtho(left, right, bottom, top, near, far);
+            modelMat.data[12] *= xscale;
+            modelMat.data[13] *= yscale;
+            projMat.mul(modelMat);
+            labelMtl.setParameter('uProjection2d', projMat.data);
+        }
         // update input
         cc.director.on(cc.Director.EVENT_BEFORE_UPDATE, function () {
             // var dt = cc.director._deltaTime;
