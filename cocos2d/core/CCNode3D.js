@@ -332,9 +332,9 @@ var Node = cc.Class({
                     break;
             }
 
-            matrix.setLookAt(this.getPosition(), target, up);
+            matrix.setLookAt(this.getWorldPosition(), target, up);
             rotation.setFromMat4(matrix);
-            this.setRotation(rotation);
+            this.setWorldRotation(rotation);
         };
     }(),
 
