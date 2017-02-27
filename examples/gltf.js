@@ -2,29 +2,7 @@ var gltf = window.gltf;
 var Font = function (data, texture) {
     this.data = data;
     this.texture = texture;
-    var shaderDefinition = {
-        attributes: {
-            aPosition: cc3d.SEMANTIC_POSITION,
-            aUv0: cc3d.SEMANTIC_TEXCOORD0
-        },
-        vshader: cc3d.shaderChunks.msdfVS,
-        fshader: cc3d.shaderChunks.msdfPS.replace("[PRECISION]", "precision highp float;"),
-    };
 
-    var shader = new cc3d.Shader(cc.renderer.device, shaderDefinition);
-
-    var material = new cc3d.Material();
-    material.setShader(shader);
-
-    material.setParameter("texture_atlas", texture);
-    material.setParameter("material_background", [0,0,0,0]);
-    material.setParameter("material_foreground", [1.0,1.0,1.0,1]);
-    material.blendType = cc3d.BLEND_PREMULTIPLIED;
-    material.cull = cc3d.CULLFACE_NONE;
-    material.depthWrite = false;
-    material.depthTest = false;
-
-    this.material = material;
     this.em = 1;
     this._lineHeight = 1;
 };
@@ -54,6 +32,32 @@ Font.prototype.getUv = function(json, char) {
         (x2 / width),
         edge - (y2 / height)  // top right
     ];
+};
+
+Font.prototype.getMaterial = function(backgroundColor, foregroundColor) {
+    var shaderDefinition = {
+        attributes: {
+            aPosition: cc3d.SEMANTIC_POSITION,
+            aUv0: cc3d.SEMANTIC_TEXCOORD0
+        },
+        vshader: cc3d.shaderChunks.msdfVS,
+        fshader: cc3d.shaderChunks.msdfPS.replace("[PRECISION]", "precision highp float;"),
+    };
+
+    var shader = new cc3d.Shader(cc.renderer.device, shaderDefinition);
+
+    var material = new cc3d.Material();
+    material.setShader(shader);
+
+    material.setParameter("texture_atlas", this.texture);
+    material.setParameter("material_background", [backgroundColor.r,backgroundColor.g,backgroundColor.b,backgroundColor.a]);
+    material.setParameter("material_foreground", [foregroundColor.r,foregroundColor.g,foregroundColor.b,foregroundColor.a]);
+    material.blendType = cc3d.BLEND_PREMULTIPLIED;
+    material.cull = cc3d.CULLFACE_NONE;
+    material.depthWrite = false;
+    material.depthTest = false;
+
+    return material;
 };
 
 Font.prototype.createMesh = function (testString, lineHeight) {
@@ -192,7 +196,7 @@ function initScene () {
 
         labelMesh = font.createMesh(testString, 1.1);
 
-        labelMtl = font.material;
+        labelMtl = font.getMaterial(new cc.ColorF(0,0,0,0), new cc.ColorF(0.8,0.5,0.3,1));
 
     });
 
