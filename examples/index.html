@@ -35,10 +35,29 @@
   <body>
     <div class="wrapper">
       <canvas id="gameCanvas" width="800" height="450"></canvas>
+      <button id="debug">Debug</button>
+      <button id="pause">Pause</button>
+      <button id="play">Play</button>
     </div>
 
     <script src="bin/cocos2d-js-for-test.js"></script>
+    <script src="bin/debug.js"></script>
     <script src="bin/gltf-loader.js"></script>
-    <script src="gltf.js"></script>
+    <script src="demo.js"></script>
+    <script>
+      const canvas = document.getElementById('gameCanvas');
+
+      document.getElementById('debug').addEventListener('click', () => {
+        canvas.dispatchEvent(new CustomEvent('debug'));
+      });
+
+      document.getElementById('pause').addEventListener('click', () => {
+        canvas.dispatchEvent(new CustomEvent('pause'));
+      });
+
+      document.getElementById('play').addEventListener('click', () => {
+        canvas.dispatchEvent(new CustomEvent('play'));
+      });
+    </script>
   </body>
 </html>

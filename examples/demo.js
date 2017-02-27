@@ -226,8 +226,10 @@ function initScene () {
 
     });
 
+
+    window.debug();
     var url = 'assets/gltf-exports/scene.gltf';
-    gltf.loader.loadScene(url, function (err, scene) {
+    window.gltf.loader.loadScene(url, function (err, scene) {
         if (err) {
             console.error(`Failed to load ${url}: ${err}`);
             return;
@@ -241,7 +243,6 @@ function initScene () {
         // light
         var light = node.addComponent('cc.LightComponent');
         light.color = new cc.ColorF(0.8, 0.8, 0.8);
-
 
         node = new cc.Node3D();
         //node.setLocalPosition(new cc.Vec3(-23.34,8.49,-32));

@@ -10,8 +10,9 @@
   "scripts": {
     "test": "gulp test",
     "start": "http-server ./examples -a localhost -p 8520 -c-1",
-    "build:examples": "npm run build:test-for-examples && npm run build:gltf-for-examples",
+    "build:examples": "npm run build:test-for-examples && npm run build:gltf-for-examples && npm run build:debug-for-examples",
     "build:test-for-examples": "gulp build-examples",
+    "build:debug-for-examples": "browserify ./examples/debug/index.js -o ./examples/bin/debug.js",
     "build:gltf-for-examples": "browserify ./examples/gltf-loader/index.js -o ./examples/bin/gltf-loader.js"
   },
   "devDependencies": {
