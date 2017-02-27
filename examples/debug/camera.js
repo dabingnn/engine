@@ -31,10 +31,9 @@ let tmpRot = cc.Quat.IDENTITY;
 
 module.exports = {
     init (node) {
-        let euler = node.getWorldEulerAngles();
+        // let euler = node.getWorldEulerAngles();
+        let euler = node.getWorldRotation().getEulerAngles();
         let pos = node.getWorldPosition();
-
-        console.log(euler.x, euler.y);
 
         cameraState.phi = euler.x * cc.MathUtils.DEG_TO_RAD;
         cameraState.theta = euler.y * cc.MathUtils.DEG_TO_RAD;

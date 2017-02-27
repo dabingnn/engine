@@ -21,8 +21,8 @@ function addDebugCamera(scene, position, rotation) {
     var camera = node.addComponent('cc.CameraComponent');
     camera.projection = cc3d.PROJECTION_PERSPECTIVE;
     camera.fov = 60.0;
-    camera.nearClip = 0.01;
-    camera.farClip = 1000.0;
+    camera.near = 0.01;
+    camera.far = 1000.0;
     camera.clearColor = new cc.ColorF(0.3,0.3,0.3,1.0);
 
     scene.addChild(node);
@@ -65,6 +65,15 @@ window.debug = function () {
                 camPos = camNode.getWorldPosition();
                 camRotation = camNode.getWorldRotation();
             }
+
+            camPos = new cc.Vec3(5.0, 5.0, 5.0);
+            let rot = cc.Mat4.IDENTITY;
+            rot.setLookAt(
+                camPos,
+                new cc.Vec3(0, 0, 0),
+                new cc.Vec3(0, 1, 0)
+            );
+            camRotation.setFromMat4(rot);
 
             debugInput = new Input(cc.game.canvas);
             addDebugCamera(scene, camPos, camRotation);
