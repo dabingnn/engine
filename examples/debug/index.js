@@ -2,6 +2,7 @@
 
 var Input = require('./input');
 var cameraUtils = require('./camera');
+var gizmos = require('./gizmos');
 
 var debugCamera;
 var debugInput;
@@ -37,10 +38,14 @@ function removeDebugCamera() {
     }
 }
 
-function updateDebugCamera() {
+function _tick() {
+    var scene = cc.director.getScene();
     var dt = cc.director._deltaTime;
+
     cameraUtils.tick (dt, debugCamera, debugInput);
     debugInput.reset();
+
+    gizmos.drawGrid(scene);
 }
 
 window.debug = function () {
@@ -78,7 +83,7 @@ window.debug = function () {
             debugInput = new Input(cc.game.canvas);
             addDebugCamera(scene, camPos, camRotation);
 
-            cc.director.on(cc.Director.EVENT_BEFORE_UPDATE, updateDebugCamera);
+            cc.director.on(cc.Director.EVENT_BEFORE_UPDATE, _tick);
         } else {
             removeDebugCamera();
             if (debugInput) {
@@ -90,7 +95,7 @@ window.debug = function () {
                 cam.enabled = true;
             });
 
-            cc.director.off(cc.Director.EVENT_BEFORE_UPDATE, updateDebugCamera);
+            cc.director.off(cc.Director.EVENT_BEFORE_UPDATE, _tick);
         }
     });
 

@@ -18,6 +18,7 @@
     "cc": false,
     "cc3d": false,
     "CC_EDITOR": false,
+    "CC_TEST": false,
     "CC_DEV": false,
     "CC_JSB": false,
     "_ccsg": false
