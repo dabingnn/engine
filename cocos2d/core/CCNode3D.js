@@ -56,7 +56,7 @@ var Node = cc.Class({
     },
 
     getRight: function() {
-        this.getWorldTransform().getX(this._right).normalize();
+        return this.getWorldTransform().getX(this._right).normalize();
     },
 
     getUp: function() {

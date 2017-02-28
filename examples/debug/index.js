@@ -38,6 +38,13 @@ function removeDebugCamera() {
     }
 }
 
+function walk ( node, fn ) {
+    node.children.forEach(child => {
+        fn ( node, child );
+        walk( child, fn );
+    });
+}
+
 function _tick() {
     var scene = cc.director.getScene();
     var dt = cc.director._deltaTime;
@@ -46,6 +53,12 @@ function _tick() {
     debugInput.reset();
 
     gizmos.drawGrid(scene);
+
+    // var node = scene.findByName('main-camera');
+    // gizmos.drawCoord(scene, node);
+    // walk(scene, (parent, child) => {
+    //     gizmos.drawCoord(scene, child);
+    // });
 }
 
 window.debug = function () {

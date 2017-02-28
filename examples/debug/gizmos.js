@@ -25,12 +25,35 @@ module.exports = {
             vertices.push( new cc.Vec3(-hw, 0, z) );
             vertices.push( new cc.Vec3(hw, 0, z) );
 
-            colors.push( new cc.Color(0.5, 0.5, 0.5, 0.5) );
-            colors.push( new cc.Color(0.5, 0.5, 0.5, 0.5) );
+            colors.push( new cc.ColorF(0.5, 0.5, 0.5, 0.5) );
+            colors.push( new cc.ColorF(0.5, 0.5, 0.5, 0.5) );
         }
 
         // cc._renderContext;
         // scene._sgScene.renderLines( vertices, colors );
+        scene.immediateRenderer.renderLines( vertices, colors );
+    },
+
+    drawCoord (scene, node) {
+        let pos = node.getWorldPosition();
+        let vertices = [];
+        let colors = [];
+
+        vertices.push(pos.clone());
+        vertices.push(pos.clone().add(node.getRight()));
+        colors.push(new cc.ColorF(1.0, 0.0, 0.0));
+        colors.push(new cc.ColorF(1.0, 0.0, 0.0));
+
+        vertices.push(pos.clone());
+        vertices.push(pos.clone().add(node.getUp()));
+        colors.push(new cc.ColorF(0.0, 1.0, 0.0));
+        colors.push(new cc.ColorF(0.0, 1.0, 0.0));
+
+        vertices.push(pos.clone());
+        vertices.push(pos.clone().add(node.getForward().scale(-1)));
+        colors.push(new cc.ColorF(0.0, 0.0, 1.0));
+        colors.push(new cc.ColorF(0.0, 0.0, 1.0));
+
         scene.immediateRenderer.renderLines( vertices, colors );
     }
 };
