@@ -40,16 +40,19 @@
       <button id="play">Play</button>
     </div>
 
-    <script src="node_modules/eruda/eruda.min.js"></script>
     <script src="bin/cocos2d-js-for-test.js"></script>
     <script src="bin/debug.js"></script>
     <script src="bin/gltf-loader.js"></script>
     <script src="demo.js"></script>
     <script>
       if (/debug/.test(window.location)) {
-        eruda.init({
-            tool: ['console', 'elements']
-        });
+        document.write(`\<script src="node_modules/eruda/eruda.min.js"\>\<\/script\>`);
+        document.write(
+        `\<script\>
+           eruda.init({
+             tool: ['console', 'elements']
+           });
+         \<\/script\>`);
       }
 
       const canvas = document.getElementById('gameCanvas');
