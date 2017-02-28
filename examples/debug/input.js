@@ -88,7 +88,9 @@ class Input {
             event.stopPropagation();
 
             // Editor.UI.addDragGhost('crosshair');
-            document.body.requestPointerLock();
+            if ( document.body.requestPointerLock ) {
+                document.body.requestPointerLock();
+            }
 
             let bcr = canvasEL.getBoundingClientRect();
 
@@ -147,7 +149,9 @@ class Input {
         // reigster canvas events
         let canvasEL = this._canvas;
 
-        document.exitPointerLock();
+        if ( document.exitPointerLock ) {
+            document.exitPointerLock();
+        }
 
         // handle keyboard
         canvasEL.removeEventListener('keydown', this._canvasKeydownHandle);
@@ -207,7 +211,9 @@ class Input {
             this.keypress('mouse-right') === false
         ) {
             // Editor.UI.removeDragGhost();
-            document.exitPointerLock();
+            if ( document.exitPointerLock ) {
+                document.exitPointerLock();
+            }
 
             document.removeEventListener('mousemove', this._mousemoveHandle);
             document.removeEventListener('mouseup', this._mouseupHandle);

@@ -40,11 +40,16 @@
       <button id="play">Play</button>
     </div>
 
+    <script src="node_modules/eruda/eruda.min.js"></script>
     <script src="bin/cocos2d-js-for-test.js"></script>
     <script src="bin/debug.js"></script>
     <script src="bin/gltf-loader.js"></script>
     <script src="demo.js"></script>
     <script>
+      eruda.init({
+          tool: ['console', 'elements']
+      });
+
       const canvas = document.getElementById('gameCanvas');
 
       document.getElementById('debug').addEventListener('click', () => {

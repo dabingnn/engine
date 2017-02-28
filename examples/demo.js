@@ -17,12 +17,14 @@ function initScene () {
 
         // node
         var node = new cc.Node3D();
-        node.setLocalPosition(new cc.Vec3(0,0,-10));
+        node.setWorldPosition(new cc.Vec3(10, 10, 10));
+        node.lookAt(new cc.Vec3(0,0,0));
         scene.addChild(node);
 
         // light
         var light = node.addComponent('cc.LightComponent');
-        light.color = new cc.ColorF(0.8, 0.8, 0.8);
+        light.type = cc3d.LIGHTTYPE_DIRECTIONAL;
+        light.color = new cc.ColorF(1, 1, 1);
     });
 }
 
