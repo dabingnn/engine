@@ -46,9 +46,11 @@
     <script src="bin/gltf-loader.js"></script>
     <script src="demo.js"></script>
     <script>
-      eruda.init({
-          tool: ['console', 'elements']
-      });
+      if (/debug/.test(window.location)) {
+        eruda.init({
+            tool: ['console', 'elements']
+        });
+      }
 
       const canvas = document.getElementById('gameCanvas');
 
