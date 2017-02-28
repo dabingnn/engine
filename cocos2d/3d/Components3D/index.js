@@ -26,4 +26,5 @@
 require('./CCModel');
 require('./CCLight');
 require('./CCCamera');
+require('./CCLabelComponent');
 //require('./CCAnimation');
