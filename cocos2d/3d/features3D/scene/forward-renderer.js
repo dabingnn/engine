@@ -813,8 +813,8 @@ cc3d.extend(cc3d, function () {
 
                 this.lightColorId[cnt].setValue(scene.gammaCorrection ? directional._linearFinalColor.data : directional._finalColor.data);
 
-                // Directionals shine down the negative Y axis
-                wtm.getY(directional._direction).scale(-1);
+                // Directionals shine down the negative Z axis
+                wtm.getZ(directional._direction).scale(-1);
                 this.lightDirId[cnt].setValue(directional._direction.normalize().data);
 
                 if (directional.getCastShadows()) {
@@ -899,8 +899,8 @@ cc3d.extend(cc3d, function () {
             this.lightColorId[cnt].setValue(scene.gammaCorrection ? spot._linearFinalColor.data : spot._finalColor.data);
             wtm.getTranslation(spot._position);
             this.lightPosId[cnt].setValue(spot._position.data);
-            // Spots shine down the negative Y axis
-            wtm.getY(spot._direction).scale(-1);
+            // Spots shine down the negative Z axis
+            wtm.getZ(spot._direction).scale(-1);
             this.lightDirId[cnt].setValue(spot._direction.normalize().data);
 
             if (spot.getCastShadows()) {
