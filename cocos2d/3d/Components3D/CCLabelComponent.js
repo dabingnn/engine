@@ -25,7 +25,7 @@
 
 var Component = require('../../core/components/CCComponent');
 
-var MdsfFont = function (data, texture) {
+var MSDFFont = function (data, texture) {
     this.data = data;
     this.texture = texture;
     this.em = 1;
@@ -34,7 +34,7 @@ var MdsfFont = function (data, texture) {
     this._backgroundColor = new cc.ColorF(0,0,0,0);
 };
 
-MdsfFont.prototype.getShader = function () {
+MSDFFont.prototype.getShader = function () {
     var shader;
     return function () {
         if(!shader) {
@@ -53,7 +53,7 @@ MdsfFont.prototype.getShader = function () {
     };
 }();
 
-MdsfFont.prototype.getShader2d = function () {
+MSDFFont.prototype.getShader2d = function () {
     var shader;
     return function () {
         if(!shader) {
@@ -73,15 +73,15 @@ MdsfFont.prototype.getShader2d = function () {
 }();
 
 
-MdsfFont.prototype.setForegroundColor = function (color) {
+MSDFFont.prototype.setForegroundColor = function (color) {
     this._foregroundColor.copy(color);
 };
 
-MdsfFont.prototype.setBackgroundColor = function (color) {
+MSDFFont.prototype.setBackgroundColor = function (color) {
     this._backgroundColor.copy(color);
 };
 
-MdsfFont.prototype.getUv = function(json, char) {
+MSDFFont.prototype.getUv = function(json, char) {
     var data = json;
     var width = data.info.width;
     var height = data.info.height;
@@ -108,7 +108,7 @@ MdsfFont.prototype.getUv = function(json, char) {
     ];
 };
 
-MdsfFont.prototype.getMaterial = function() {
+MSDFFont.prototype.getMaterial = function() {
     var backgroundColor = this._backgroundColor;
     var foregroundColor = this._foregroundColor;
     var material = new cc3d.Material();
@@ -125,7 +125,7 @@ MdsfFont.prototype.getMaterial = function() {
     return material;
 };
 
-MdsfFont.prototype.getMaterial2d = function() {
+MSDFFont.prototype.getMaterial2d = function() {
     var backgroundColor = this._backgroundColor;
     var foregroundColor = this._foregroundColor;
 
@@ -143,7 +143,7 @@ MdsfFont.prototype.getMaterial2d = function() {
     return material;
 };
 
-MdsfFont.prototype.createMesh = function (testString, lineHeight) {
+MSDFFont.prototype.createMesh = function (testString, lineHeight) {
     lineHeight = lineHeight || 1.0;
     var l = testString.length;
     // create empty arrays
@@ -195,19 +195,19 @@ MdsfFont.prototype.createMesh = function (testString, lineHeight) {
             scale = 0.01;
         }
         //fill positions and calculate width
-        positions[i*4*3+0] = cursorX + x;
+        positions[i*4*3+0] = cursorX - x;
         positions[i*4*3+1] = cursorY - y;
         positions[i*4*3+2] = cursorZ;
 
-        positions[i*4*3+3] = cursorX + x - scale;
+        positions[i*4*3+3] = cursorX + scale - x;
         positions[i*4*3+4] = cursorY - y;
         positions[i*4*3+5] = cursorZ;
 
-        positions[i*4*3+6] = cursorX + x - scale;
+        positions[i*4*3+6] = cursorX + scale - x;
         positions[i*4*3+7] = cursorY - y + scale;
         positions[i*4*3+8] = cursorZ;
 
-        positions[i*4*3+9]  = cursorX + x;
+        positions[i*4*3+9]  = cursorX - x;
         positions[i*4*3+10] = cursorY - y + scale;
         positions[i*4*3+11] = cursorZ;
 
@@ -216,7 +216,7 @@ MdsfFont.prototype.createMesh = function (testString, lineHeight) {
 
         // advance cursor
         var spacing = 1;
-        cursorX = cursorX - (spacing*advance);
+        cursorX = cursorX + (spacing*advance);
 
         normals[i*4*3+0] = 0;
         normals[i*4*3+1] = 0;
@@ -486,14 +486,14 @@ BMFont.prototype.getMaterial = function() {
 };
 
 BMFont.prototype.getMaterial2d = function() {
-    console.error('getMaterial2d for BMFont is Not implemented!');
-    var material = new cc3d.BasicMaterial();
-    material.colorMap = this.texture;
+    var material = new cc3d.Material();
+    material.setShader(this.getShader2d());
+    material.setParameter("texture_atlas", this.texture);
     material.blendType = cc3d.BLEND_PREMULTIPLIED;
     material.cull = cc3d.CULLFACE_NONE;
     material.depthWrite = false;
     material.depthTest = false;
-    material.update();
+
     return material;
 };
 
@@ -541,7 +541,7 @@ var LabelComponent = cc.Class({
 
     setFont: function(font) {
         this._font = font;
-        //this._font = new MdsfFont(fontFile, fontTexture);
+        //this._font = new MSDFFont(fontFile, fontTexture);
         this._detachMeshInstanceToRenderer();
         if(this._text) {
             this._buildFontMeshInstance();
@@ -587,14 +587,14 @@ var LabelComponent = cc.Class({
                 var top;
                 var near = 2;
                 var far = 0;
-                var xscale = -1/32;
-                var yscale = -1/32;
+                var xscale = 1/32;
+                var yscale = 1/32;
                 left = 0;
-                right = -w;
-                xscale = -1/32;
-                bottom = -h;
-                top = 0;
-                yscale = -1/32;
+                right = w;
+                xscale = 1/32;
+                bottom = 0;
+                top = h;
+                yscale = 1/32;
                 projMat.setOrtho(left, right, bottom, top, near, far);
                 modelMat.data[12] *= xscale;
                 modelMat.data[13] *= yscale;
@@ -627,5 +627,5 @@ var LabelComponent = cc.Class({
 });
 
 cc.LabelComponent = module.exports = LabelComponent;
-cc.MdsfFont = MdsfFont;
+cc.MSDFFont = MSDFFont;
 cc.BMFont = BMFont;
